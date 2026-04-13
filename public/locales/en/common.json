@@ -1,0 +1,1048 @@
+{
+  "navbar": {
+    "categories": "Categories",
+    "brand": "Brands",
+    "authenticity": "Authenticity",
+    "shipping": "Shipping",
+    "service": "Services",
+    "news": "News",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "about": "About Us",
+    "search": "Search..."
+  },
+  "lang": {
+    "zh-TW": "繁體中文",
+    "en": "English",
+    "ko": "한국어"
+  },
+  "mega": {
+    "categories": "Categories",
+    "brands": "Featured Brands",
+    "view_all": "View All",
+    "no_products": "No products found"
+  },
+  "home": {
+    "editorial_title": "Editorial Selection",
+    "editorial_subtitle": "Style Proposals",
+    "featured_collections": "Featured Collections",
+    "philosophy_title": "Brand Philosophy | The Origin of KÉSH de¹",
+    "philosophy_desc": "The '1' represents being the first and the beginning. The upward design in de¹ symbolizes the starting point of taste and the continuous pursuit of elevation.",
+    "vision_title": "Our Vision",
+    "vision_desc": "To build a trusted and tasteful exchange center for luxury goods.",
+    "contact_title": "CONTACT US",
+    "contact_btn": "Contact Us"
+  },
+  "guarantees": {
+    "item1": {
+      "title": "Authenticity Verification",
+      "subtitle": "Guaranteed Authentic",
+      "price": "100% Authenticity",
+      "description": "Triple checked and source verified.",
+      "detail": "KÉSH de¹ rigorously controls the source of every item. Our professional appraisal team conducts multiple detailed inspections to eliminate any possibility of counterfeits, ensuring every luxury piece you receive is genuine for your peace of mind."
+    },
+    "item2": {
+      "title": "Condition Selection",
+      "subtitle": "Curated Quality",
+      "price": "Collectible Luxury",
+      "description": "We only sell collectible pieces in complete condition.",
+      "detail": "We understand the importance of condition. KÉSH de¹ rejects items in poor condition, focusing on selecting well-maintained, rare bags with excellent color, allowing you to own your desired fashion piece in its most ideal state."
+    },
+    "item3": {
+      "title": "Fast Shipping",
+      "subtitle": "Express Delivery",
+      "price": "Ships in 24-48 Hours",
+      "description": "In-stock items are typically shipped within 24-48 hours.",
+      "detail": "No long waits; we understand your eagerness. Upon order confirmation, in-stock items will be beautifully packaged and dispatched with maximum efficiency, delivering fashion to your hands swiftly for immediate enjoyment."
+    }
+  },
+  "hero": {
+    "slides": [
+      {
+        "title": "New Arrivals",
+        "description": "Curated Luxury | Season's Newest | Authenticated | 100% Genuine | Global Shipping",
+        "button": "Discover More"
+      },
+      {
+        "title": "Personal Shopping",
+        "description": "Curated Luxury | Season's Newest | Authenticated | 100% Genuine | Global Shipping",
+        "button": "Discover More"
+      },
+      {
+        "title": "Hermès Collection",
+        "description": "Curated Luxury | Season's Newest | Authenticated | 100% Genuine | Global Shipping",
+        "button": "Discover More"
+      },
+      {
+        "title": "Premium Buyback",
+        "description": "Curated Luxury | Season's Newest | Authenticated | 100% Genuine | Global Shipping",
+        "button": "Discover More"
+      }
+    ]
+  },
+  "authenticity": {
+    "seo_title": "Authenticity & Standards | KÉSH de¹",
+    "seo_desc": "All items purchased at KÉSH de¹ undergo professional authentication and come with verification documents and receipts, offering a lifetime guarantee of authenticity. Enjoy one free basic leather care and cleaning service within two years of purchase.",
+    "page_title": "Authenticity & Standards",
+    "page_subtitle": "Our Authentication Standards",
+    "commitment_title": "Our Commitment to Authenticity",
+    "commitment_desc1": "All items purchased at KÉSH de¹ undergo manual inspection by two qualified appraisers, combined with Entrupy technology verification. They come with relevant appraisal documents and proof of purchase, providing ",
+    "commitment_highlight": "a lifetime guarantee of authenticity",
+    "commitment_desc2": ". We know that trust is the cornerstone of luxury trading.",
+    "badge_tech": "Entrupy Verified",
+    "badge_human": "Double Authentication",
+    "process_title": "Strict Authentication Process",
+    "process_1_title": "01. Scientific Verification",
+    "process_1_desc": "We use the Entrupy AI authentication system, analyzing leather textures and craftsmanship details through microscopic lenses and comparing them with a global database, achieving an accuracy rate of 99.1%.",
+    "process_2_title": "02. Expert Gatekeeping",
+    "process_2_desc": "Every item must undergo independent inspection by two senior appraisers to confirm that the font, hardware, and stitching meet the brand's craftsmanship standards.",
+    "process_3_title": "03. Complete Record",
+    "process_3_desc": "A KÉSH de¹ exclusive warranty card and appraisal report are included with the shipment, establishing a complete history for the item, so you can collect with peace of mind.",
+    "care_title": "After-Sales Care Service",
+    "care_subtitle": "Exclusive Leather Care",
+    "care_desc1": "Within two years from the date of purchase, with proof of purchase, we offer ",
+    "care_highlight": "one free basic leather care and cleaning service",
+    "care_desc2": ". Let your beloved bag continue its charming luster under professional care.",
+    "care_list_1": "This service includes: leather surface dusting, moisturizing care, and basic nursing.",
+    "care_list_2": "Exclusions: Hardware polishing/, leather tear repair, interior , or dyeing services are not included.",
+    "care_list_3": "How to use: Please make an appointment in advance via Customer Service LINE or online form, and send the item to the designated address.",
+    "contact_desc": "If you need to know about the condition of the item or care details, please contact our customer service team.",
+    "contact_btn": "Contact Customer Service"
+  },
+  "footer": {
+    "slogan_1": "A Value of Priority.",
+    "slogan_2": "A Beginning of Dreams.",
+    "slogan_3": "Professional Authentication & Worldwide Shipping.",
+    "explore_title": "Explore",
+    "support_title": "Support",
+    "links": {
+      "about": "About Us",
+      "services": "Services",
+      "news": "News",
+      "shop": "Shop All",
+      "": "",
+      "authenticity": "Authenticity",
+      "shipping": "Global Shipping",
+      "faq": "FAQ",
+      "contact": "Contact Us",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "contact_us": "Contact Us",
+    "contact_desc_1": "For any product inquiries or  needs,",
+    "contact_desc_2": "please feel free to contact us.",
+    "get_in_touch": "Get in Touch",
+    "designed_by": "Designed by",
+    "geek_design": "Jeek Web Design",
+    "rights": "KÉSH de¹ Boutique. All rights reserved."
+  },"login": {
+    "title": "Member Login",
+    "subtitle": "Log in to KÉSH de¹ to view your collection",
+    "google": "Continue with Google",
+    "facebook": "Continue with Facebook",
+    "or_email": "Or login with email",
+    "email_label": "Email",
+    "email_placeholder": "name@example.com",
+    "password_label": "Password",
+    "password_placeholder": "Enter your password",
+    "forgot_password": "Forgot Password?",
+    "sign_in": "Sign In",
+    "no_account": "Don't have an account?",
+    "register": "Register for free",
+    "error_invalid": "Invalid email or password",
+    "reset_title": "Reset Password",
+    "reset_subtitle": "Enter your registered email address and we will send you a link to reset your password.",
+    "reset_btn": "Send Reset Link",
+    "reset_error": "Failed to send. Please try again later or check if the email is correct.",
+    "back_to_login": "Back to Login",
+    "sent_title": "Check Your Mail",
+    "sent_desc_1": "We have sent a password reset link to",
+    "sent_desc_2": "Please check your inbox and spam folder."
+  },
+  "register": {
+    "title_step1": "Member Registration",
+    "title_step2": "Verify Email",
+    "subtitle_step1": "Join KÉSH de¹ and enjoy exclusive services",
+    "subtitle_step2": "Verification code has been sent to",
+    "google": "Register with Google",
+    "facebook": "Register with Facebook",
+    "or_email": "Or register with email",
+    "username_label": "Username",
+    "username_placeholder": "e.g., John Doe",
+    "email_label": "Email",
+    "email_placeholder": "name@example.com",
+    "password_label": "Set Password",
+    "password_placeholder": "Enter at least 6 characters",
+    "send_otp": "Send Verification Code",
+    "otp_label": "Enter 6-digit Verification Code",
+    "otp_placeholder": "000000",
+    "complete_register": "Complete Registration",
+    "back_to_edit": "Back to edit email",
+    "have_account": "Already have an account?",
+    "login": "Login",
+    "success_alert": "Registration successful! Please log in with your credentials."
+  },
+  "shipping": {
+    "seo_title": "Worldwide Shipping | KÉSH de¹",
+    "seo_desc": "We provide international shipping. Documentation is prepared in accordance with destination regulations. Delivery is handled securely and efficiently.",
+    "title": "Worldwide Shipping",
+    "subtitle": "Global Shipping Policy",
+    "commitment_title": "Our Commitment",
+    "commitment_desc": "KÉSH de¹ offers worldwide shipping. No matter where you are, we are committed to ensuring every luxury piece is delivered safely and efficiently. We partner with top-tier international logistics providers (DHL / FedEx) and assist with customs clearance procedures in accordance with destination country regulations.",
+    "intl_policy_title": "International Policy",
+    "intl_policy_desc": "We provide international shipping services. Documentation is prepared strictly in accordance with destination country regulations. Delivery is handled securely and efficiently through our premium logistics partners.",
+    "delivery_time_title": "Delivery Time",
+    "domestic_label": "Domestic (Taiwan)",
+    "domestic_title": "Taiwan Island Delivery",
+    "domestic_desc": "Approx. 1 - 3 business days (Black Cat Express / Personal Courier)",
+    "intl_label": "International",
+    "intl_title": "International Delivery",
+    "intl_desc": "Asia: 3-5 days / Europe & US: 5-10 days (DHL/FedEx)",
+    "insurance_title": "Fully Insured Shipping",
+    "insurance_desc": "To ensure the safety of high-value items, all dispatched packages are fully insured for transit. In the event of any loss or damage during shipping, the insurance company and we will take full responsibility, safeguarding your assets.",
+    "duties_title": "Duties & Taxes",
+    "duties_desc": "Import duties and local taxes incurred from international shipping are the responsibility of the recipient (buyer). We declare items truthfully according to regulations. If you have special customs declaration requests, please contact our customer service before placing an order."
+  },
+  "services": {
+    "seo": {
+      "title": "Buy-in・・Trade-in・Sourcing | Services",
+      "desc": "Applicants must provide two valid forms of identification for real-name verification. Information is used strictly for identity verification and legal compliance.",
+      "keywords": "Luxury Buy-in, , Personal Shopper, Hermes Sourcing, Chanel Buy-in, Trade-in, KESH de1"
+    },
+    "ui": {
+      "header_title": "Our Services",
+      "header_subtitle": "To ensure transaction safety and compliance, please read the identity verification requirements before applying.",
+      "sourcing_suitable_title": "Who is this service for?",
+      "sourcing_form_title": "Sourcing Request Details",
+      "sourcing_form_subtitle": "Please prepare the following. We will contact you within 24 hours:",
+      "legal_shipping_title": "Regulations & Delivery",
+      "legal_tag": "Legal",
+      "shipping_tag": "Delivery",
+      "faq_title": "FAQ",
+      "our_promise_title": "Our Promise",
+      "our_promise_desc": "KÉSH de¹ only sources authentic products with transparent origins. All items are inspected by professional appraisers with complete product histories established. We're not just buying a bag for you; we're helping you make an important collection decision.",
+      "online_submission_title": "Online Submission Guidelines",
+      "online_estimation_title": "Online Estimation & Valuation",
+      "required_docs_title": "Required Information:",
+      "pricing_method_title": "Valuation Method:",
+      "conclusion_title": "Buy-in and  Services:",
+      "conclusion_desc1": "To ensure an accurate evaluation and a smooth process, <br class=\"hidden md:block\" />please provide clear, complete information and photos reflecting the item's true condition.",
+      "conclusion_desc2": "If you need further clarification on any details, <br class=\"hidden md:block\" />feel free to contact us. We are happy to help.",
+      "contact_team_btn": "Contact Our Team",
+      "cta_subtitle": "Ready to get started?",
+      "cta_subtitle_sourcing": "Looking for your dream piece? Contact us now.",
+      "btn_line_estimate": "LINE Online Estimate",
+      "btn_line_sourcing": "LINE Sourcing Inquiry",
+      "btn_contact_store": "Book a Boutique Visit",
+      "btn_contact_sourcing": "Submit Request"
+    },
+    "common_requirements": {
+      "inStore": [
+        "Two forms of valid ID (e.g., ID Card + Driver's License/Passport)",
+        "Complete accessories (Box, dust bag, receipt, authenticity card, strap, etc.)"
+      ],
+      "online": [
+        "Clear photos of the item (Front / Back / Bottom / Corners / Hardware / Interior / Flaws)",
+        "Contact Information (Phone Number + LINE ID)"
+      ],
+      "privacyNote": "Note: All ID documents are strictly used for identity verification and protected under our privacy policy."
+    },
+    "data": {
+      "buy-in": {
+        "tab_main": "Buy-in",
+        "tab_sub": "Process",
+        "title": "Buy-in Process",
+        "desc": "The fastest way to cash out. We offer competitive market quotes with instant payout upon on-site verification.",
+        "steps": [
+          { "step": "01", "title": "Initial Estimate", "desc": "Send photos via LINE, or bring the item directly to our boutique." },
+          { "step": "02", "title": "Physical Appraisal", "desc": "Professional appraisers verify the condition, accessories, and authenticity on-site." },
+          { "step": "03", "title": "Sign Contract", "desc": "Confirm price and condition, then sign the transfer agreement." },
+          { "step": "04", "title": "Cash Payout", "desc": "Once formalities are complete, receive immediate payment via cash or wire transfer." }
+        ],
+        "pricing": "Comprehensive valuation based on brand, model popularity, current second-hand market trends, and actual condition (year, wear and tear, completeness of accessories).",
+        "faq": [
+          { "q": "What is Buy-in?", "a": "Buy-in means our company purchases your item outright. Once the price is agreed upon, ownership transfers to us, and it is no longer a  or cooperative sale." },
+          { "q": "How is the buy-in price determined?", "a": "The price is evaluated comprehensively based on market demand, current market rates, and the actual condition of the item (including year, signs of use, and accessories)." },
+          { "q": "What happens after the buy-in is confirmed?", "a": "Once agreed, we complete the online documentation and you ship the item to us.\n\nUpon receipt, we inspect the item. If the condition differs significantly from the provided photos, we will contact you immediately to discuss a price adjustment or cancel the process.\n\nOnce verified, payment is transferred within 7 business days." },
+          { "q": "What if the item condition does not match the description?", "a": "If there is a significant discrepancy, we will contact you to discuss adjusting the price or terminating the buy-in process." },
+          { "q": "Can I cancel or get my item back after the buy-in is complete?", "a": "Once the buy-in is finalized and payment is made, ownership is transferred and we cannot return or cancel the transaction." }
+        ]
+      },
+      "": {
+        "tab_main": "",
+        "tab_sub": "Process",
+        "title": " Process",
+        "desc": "We help you set a reasonable price for your unused luxury bags. From contract signing to final sale and payout, our process is transparent, ensuring a safe transition to the next collector.",
+        "highlight": "Service fee is 20% of the final sale price (Tax included)",
+        "steps": [
+          { "step": "01", "title": "Set Price", "desc": "We discuss and agree on a reasonable listing price." },
+          { "step": "02", "title": "Sign Contract", "desc": "Confirm the  period (usually 3-6 months) and care terms." },
+          { "step": "03", "title": "Professional Listing", "desc": "Item cleaning, professional photography, and exposure on our website and social media." },
+          { "step": "04", "title": "Sale & Payout", "desc": "After sale, the 20% fee is deducted, and the balance is transferred to you within the agreed timeframe." }
+        ],
+        "pricing": "We provide a suggested retail price, but you have the final say. If a high price leads to slow sales, we will discuss potential adjustments with you.",
+        "faq": [
+          { "q": "Can I take my item back during the  period?", "a": "Yes. Retrieving it during the contract period may incur a small maintenance fee. If unsold after the contract expires, retrieval is free." },
+          { "q": "When will I receive payment after it sells?", "a": "Once the transaction is complete and the return period expires without issue, payout occurs within 7-14 days. We will notify you proactively when it sells." },
+          { "q": "What does the platform service fee cover?", "a": "The fee covers valuation, photography, listing exposure, sales handling, shipping, and after-sales support. There are no hidden fees." },
+          { "q": "Is my item guaranteed to be listed?", "a": "Not necessarily. We only accept items in good condition from legitimate sources. Our team reviews all items for market suitability before listing." },
+          { "q": "Who decides the price? Will it be discounted randomly?", "a": "The listing price is agreed upon before cooperation. We will not adjust the price without your consent; any market adjustments are communicated beforehand." },
+          { "q": "How is the item stored?", "a": "All items are stored according to luxury preservation standards, including dust and pressure protection, and environmental controls to maintain their original condition." },
+          { "q": "Why is identity verification required?", "a": "Verification is strictly for confirming transaction safety and meeting regulatory compliance." }
+        ]
+      },
+      "trade-in": {
+        "tab_main": "Trade-in",
+        "tab_sub": "Process",
+        "title": "Trade-in Process",
+        "desc": "Upgrade your collection. Use your unused luxury items as credit toward a new piece from our boutique.",
+        "steps": [
+          { "step": "01", "title": "Select Item", "desc": "Choose your desired upgrade target at KÉSH de¹." },
+          { "step": "02", "title": "Old Bag Valuation", "desc": "We appraise your old bag (usually higher than direct buy-in rates)." },
+          { "step": "03", "title": "Pay Difference", "desc": "Calculate the difference between the new item and the trade-in value." },
+          { "step": "04", "title": "Complete Exchange", "desc": "Seamlessly clear out the old and welcome the new." }
+        ],
+        "pricing": "Trade-in services often yield a better value for your old bag compared to direct buy-ins, as our way of encouraging circular fashion.",
+        "faq": [
+          { "q": "Can I trade in multiple bags for one?", "a": "Yes. You can combine the value of multiple unused items toward one higher-priced piece." },
+          { "q": "What is Trade-in?", "a": "Trade-in means using your existing luxury goods to offset part of the cost of a new purchase on our platform." },
+          { "q": "Are all items eligible for trade-in?", "a": "Not necessarily. We only evaluate luxury goods in good condition with market liquidity. Final eligibility is determined by our appraisal team." },
+          { "q": "What if my old bag is worth more than the new one?", "a": "If your trade-in value exceeds the new item's price, the excess amount will remain as platform credit for future purchases." }
+        ]
+      },
+      "sourcing": {
+        "tab_main": "Sourcing",
+        "tab_sub": "Service",
+        "title": "Sourcing Service",
+        "desc": "Professional luxury sourcing. We help you find specific pieces tailored to your needs, with transparent pricing and wait times.",
+        "highlight": "Global Boutique & Authorized Channels | 100% Authenticity Guarantee",
+        "intro": [
+          "If you can't find what you're looking for at KÉSH de¹, we offer a global sourcing service for new items from international boutiques.",
+          "All items are purchased by our professional team from authorized channels. Upon arrival, they are appraised, documented, and photographed before shipping to you.",
+          "Focus Brands: Hermès, Chanel, Louis Vuitton, Dior, Loewe, Celine, Prada (Others available upon request)."
+        ],
+        "suitableFor": [
+          "Can't find the desired model on our site",
+          "Out of stock at boutiques or hard to get allocated",
+          "Looking for seasonal new arrivals or limited editions",
+          "Specific color, size, or material requests",
+          "Collector-grade brand new condition needed",
+          "Want to skip the hassle of cross-border shopping and customs"
+        ],
+        "steps": [
+          { "step": "01", "title": "Confirm Needs", "desc": "Fill out the sourcing form; our specialist will contact you to confirm details." },
+          { "step": "02", "title": "Quote & Payment", "desc": "We provide a formal quote and lead time. 100% upfront payment is required." },
+          { "step": "03", "title": "Global Sourcing", "desc": "We initiate the purchase from global channels and report progress." },
+          { "step": "04", "title": "Appraisal & Shipping", "desc": "Upon arrival, items are authenticated, documented, and dispatched to you." }
+        ],
+        "formInfo": [
+          "Name / Phone / Email",
+          "Desired Brand / Model / Color / Size",
+          "Condition requirement (Brand New / Like New / 90% New / Minor Flaws acceptable)"
+        ],
+        "paymentPolicy": {
+          "title": "Payment System (Full Prepayment)",
+          "content": "A 100% payment of the total item cost is required once the order is established. All payments are securely managed via the third-party platform Unipay."
+        },
+        "refundPolicy": {
+          "title": "Out-of-Stock Refund Guarantee",
+          "content": "If procurement fails due to boutique stockouts or discontinuation, KÉSH will issue a full refund (including the original payment amount) via Unipay within 3-5 business days, with no handling fees."
+        },
+        "legalNote": "Sourcing is a 'customized procurement service based on specific consumer requests.' According to consumer protection laws, the 7-day cooling-off period does not apply. Orders cannot be canceled or returned once paid, except for out-of-stock scenarios.",
+        "shipping": "International boutique in-stock items: Approx. 7-14 business days; European channels: Approx. 14-21 business days. Special models depend on actual confirmation.",
+        "faq": [
+          { "q": "Where do your sourced items come from?", "a": "All sourced items are acquired through legitimate and verifiable international channels, including brand boutiques and authorized retailers." },
+          { "q": "Why is prepayment required for sourcing?", "a": "Sourcing is a dedicated service tailored to your specific request. Payment is required after the quote is confirmed to secure the item and ensure a smooth procurement process." },
+          { "q": "Are sourced items eligible for returns or exchanges?", "a": "As this is a customized procurement based on your specific request, we do not offer cancellations, returns, or exchanges. Please carefully confirm details before commissioning." },
+          { "q": "Will you provide receipts or related documents?", "a": "Yes, we will provide our confirmation documents. If the brand channel provides original paperwork, it will be included; actual documentation depends on the specific brand and channel's policies." },
+          { "q": "How long does it take to receive the item?", "a": "Delivery time varies based on the item's origin and procurement progress. We will provide an estimated timeline upon confirmation and keep you updated." },
+          { "q": "What happens if you can't find the item?", "a": "If the item is out of stock, discontinued, or otherwise unavailable, we will notify you proactively and process a refund according to our agreement." }
+        ]
+      }
+    }
+  },
+  "news": {
+    "seo_title": "Latest News | KÉSH de¹",
+    "seo_desc": "KÉSH de¹ latest news, fashion trends, and brand announcements.",
+    "page_title": "Journal",
+    "page_subtitle": "News & Events / Fashion Trends",
+    "updated": "UPDATED :",
+    "no_posts": "No news available at the moment.",
+    "footer_official": "KÉSH de¹ Official",
+    "footer_store": "Go to Online Store",
+    "badge_latest": "Latest News",
+    "badge_news": "News",
+    "read_more": "Read More",
+    "view_details": "View Details"
+  },
+  "faq": {
+    "seo": {
+      "title": "FAQ | KÉSH de¹ - Authentication &  Services",
+      "description": "KÉSH de¹ Frequently Asked Questions. Complete guide on luxury trading, authentication process (S/A/B grading),  fees (20%), international shipping, and return policies. Shop Hermès, Chanel, and LV with peace of mind."
+    },
+    "ui": {
+      "title": "FAQ",
+      "subtitle": "KÉSH de¹ Support",
+      "intro1": "Welcome to KÉSH de¹.",
+      "intro2": "Whether you are new to luxury items or a long-time collector, we strive to accompany every choice you make with clarity, transparency, and professionalism.",
+      "intro3": "We have compiled the most frequently asked questions to help you quickly find answers and make your shopping experience more secure.",
+      "footer_title": "KÉSH de¹",
+      "footer_desc1": "Thank you for visiting the KÉSH de¹ FAQ section.",
+      "footer_desc2": "We believe a true luxury experience stems from transparency, detail, and trust.",
+      "footer_desc3": "KÉSH de¹ will continue to stand by every collector with the highest standards.",
+      "footer_desc4": "We hope you find pieces worth collecting and service you can trust.",
+      "footer_desc5": "If the above FAQs did not fully answer your questions,",
+      "footer_desc6": "feel free to contact us via WhatsApp, Email, or our website form.",
+      "btn_contact": "Contact Us",
+      "btn_shop": "Continue Shopping",
+      "slogan": "A Value of Priority. A Beginning of Dreams.",
+      "brand_name": "KÉSH de¹ Luxury"
+    },
+    "schema": [
+      { "q": "Are your products authentic?", "a": "Yes. We only sell luxury goods from strict, reliable sources. Professional appraisers conduct multiple verifications using international-grade equipment for a 100% authenticity guarantee. Inspections include leather grain, hardware engravings, stitching, and serial numbers." },
+      { "q": "Can I return or exchange my purchase?", "a": "Pre-owned luxury goods are unique; therefore, all sales are final. We fully disclose the item's condition upon listing and record photos/videos prior to shipping to protect both parties." },
+      { "q": "What is the  fee?", "a": "All  items are subject to a flat 20% fee on the final sale price. This covers invoicing, business tax, service fees, and shipping. We do not charge separate listing, photography, or storage fees." },
+      { "q": "Which brands do you accept for ?", "a": "We primarily accept Hermès, Chanel, Louis Vuitton, Dior, Gucci, Loewe, Celine, YSL, Goyard, and Prada." },
+      { "q": "How is the condition grading defined?", "a": "We use international grading standards: S (Like New), A (Minor Wear), AB (Regular Wear), B (Noticeable Wear). Condition is fully disclosed in photos and descriptions." },
+      { "q": "Do you offer international shipping?", "a": "Yes. KÉSH de¹ ships worldwide, including Japan, Korea, Singapore, Hong Kong, Macau, Europe, and the US. Duties are the responsibility of the recipient based on local regulations." }
+    ],
+    "sections": [
+      {
+        "category": "1. Shopping & Orders",
+        "items": [
+          { "q": "Q1: Are your products authentic?", "a": "<div class=\"space-y-3\"><p>Yes. KÉSH only sells luxury goods from strict, reliable sources. Professional appraisers conduct multiple verifications using international-grade equipment to ensure authenticity and quality. 100% guaranteed.</p><p>All items pass a complete appraisal process before listing, including:</p><ul class=\"list-disc pl-5 space-y-1 text-gray-600 bg-gray-50 p-4 rounded-lg text-sm\"><li>Leather grain and aging condition</li><li>Hardware engravings and materials</li><li>Stitching distance and structure</li><li>Tag fonts, stamps, and year codes</li></ul><p>We present everything thoroughly with actual photos and videos.</p></div>" },
+          { "q": "Q2: Can I return or exchange my purchase?", "a": "Pre-owned luxury goods are unique; therefore, all sales are final. We fully disclose the item's condition upon listing and record photos and videos prior to shipping to protect both parties." },
+          { "q": "Q3: Can I cancel my order after placing it?", "a": "<div><p>To cancel an order, please contact customer service within 12 hours of placing it. To avoid impulse buying, we advise confirming your intent before purchasing.</p><a href=\"/contact\" class=\"inline-flex items-center gap-1 mt-3 text-[#ef4628] font-bold border-b border-[#ef4628] pb-0.5 hover:opacity-80 transition-opacity\">Contact Customer Service <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z\"/></svg></a></div>" },
+          { "q": "Q4: Will I receive an invoice or receipt?", "a": "Yes. All transactions legally issue paper or digital invoices. You can select your preference at checkout." },
+          { "q": "Q5: What if the item received does not match the description?", "a": "KÉSH fully details every item before listing and re-checks, photographs, and records it before shipping. Please record your unboxing process. If there is a noticeable discrepancy, contact us immediately and we will assist you." }
+        ]
+      },
+      {
+        "category": "2.  Services",
+        "description": "KÉSH offers  services, helping collectors list luxury items safely and exposing them to global buyers through our platform.",
+        "items": [
+          { "q": "Q6: Do you still offer  services?", "a": "Yes, we do. Currently, we only accept luxury items in good preservation condition with intact structures." },
+          { "q": "Q7: Which brands can be ?", "a": "<div><p>We primarily accept: Hermès, Chanel, Louis Vuitton, Dior, Gucci, Loewe, Celine, YSL, Goyard, Prada, and other luxury brands.</p><p class=\"mt-2 text-gray-500 text-sm\">For other brands, please consult customer service first.</p><a href=\"/contact\" class=\"inline-flex items-center gap-1 mt-3 text-[#ef4628] font-bold border-b border-[#ef4628] pb-0.5 hover:opacity-80 transition-opacity\">Click here to contact us <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a></div>" },
+          { "q": "Q8: What is the  fee?", "a": "<div><p>All  items are subject to a flat fee:</p><p class=\"text-lg font-bold text-gray-900 my-2\">👉 20% of the final sale price</p><p class=\"text-sm text-gray-500\">This fee covers invoicing, taxes, service, and logistics for receiving/shipping.</p><p class=\"mt-1 font-medium text-gray-700\">No extra charges for listing, photography, exposure, or storage.</p></div>" },
+          { "q": "Q9: How does the  process work?", "a": "<ol class=\"list-decimal pl-5 space-y-2 text-gray-700\"><li>Submit photos online (fill out  form)</li><li>Specialist provides a suggested price</li><li>Sign the  contract</li><li>KÉSH arranges pickup from your home</li><li>KÉSH shoots, lists, and promotes globally</li><li>Receive payout notification after sale</li></ol>" },
+          { "q": "Q10: Can I take my item back early?", "a": "Yes. The minimum period is 1 month, maximum 6 months. To retrieve early, please notify customer service 3–7 days in advance." }
+        ]
+      },
+      {
+        "category": "3. Payment Options",
+        "items": [
+          { "q": "Q11: What payment methods are supported?", "a": "<div><p class=\"mb-2\">We currently support:</p><ul class=\"grid grid-cols-2 gap-2 text-sm text-gray-700\"><li>• VISA / MasterCard / JCB</li><li>• Apple Pay / Google Pay</li><li>• PayPal (International)</li><li>• Bank Transfer</li></ul><p class=\"mt-2 text-xs text-gray-400\">Available options depend on the checkout page display.</p></div>" },
+          { "q": "Q12: Are there credit card fees?", "a": "No. KÉSH de¹ does not charge any additional credit card processing fees." }
+        ]
+      },
+      {
+        "category": "4. Shipping & International",
+        "items": [
+          { "q": "Q13: Do you offer international shipping?", "a": "Yes. We ship worldwide, including Japan, Korea, Singapore, Hong Kong, Macau, Europe, and the US. Duties are borne by the recipient according to local laws." },
+          { "q": "Q14: When will my item be shipped?", "a": "<ul class=\"space-y-2\"><li><span class=\"font-bold text-gray-900\">In-stock:</span> Shipped within 24 hours (excluding holidays)</li><li><span class=\"font-bold text-gray-900\">Pre-order:</span> Shipped based on the time listed on the page</li><li class=\"text-sm text-gray-500 pt-1\">※ Tracking information will be provided once shipped.</li></ul>" }
+        ]
+      },
+      {
+        "category": "5. Authentication & Condition",
+        "items": [
+          { "q": "Q15: What does the appraisal process include?", "a": "<div class=\"space-y-2\"><p>Certified appraisers check via the following process:</p><ul class=\"list-disc pl-5 space-y-1 text-gray-600\"><li>Hardware engraving and weight</li><li>Leather grain and texture</li><li>Stitching distance and structure</li><li>Tag fonts and year codes</li><li>Database and market comparison</li></ul></div>" },
+          { "q": "Q16: How are condition grades defined?", "a": "<div class=\"space-y-3\"><p>We use international grading standards; condition is fully disclosed via photos and text:</p><div class=\"grid grid-cols-1 md:grid-cols-2 gap-3 text-sm\"><div class=\"bg-gray-50 p-3 rounded border border-gray-100\"><span class=\"font-bold text-[#ef4628] block mb-1\">Grade S</span><span class=\"text-gray-600\">Like new, almost no signs of use</span></div><div class=\"bg-gray-50 p-3 rounded border border-gray-100\"><span class=\"font-bold text-[#ef4628] block mb-1\">Grade A</span><span class=\"text-gray-600\">Minor traces, excellent overall</span></div><div class=\"bg-gray-50 p-3 rounded border border-gray-100\"><span class=\"font-bold text-[#ef4628] block mb-1\">Grade AB</span><span class=\"text-gray-600\">Regular wear, good appearance</span></div><div class=\"bg-gray-50 p-3 rounded border border-gray-100\"><span class=\"font-bold text-[#ef4628] block mb-1\">Grade B</span><span class=\"text-gray-600\">Noticeable wear, great for practical use</span></div></div></div>" },
+          { "q": "Q17: Are flaws truthfully presented?", "a": "<div><p>Yes. KÉSH de¹ promises:</p><p class=\"font-bold text-gray-900 mt-2 tracking-widest\">Zero Concealment | Zero Beautification | Zero Blurriness</p></div>" }
+        ]
+      },
+      {
+        "category": "6. Membership",
+        "items": [
+          { "q": "Q18: Do I need to register to purchase?", "a": "<div><p>We recommend registering to enjoy:</p><ul class=\"list-disc pl-5 mt-2 space-y-1 text-gray-600\"><li>Order tracking</li><li>Logistics updates</li><li>Downloadable authenticity certificates</li><li>Account management</li></ul></div>" },
+          { "q": "Q19: Is there a membership tier system?", "a": "KÉSH de¹ uses transparent pricing and does not tier based on spending. Every member is a VIP." }
+        ]
+      },
+      {
+        "category": "7. Legal & Privacy",
+        "items": [
+          { "q": "Q20: Is my member data secure?", "a": "Yes. KÉSH de¹ strictly complies with personal data laws. All data is used solely for order/service purposes and is never leaked." }
+        ]
+      },
+      {
+        "category": "8. General",
+        "items": [
+          { "q": "Q21: Why do prices differ across platforms?", "a": "Prices are adjusted based on platform commissions, logistics, taxes, and specific service scopes." },
+          { "q": "Q22: Why are some items priced higher than retail boutiques?", "a": "This is influenced by boutique allocation systems, annual price hikes, rarity, and market demand." }
+        ]
+      }
+    ]
+  },"contact": {
+    "seo": {
+      "title": "Contact Us | KÉSH de¹",
+      "description": "Brand new item sourcing, pre-owned luxury sales, and  services. For pre-sales and after-sales support, please contact us via the official form or email.",
+      "schema_name": "Contact KÉSH de¹"
+    },
+    "left": {
+      "title": "Contact Us",
+      "desc1": "Brand new item sourcing, pre-owned luxury sales, and .",
+      "desc2": "For any inquiries or after-sales service, please reach out via our online form or email.",
+      "email_label": "Email",
+      "social_label": "Social Media",
+      "line_hint": "Looking for an instant reply?",
+      "line_btn": "LINE Inquiry"
+    },
+    "form": {
+      "title": "Send a Message",
+      "name_label": "Name",
+      "name_placeholder": "Your Name",
+      "email_label": "Email",
+      "subject_label": "Subject",
+      "msg_label": "Message",
+      "msg_placeholder": "Please briefly describe your request. If inquiring about a specific bag, please provide the brand and model...",
+      "btn_submit": "Submit Request",
+      "btn_sending": "Sending..."
+    },
+    "options": {
+      "product": "Product Inquiry",
+      "sourcing": "Sourcing Request",
+      "": "",
+      "trade_in": "Trade-in",
+      "after_sales": "After-sales",
+      "other": "Other"
+    },
+    "status": {
+      "success": "Your message has been sent. Our specialist will contact you shortly!",
+      "error": "Failed to send. Please try again later or contact us via LINE."
+    }
+  },
+  "about": {
+    "seo": {
+      "title": "About Us | KÉSH de¹ Luxury",
+      "description": "KÉSH de¹ specializes in top-tier luxury items like Hermès and Chanel. Every item is manually authenticated by two certified appraisers and verified by the Entrupy system to ensure the highest level of authenticity.",
+      "schema_name": "About - KÉSH de¹",
+      "schema_desc": "Every item undergoes rigorous multi-stage authentication by certified appraisers and the Entrupy system before shipment."
+    },
+    "ui": {
+      "hero_subtitle": "About KÉSH de¹",
+      "hero_title": "Experience the Elegance<br />and Sincerity of KÉSH de¹",
+      "story_title": "KÉSH de¹ Luxury",
+      "story_p1": "Established in Taichung and legally registered, KÉSH de¹ is committed to building a trustworthy international luxury trading platform.",
+      "story_p2": "Specializing in Hermès, Chanel, Louis Vuitton, Dior, Loewe, Celine, and other renowned brands, <span class=\"text-[#F6F1EB] font-medium border-b border-gray-300 pb-0.5\">our services cover the sales of brand new and curated pre-owned luxury goods, customer s, and specific style sourcing. With global shipping available, our clients can easily acquire their desired pieces anywhere in the world.</span>",
+      "story_p3": "The KÉSH team holds international luxury appraiser certifications. All items are personally inspected by our professional appraisal team and cross-verified using advanced authentication equipment. Each item comes with an exclusive authenticity certificate, providing the highest level of guarantee.",
+      "story_quote": "Every item purchased at KÉSH comes with an internationally recognized authenticity guarantee, ensuring that every transaction is secure, transparent, and trustworthy.",
+      "btn_contact": "CONTACT",
+      "btn_more": "MORE"
+    },
+    "corporate": {
+      "title": "Corporate Information",
+      "p1": "KESH LUXURY CO. LTD. is a <span class=\"font-bold text-white\">duly incorporated and legally registered limited company</span>, operating in full compliance with applicable Taiwanese commercial and e-commerce regulations, and legally issues <span class=\"font-bold text-white\">government-approved uniform invoices</span>.",
+      "p2": "The company is committed to <span class=\"font-bold text-white\">lawful operations</span>, <span class=\"font-bold text-white\">transparent transactions, and professional standards</span> to provide trustworthy luxury services.",
+      "info_title": "Company Details |",
+      "name_label": "Company Name:",
+      "name_val": "凱仕國際精品有限公司",
+      "en_name_label": "English Name:",
+      "en_name_val": "KESH LUXURY CO. LTD.",
+      "vat_label": "Business Reg. No.:",
+      "vat_val": "60329329",
+      "reg_label": "Registered in:",
+      "reg_val": "Taichung City Government"
+    },
+    "legal": {
+      "notice_title": "Legal Notice",
+      "notice_p1": "KESH LUXURY CO. LTD. is a <span class=\"font-bold text-gray-200\">duly incorporated and legally registered limited company in Taiwan</span>, operating in full compliance with applicable Taiwanese commercial and e-commerce regulations.",
+      "notice_p2": "Business Registration No.:",
+      "notice_p2_val": "60329329",
+      "notice_p3": "Registered in:",
+      "notice_p3_val": "Taichung, Taiwan",
+      "notice_p4": "The company is committed to <span class=\"font-bold text-gray-200\">lawful operations, transparent transactions, and professional standards</span> in all aspects of its business.",
+      "auth_title": "Authenticity Guarantee",
+      "auth_p1": "KESH operates as an <span class=\"font-bold text-gray-200\">independent luxury boutique</span>.",
+      "auth_p2": "All items offered for sale are <span class=\"font-bold text-gray-200\">guaranteed 100% authentic</span>.",
+      "auth_p3": "Prior to official listing, each item undergoes a <span class=\"font-bold text-gray-200\">rigorous multi-stage authentication process</span> and comprehensive condition assessment conducted by qualified professionals to ensure accuracy, integrity, and quality representation.",
+      "nonaff_title": "Non-Affiliation Statement",
+      "nonaff_p1": "KESH LUXURY CO. LTD. is an independent entity and is <span class=\"font-bold text-gray-200\">not affiliated with, endorsed by, or an authorized retailer</span> of the brands featured on this website.",
+      "nonaff_p2": "All trademarks, brand names, and intellectual property rights remain the property of their respective owners."
+    },
+    "sections": {
+      "sourcing_en": "Specific Style Sourcing",
+      "sourcing_ch": "",
+      "sourcing_desc": "Your dream list is no longer out of reach. KÉSH de¹ activates a global network of top-tier buyers to precisely source out-of-stock hits or rare limited editions across borders. Just make a wish, and we'll deliver that unique surprise into your hands.",
+      "auth_en": "Professional Authentication",
+      "auth_ch": "",
+      "auth_desc": "Every item is manually authenticated by two certified appraisers<br class=\"hidden lg:block\" />and double-verified by the Entrupy professional system<br class=\"hidden lg:block\" />before being officially shipped.",
+      "vision_title": "A Bridge Connecting Luxury Collecting,<br class=\"hidden sm:block\" />Tasteful Living, and Long-term Value.",
+      "vision_desc": "We focus on top brands such as Hermès, Chanel, Dior, and Louis Vuitton. From source confirmation, detail inspection, and condition grading to accessory preparation, every item is presented with rigorous standards, allowing every guest to collect the beauty of luxury with peace of mind. Our persistence in every detail is to ensure this beauty endures.",
+      "spirit_en": "Service Spirit",
+      "spirit_ch": "",
+      "guarantee_en": "Our Guarantee",
+      "guarantee_ch": ""
+    },
+    "spirit_items": [
+      { "en": "Honesty", "ch": "Transparent", "desc": "Public information, no hidden details" },
+      { "en": "Respect", "ch": "Valuing Every Guest", "desc": "Treating you with courtesy, prioritizing your needs" },
+      { "en": "Professional", "ch": "Precise Accuracy", "desc": "Strict authentication, exact grading" },
+      { "en": "Efficiency", "ch": "Quiet & Efficient", "desc": "Undisturbing gentleness, swiftest service" }
+    ],
+    "guarantee_items": [
+      { "title": "Authenticity Guarantee", "sub": "Authenticity", "desc": "Manual review by two appraisers + Entrupy tech verification, eliminating any counterfeit concerns." },
+      { "title": "Transparent Pricing", "sub": "Transparent", "desc": "No ambiguity. All conditions, accessories, and prices are clearly disclosed." },
+      { "title": "Fast Service", "sub": "Fast Service", "desc": "Online estimates replied within 24 hours, on-site transactions disbursed same day. We don't waste your valuable time." }
+    ]
+  },
+  "checkout": {
+    "empty_cart": "Your cart is empty",
+    "title": "Checkout",
+    "subtitle": "KÉSH de¹ Secure Payment (PayUni)",
+    "contact_info": "Contact Information",
+    "email_placeholder": "Email",
+    "shipping_method": "Shipping Method",
+    "home_delivery": "Home Delivery (Fee NT$80)",
+    "cvs_delivery": "7-11 Store Pickup (Fee NT$80)",
+    "cvs_store": "7-11 Store",
+    "btn_select_store": "Select Store",
+    "store_label": "Store: ",
+    "address_label": "Address: ",
+    "btn_clear_store": "Clear Store",
+    "no_store_selected": "No store selected. Please click 'Select Store'",
+    "shipping_address": "Shipping Address",
+    "name_placeholder": "First & Last Name",
+    "phone_placeholder": "Phone Number",
+    "paypal_success": "PayPal payment successful! Order created.",
+    "cities": {
+      "taipei": "Taipei City",
+      "new_taipei": "New Taipei City",
+      "taichung": "Taichung City",
+      "kaohsiung": "Kaohsiung City"
+    },
+    "address_home_req": "Full Address (Required)",
+    "address_cvs_opt": "Address (Optional for CVS)",
+    "postal_code": "ZIP / Postal Code",
+    "payment_method": "Payment",
+    "btn_processing": "Processing...",
+    "btn_pay": "Pay Now",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping_fee": "Shipping",
+    "total": "Total",
+    "note_final_amount": "* The final amount is subject to the calculation after the order is created.",
+    "alerts": {
+      "missing_fields": "Please fill in all required fields.",
+      "missing_home_address": "Please provide a full address for home delivery.",
+      "missing_cvs_store": "Please select a 7-11 store first.",
+      "order_failed": "Order creation failed: ",
+      "payuni_missing": "PayUni missing fields: ",
+      "system_error": "An error occurred, please try again later."
+    }
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Welcome back to KÉSH de¹",
+    "google": "Continue with Google",
+    "facebook": "Continue with Facebook",
+    "or_email": "Or sign in with email",
+    "email_label": "Email",
+    "email_placeholder": "Enter your email",
+    "password_label": "Password",
+    "forgot_password": "Forgot Password?",
+    "password_placeholder": "Enter your password",
+    "sign_in": "Sign In",
+    "no_account": "Don't have an account?",
+    "register": "Register Now",
+    "back_to_login": "Back to Sign In",
+    "reset_title": "Reset Password",
+    "reset_subtitle": "Enter the email associated with your account and we will send you a link to reset your password.",
+    "reset_btn": "Send Reset Link",
+    "sent_title": "Email Sent",
+    "sent_desc_1": "A password reset link has been sent to",
+    "sent_desc_2": "Please check your inbox and follow the instructions to reset your password.",
+    "error_invalid": "Invalid email or password",
+    "reset_error": "Failed to send reset link, please try again later"
+  }
+  ,
+  "register": {
+    "title": "Register",
+    "title_step1": "Create Account",
+    "title_step2": "Verify Email",
+    "subtitle_step1": "Join KÉSH de¹ Membership",
+    "subtitle_step2": "Enter the OTP sent to",
+    "google": "Sign up with Google",
+    "facebook": "Sign up with Facebook",
+    "or_email": "Or sign up with email",
+    "username_label": "Name",
+    "username_placeholder": "Enter your name",
+    "email_label": "Email",
+    "email_placeholder": "Enter your email",
+    "password_label": "Password",
+    "password_placeholder": "At least 6 characters",
+    "send_otp": "Send OTP",
+    "otp_label": "6-Digit OTP",
+    "otp_placeholder": "Enter OTP",
+    "complete_register": "Complete Registration",
+    "back_to_edit": "Back to edit email",
+    "have_account": "Already have an account?",
+    "login": "Sign in",
+    "success_alert": "Registration successful! Please sign in.",
+    "error_server_conn": "Server connection error, please try again later.",
+    "error_send_failed": "Failed to send",
+    "error_server_format": "Invalid server response format",
+    "error_register_failed": "Registration failed"
+  },
+  "order_lookup": {
+    "title": "Order Lookup",
+    "subtitle": "Check your order status without an account (Please enter Order ID and Email)",
+    "form_order_id_label": "Order ID",
+    "form_order_id_placeholder": "e.g., 124",
+    "form_email_label": "Order Email",
+    "form_email_placeholder": "e.g., name@gmail.com",
+    "form_btn_loading": "Searching...",
+    "form_btn_submit": "Lookup Order",
+    "form_privacy_note": "To protect your privacy, both 'Order ID' and 'Order Email' are required to view order details.",
+    "err_empty": "Please enter both Order ID and Order Email",
+    "err_fetch": "Lookup failed, please try again later",
+    "err_system": "System error, please try again later",
+    "result_title": "Order Details",
+    "result_status": "Status",
+    "result_payment": "Payment Method",
+    "result_total": "Total Amount",
+    "result_items_title": "Items",
+    "result_qty": "Qty: ",
+    "result_subtotal": "Subtotal",
+    "result_shipping_title": "Shipping Info",
+    "result_recipient": "Recipient",
+    "result_city": "City",
+    "result_shipping_privacy": "(For privacy reasons, the full address is not displayed here.)"
+  },
+  "shopping_guide": {
+    "page": {
+      "seo_title": "Shopping Guide | KÉSH de¹",
+      "title": "Shopping Guide",
+      "subtitle_desktop": "Please read before buying",
+      "subtitle_mobile": "Shopping Guide & Terms",
+      "footer_note": "Thank you for choosing KÉSH de¹"
+    },
+    "sections": [
+      {
+        "id": "shopping-notes",
+        "title": "Shopping Notes",
+        "enTitle": "Notes",
+        "content_html": "<div class=\"space-y-4\"><p>Welcome to KÉSH de¹ Luxury. To protect the rights of both parties, please read the following guidelines carefully before purchasing. By checking out or making a payment, you agree to all terms and conditions of this site.</p><ul class=\"list-disc pl-5 space-y-2 text-gray-600\"><li>All items are photographed from actual products. Slight color differences may occur due to monitor settings; please refer to the actual item.</li><li>Dimensions are measured manually and a 1-2cm variance is considered normal.</li><li>Please complete your payment within <strong>24 hours</strong> of placing an order. Unpaid orders will be automatically cancelled.</li><li>We offer domestic shipping and in-store pickup. Items will be shipped within 1-3 business days after payment confirmation.</li></ul></div>"
+      },
+      {
+        "id": "authenticity",
+        "title": "Authenticity Guarantee",
+        "enTitle": "Authenticity",
+        "content_html": "<div class=\"space-y-4\"><p class=\"font-medium text-black\">KÉSH de¹ commits to selling only 100% authentic goods.</p><p>We have a professional appraisal team and utilize third-party authorities (such as Entrupy) for double verification. If an item you purchased is proven to be unauthentic by two or more credible third-party appraisal institutions (written report required), <strong>we promise a full refund and will cover the related inspection fees.</strong></p><p class=\"text-sm text-gray-500 mt-2\">* To protect your rights, please retain all original proof of purchase and accessories.</p></div>"
+      },
+      {
+        "id": "grading",
+        "title": "Condition Standards",
+        "enTitle": "Condition",
+        "intro": "Due to the unique nature of pre-owned luxury goods, we have established a strict grading system to help you accurately understand the item's condition:",
+        "grades": [
+          { "rank": "S", "label": "Unused / Brand New", "desc": "Brand new and unused, including complete packaging and accessories. Ideal for gifting." },
+          { "rank": "A", "label": "Mint Condition", "desc": "Barely any signs of use. Excellent overall condition with only very minor storage traces." },
+          { "rank": "AB", "label": "Excellent Condition", "desc": "Minor signs of use (e.g., hairline scratches on hardware, very slight corner wear), but overall appearance remains beautiful." },
+          { "rank": "B", "label": "Good Condition", "desc": "Noticeable signs of use, scratches, or discoloration, but does not affect normal use. Offers a greater price advantage." }
+        ]
+      },
+      {
+        "id": "return-policy",
+        "title": "Return Policy",
+        "enTitle": "Returns",
+        "content_html": "<div class=\"space-y-4\"><p>According to Taiwan's Consumer Protection Act, second-hand goods (not brand new items mass-produced and sold by business operators) <strong>are not subject to the 7-day unconditional return period</strong>.</p><p>However, we will accept unconditional returns in the following situations:</p><ul class=\"list-disc pl-5 space-y-2 text-gray-600\"><li>The item is proven to be unauthentic by third-party appraisal (see Authenticity Guarantee).</li><li>The received item differs significantly from the website description or photos (e.g., listed as Grade S but has obvious damage).</li></ul><p class=\"mt-4 text-gray-500 text-sm\">* If you wish to return an item for personal reasons (e.g., dislike, wrong size, color difference), please contact customer service within 24 hours of receiving the item. We can assist you in converting it to a \"\" arrangement.</p></div>"
+      },
+      {
+        "id": "privacy",
+        "title": "Privacy Policy",
+        "enTitle": "Privacy",
+        "content_html": "<div class=\"space-y-4 text-sm text-gray-500\"><p>KÉSH de¹ highly values your privacy. The personal data we collect (such as name, phone number, address, Email) is strictly used for order processing, shipping, and member services. We will never leak, sell, or provide your data to unrelated third parties.</p><p>This website uses SSL encryption technology to protect your transaction security, allowing you to shop at KÉSH de¹ with peace of mind.</p></div>"
+      },
+      {
+        "id": "terms",
+        "title": "Terms of Service",
+        "enTitle": "Terms",
+        "content_html": "<div class=\"space-y-4 text-sm text-gray-500\"><p>By using this website's services, you agree to these terms. KÉSH de¹ reserves the right to modify these terms at any time. The modified terms will be published on the website without separate individual notice.</p><p>If you are under 20 years of age, you must read these terms accompanied by a legal representative before using this website's services.</p></div>"
+      }
+    ]
+  },
+  "privacy": {
+    "page": {
+      "seo_title": "Privacy Policy | KÉSH de¹",
+      "seo_desc": "Privacy Policy for KÉSH de¹ Luxury.",
+      "title": "Privacy Policy",
+      "last_updated": "Last Updated: "
+    },
+    "sections": [
+      {
+        "title": "1. Introduction",
+        "content_html": "<p class=\"mb-2\">Welcome to KÉSH de¹ Luxury (hereinafter referred to as \"the Website\"), operated by KESH LUXURY CO., LTD (hereinafter referred to as \"the Company\"). We highly value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, disclose, and safeguard your information.</p><p>By using the Website's services (including but not limited to browsing products, registering an account, or using our sourcing/ services), you agree to the terms described in this policy.</p>"
+      },
+      {
+        "title": "2. Data We Collect",
+        "content_html": "<p class=\"mb-2\">To provide complete luxury trading and authentication services, we may collect the following types of data:</p><ul class=\"list-disc list-inside ml-2 space-y-1 text-gray-700\"><li><strong>Personal Identification:</strong> Name, email address, phone number, date of birth (for membership benefits).</li><li><strong>Transaction & Shipping Data:</strong> Shipping address, billing address, credit card info (processed only through encrypted payment gateways; we do not store card numbers), purchase history.</li><li><strong> & Authentication Data:</strong> If using , we may need a copy of your ID or bank account info to comply with regulations and process payouts.</li><li><strong>Digital Footprint:</strong> IP address, browser type, device information, Cookies, and usage behavior data.</li></ul>"
+      },
+      {
+        "title": "3. Purpose of Data Usage",
+        "content_html": "<p class=\"mb-2\">We use the collected data for the following purposes:</p><ul class=\"list-disc list-inside ml-2 space-y-1 text-gray-700\"><li>Processing orders, sourcing requests, and returns.</li><li>Recording and filing product authentication processes.</li><li>Providing customer service and responding to inquiries.</li><li>Sending exclusive member offers, new arrival notices, or newsletters (you may unsubscribe at any time).</li><li>Optimizing website experience and preventing fraud.</li></ul>"
+      },
+      {
+        "title": "4. Data Sharing & Third Parties",
+        "content_html": "<p class=\"mb-2\">We will never sell your personal data to third parties, except as required by law. However, we may share some of your information with trusted partners in the following necessary situations:</p><ul class=\"list-disc list-inside ml-2 space-y-1 text-gray-700\"><li><strong>Logistics Partners:</strong> Name, phone, and address are provided to couriers to deliver products.</li><li><strong>Payment Gateways:</strong> To process credit card or mobile payment transactions.</li><li><strong>System Providers:</strong> Service providers assisting with website operations and tech support (all under NDA).</li></ul>"
+      },
+      {
+        "title": "5. Cookies",
+        "content_html": "<p>The Website uses Cookies to optimize your browsing experience (e.g., remembering your cart, keeping you logged in). You can reject Cookies via your browser settings, but this may cause some features of the site to function improperly.</p>"
+      },
+      {
+        "title": "6. Data Security",
+        "content_html": "<p>We use industry-standard SSL encryption technology to transmit your sensitive data. While internet transmission cannot be guaranteed 100% secure, we are committed to taking all reasonable measures to protect your information.</p>"
+      },
+      {
+        "title": "7. Your Rights",
+        "content_html": "<p class=\"mb-2\">Under the Personal Data Protection Act, you have the following rights:</p><ul class=\"list-disc list-inside ml-2 space-y-1 text-gray-700\"><li>Inquire or request to review your personal data.</li><li>Request to supplement or correct your personal data.</li><li>Request to stop collection, processing, or usage, and request deletion of your personal data.</li></ul><p class=\"mt-2 text-sm text-gray-600\">To exercise these rights, please contact us using the info below, and we will process it within the statutory period.</p>"
+      }
+    ],
+    "contact_section": {
+      "title": "8. Contact Us",
+      "desc": "If you have any questions about this Privacy Policy or wish to exercise your rights, please feel free to contact us:",
+      "company_label": "Company: ",
+      "email_label": "Email: ",
+      "phone_label": "Phone: "
+    }
+  },"search_page": {
+    "title": "Search Results",
+    "showing_results_for": "Showing results for",
+    "no_results": "No products found for",
+    "try_again": "Please try checking your spelling or use different keywords."
+  },
+  "product_detail": {
+    "ui": {
+      "btn_buy": "ADD TO CART",
+      "reviews": "REVIEWS",
+      "condition_title": "Item Condition",
+      "details_title": "Product Details",
+      "faq_title": "Shopping Guide & FAQ",
+      "tab_features": "Features",
+      "tab_shipping": "Shipping & Returns",
+      "related_title": "You May Also Like",
+      "related_subtitle": "Recommended for you",
+      "view_all": "View All"
+    },
+    "faqs": [
+      {
+        "q": "About Brands",
+        "a": "We specialize in international luxury brands such as Hermès, Chanel, Louis Vuitton, and Dior."
+      },
+      {
+        "q": "Payment & Security",
+        "a": "We support multiple payment methods including VISA, MasterCard, JCB, Apple Pay, and PayPal, ensuring secure transactions."
+      },
+      {
+        "q": "Shipping & Fees",
+        "a": "Standard delivery fee is NT$80. We strongly recommend insured courier delivery for luxury items to ensure transport safety."
+      }
+    ],
+    "slider": {
+      "slide1": "KÉSH de¹ Premium Quality Guarantee",
+      "slide2": "Every item is strictly inspected by professional authenticators"
+    },
+    "shipping_info": {
+      "delivery_title": "Shipping Methods & Times",
+      "delivery_items": [
+        {
+          "label": "In-Stock Items: ",
+          "desc": "Dispatched within 1-3 business days after payment confirmation."
+        },
+        {
+          "label": "Pre-Order Items: ",
+          "desc": "Arrival typically takes 14-30 business days, depending on the brand and model."
+        },
+        {
+          "label": "High-Value Items: ",
+          "desc": "For security, items over NT$50,000 are shipped via insured courier or recommended for in-person pickup."
+        }
+      ],
+      "return_title": "Return Policy",
+      "return_items": [
+        {
+          "label": "Pre-owned/Vintage Items: ",
+          "desc": "Due to their unique nature, returns or exchanges for personal reasons (e.g., sizing, minor signs of use) are not accepted unless the item is deemed inauthentic."
+        },
+        {
+          "label": "Brand New Items: ",
+          "desc": "A 7-day appreciation period applies (not a trial period). Returned items must be brand new with original tags and unbroken anti-counterfeit seals."
+        }
+      ]
+    }
+  },
+  "cart": {
+    "title": "Cart",
+    "continue_shopping": "Continue Shopping",
+    "empty_message": "Your cart is currently empty",
+    "start_shopping": "Start Shopping",
+    "product": "Product",
+    "quantity": "Quantity",
+    "total": "Total",
+    "remove_item": "Remove item",
+    "subtotal": "Subtotal",
+    "tax_shipping_note": "Tax included. Shipping calculated at checkout.",
+    "secure_checkout_note": "Secure checkout powered by KÉSH de¹",
+    "go_to_checkout": "Go to Checkout"
+  },
+  "terms": {
+    "seo_title": "Terms of Service & Policies | KÉSH de¹ Luxury Boutique",
+    "seo_desc": "Thank you for choosing KÉSH de¹. We are committed to providing a transparent, professional, and trustworthy luxury shopping experience. Please read our service policies carefully before purchasing.",
+    "page_tag": "KÉSH de¹ Service Policies",
+    "page_title": "Terms of Service & Policies",
+    "page_subtitle": "Thank you for choosing KÉSH de¹. We are committed to providing a transparent, professional, and trustworthy luxury shopping experience. To ensure a smooth and secure transaction, please read the following terms of service carefully before making a purchase.",
+    "toc_title": "Table of Contents",
+    "sections": [
+      {
+        "id": "section-1",
+        "title": "I. Authenticity Guarantee & Statement",
+        "intro": "KÉSH de¹ understands that trust is the core of luxury trading. Every item sold on our website undergoes rigorous authentication and multiple inspection procedures to verify its authenticity.",
+        "items": [
+          { "subtitle": "Professional Authentication", "content": "The KÉSH team holds internationally recognized luxury authenticator certificates. All items undergo multiple physical inspections before entering our inventory to ensure their source, quality, and authenticity." },
+          { "subtitle": "Dual Verification Mechanism", "content": "In addition to internal authentication, every item is digitally re-verified through international authentication platforms, combining professional experience with database analysis for multiple layers of verification." },
+          { "subtitle": "Exclusive Identification System", "content": "All dispatched items are equipped with a KÉSH de¹ exclusive anti-counterfeit tag, an international authenticity certificate, and a security seal, ensuring that the appraisal report perfectly matches the physical item. Complete records are kept during the dispatch process." },
+          { "subtitle": "Lifetime Authenticity Guarantee", "content": "We take full responsibility for the authenticity of our products. If an item is deemed inauthentic by a credible third-party authentication institution, we provide a full refund guarantee." },
+          { "subtitle": "Non-Official Authorization Statement", "content": "KÉSH de¹ is an independently operated luxury boutique platform and has no affiliation, authorization, or partnership with the original brand manufacturers. All brand names and trademarks mentioned on this website belong to their respective rightful owners." }
+        ]
+      },
+      {
+        "id": "section-2",
+        "title": "II. Membership System",
+        "intro": "To provide a complete shopping experience and order management, this website operates on a membership basis:",
+        "items": [
+          { "subtitle": "Registration Obligation", "content": "Customers must complete member registration before purchasing to manage order information, track delivery progress, and handle after-sales services." },
+          { "subtitle": "Privacy Protection", "content": "Member personal data is used solely for order processing, delivery, and customer service communication. We employ encryption technology and security measures and will not provide your data to third parties unrelated to order fulfillment without your consent." }
+        ]
+      },
+      {
+        "id": "section-3",
+        "title": "III. Payment Methods",
+        "intro": "This website offers diverse and secure payment methods. All transactions are processed through encrypted mechanisms:",
+        "items": [
+          { "subtitle": "Credit / Debit Cards", "content": "We support VISA, MasterCard, JCB, and UnionPay (lump-sum and installment payments available)." },
+          { "subtitle": "Mobile Payments", "content": "We support PayPal, Apple Pay, Google Pay, and LINE Pay." },
+          { "subtitle": "Convenience Store Payment", "content": "Payment via convenience store codes and barcodes is supported (Taiwan only)." },
+          { "subtitle": "Bank Transfer", "content": "Bank Name: E.SUN BANK (Taichung Branch)\nBank Code: 808\nAccount Name: KÉSH LUXURY CO. LTD.\nAccount Number: 1366940044179\n(Please indicate your order number or purchasing name in the memo field for verification.)" }
+        ],
+        "outro": "This website does not provide any form of stored value, third-party payment collection, or financial transaction services."
+      },
+      {
+        "id": "section-4",
+        "title": "IV. Logistics & Shipping",
+        "items": [
+          { "subtitle": "Dispatch Schedule", "content": "Once order payment is completed, the item will undergo final quality re-inspection and authentication. Upon confirmation, it will be dispatched within 24 hours (excluding Taiwanese national holidays)." },
+          { "subtitle": "Domestic Shipping (Taiwan)", "content": "Delivered by our designated professional logistics partner (Black Cat Takkyubin). Delivery to urban areas in Taiwan typically takes 1–2 business days after dispatch." },
+          { "subtitle": "International Shipping (Global)", "content": "Designated Logistics: Cross-border orders are uniformly entrusted to DHL Express for professional luxury logistics, ensuring the highest standard of transport security." },
+          { "subtitle": "Delivery Time", "content": "Actual delivery time depends on the destination country's customs clearance speed and DHL's local operational efficiency." },
+          { "subtitle": "Order Tracking", "content": "Once the order is dispatched, the system will provide an exclusive tracking code so you can monitor your package in real-time." },
+          { "subtitle": "International Duties & Taxes", "content": "Import duties, value-added taxes (VAT), or related fees levied by the destination country are the sole responsibility of the recipient (buyer). Tax rates vary by country; we recommend consulting local customs regulations before purchasing." },
+          { "subtitle": "Security Records", "content": "The packaging process for every item is recorded entirely on video before dispatch. To protect the rights of both parties, we recommend that customers record a video while unboxing. All high-value items undergo stringent packaging and shipping procedures to ensure transit safety and item integrity." }
+        ]
+      },
+      {
+        "id": "section-5",
+        "title": "V. Return & Exchange Policy",
+        "items": [
+          { "subtitle": "Appreciation Period Rights", "content": "In accordance with the Consumer Protection Act, customers are entitled to a 7-day appreciation period starting from the day after the item is delivered. Please note that the appreciation period is not a trial period; it is solely for confirming the item's appearance, specifications, and authenticated condition." },
+          { "subtitle": "Item Condition Requirements", "content": "The item and its related accessories must remain in their original condition, and the anti-counterfeit seal must be intact and unremoved." },
+          { "subtitle": "Accessory Completeness", "content": "When returning an item, original dust bags, authenticity cards, packaging boxes, manuals, and related accessories (e.g., straps, locks) must be fully retained. Missing or damaged accessories will affect the acceptance of the return." },
+          { "subtitle": "Anti-Counterfeit Seal Mechanism (Core Clause)", "content": "Every item is equipped with a KÉSH de¹ exclusive numbered anti-counterfeit seal. This seal serves as part of our item verification mechanism. If you wish to process a return during the appreciation period, the item must remain in its complete state (including the unremoved seal). If the seal is removed or damaged, the return may be rejected." }
+        ],
+        "outro": "During the appreciation period, consumers may apply for a return under the Consumer Protection Act. Our company will process and review returns in accordance with this policy and relevant regulations."
+      },
+      {
+        "id": "section-6",
+        "title": "VI. Product Characteristics",
+        "intro": "The items sold on this website are predominantly pre-owned luxury goods or unused items in pristine condition. They may exhibit reasonable signs of use or material characteristics:",
+        "items": [
+          { "subtitle": "Natural Materials", "content": "Natural textures, pores, vein marks, or slight wrinkles on the leather surface." },
+          { "subtitle": "Craftsmanship Details", "content": "Asymmetrical hand-stitching, hairline scratches on hardware, slightly uneven glazing, or varying depths of embossing." },
+          { "subtitle": "Visual Discrepancies", "content": "Reasonable color differences caused by ambient lighting, shooting angles, or screen settings." },
+          { "subtitle": "Signs of Use", "content": "Normal signs of use noted on the product page (e.g., creases, slight wear)." }
+        ],
+        "outro": "The above situations are normal phenomena and do not constitute defects. The product pages will fully present the condition of each item."
+      },
+      {
+        "id": "section-7",
+        "title": "VII. Return & Refund Process",
+        "items": [
+          { "subtitle": "Contact Customer Service", "content": "We recommend completing your inspection within 3 days of delivery. If you need to make a return, please contact customer service at contact@kesh-de1.com and provide your order number along with relevant photos or unboxing videos." },
+          { "subtitle": "Inspection & Refund", "content": "Upon confirming that the item and anti-counterfeit seal meet the return conditions, the refund will be processed." },
+          { "subtitle": "Bank Transfer Refunds", "content": "Funds will be remitted to the designated account within 3–7 business days." },
+          { "subtitle": "Online Card Refunds", "content": "An online chargeback will be processed. The time it takes for the funds to appear depends on your bank's processing time (approximately 3–14 business days)." },
+          { "subtitle": "Handling Fees", "content": "Refund-related handling fees will be borne by our company." }
+        ]
+      },
+      {
+        "id": "section-8",
+        "title": "VIII. Invoice Issuance",
+        "intro": "Our company issues invoices in compliance with Taiwan (ROC) tax regulations. Customers may choose between a cloud e-invoice, physical invoice, or corporate invoice at checkout.",
+        "outro": "If an order is returned or canceled, the issued invoice will be voided or subjected to sales return allowances according to relevant regulations."
+      },
+      {
+        "id": "section-9",
+        "title": "IX. Transaction & Compliance",
+        "intro": "TRANSACTION & COMPLIANCE",
+        "items": [
+          { "subtitle": "", "content": "KÉSH de¹ is a boutique curation and sales platform dedicated to luxury goods. All transactions are e-commerce sales of physical items." },
+          { "subtitle": "", "content": "The services provided on this website are limited to product display, ordering, and delivery fulfillment. All orders are dispatched and supported by our company." },
+          { "subtitle": "", "content": "To maintain transaction transparency and security, this website does not provide any form of financial services, including but not limited to stored value, prepaid balances, third-party payment collection, or third-party fund management mechanisms." },
+          { "subtitle": "", "content": "All items are obtained from lawful sources and are listed for sale only after undergoing physical inspection and professional authentication by our company." },
+          { "subtitle": "", "content": "KÉSH de¹ is committed to providing a secure and traceable trading environment. For abnormal orders or transactions that do not conform to general consumer behavior, our company will conduct necessary verifications and actions according to relevant regulations to protect the rights of both parties.\nAn order is considered established once payment is completed and confirmed by our company." }
+        ]
+      },
+      {
+        "id": "section-10",
+        "title": "Company Contact Information",
+        "items": [
+          { "subtitle": "Company Name", "content": "KÉSH LUXURY CO. LTD." },
+          { "subtitle": "Tax ID", "content": "60329329" },
+          { "subtitle": "Customer Service Email", "content": "contact@kesh-de1.com" }
+        ]
+      }
+    ]
+  },
+  "member": {
+    "title": "My Account",
+    "subtitle": "Manage your orders and personal details",
+    "welcome": "Welcome back",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "orders": "My Orders",
+      "addresses": "Addresses",
+      "settings": "Account Details",
+      "logout": "Logout"
+    },
+    "dashboard": {
+      "total_spent": "Total Spent",
+      "completed_orders": "Completed",
+      "pending_orders": "Pending"
+    },
+    "orders": {
+      "empty": "No orders yet.",
+      "shop_now": "Shop Now",
+      "order_amount": "Total Amount",
+      "items": "items",
+      "view_details": "View Details",
+      "pay_now": "Pay Now"
+    },
+    "addresses": {
+      "empty": "No addresses saved yet.",
+      "add_new": "Add New Address"
+    },
+    "settings": {
+      "title": "Personal Details",
+      "name": "Name",
+      "email": "Email",
+      "save": "Save Changes"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "canceled": "Canceled",
+      "unknown": "Unknown"
+    }
+  }
+
+
+}

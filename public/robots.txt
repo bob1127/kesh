@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://www.kesh-de1.com
+
+# Sitemaps
+Sitemap: https://www.kesh-de1.com/sitemap.xml
