@@ -16,6 +16,11 @@ const nextConfig = {
         protocol: "http",
         hostname: "**",
       },
+      // 👇 新增：明確允許你的 Supabase 網址載入圖片
+      {
+        protocol: "https",
+        hostname: "qhefiwluztdmxractwln.supabase.co",
+      },
     ],
   },
 
