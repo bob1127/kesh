@@ -67,7 +67,6 @@ export default function CheckoutPage() {
   // 👤 載入會員資料並自動帶入
   // ==========================================
   useEffect(() => {
-    // 這裡示範從 localStorage 抓取會員資料 (如果你的系統用 useMe 或 Context，請換成對應的變數)
     try {
       const storedUser = localStorage.getItem("medusa_user");
       if (storedUser) {
@@ -215,7 +214,7 @@ export default function CheckoutPage() {
 
         console.log("⏳ 正在等待 TapPay 產生 Prime...");
         const prime = await getPrimePromise();
-        setLoading(true); // 取得 Prime 後才顯示 Loading
+        setLoading(true);
 
         const PUBLISHABLE_API_KEY =
           "pk_8cae0356e1f6ff1f46fef038d0502ccc44da72d98db7307cb95350571949983b";
@@ -230,14 +229,17 @@ export default function CheckoutPage() {
           return response;
         };
 
+        // 👇 定義後端網址，避免寫死 localhost
+        const backendUrl =
+          process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+
         // 1. 建立購物車與地區
-        const regionRes = await safeFetch(
-          "http://localhost:9000/store/regions",
-          { headers },
-        );
+        const regionRes = await safeFetch(`${backendUrl}/store/regions`, {
+          headers,
+        });
         const activeRegionId = (await regionRes.json()).regions[0].id;
 
-        const cartRes = await safeFetch("http://localhost:9000/store/carts", {
+        const cartRes = await safeFetch(`${backendUrl}/store/carts`, {
           method: "POST",
           headers,
           body: JSON.stringify({
@@ -266,23 +268,20 @@ export default function CheckoutPage() {
         const cartId = (await cartRes.json()).cart.id;
 
         // 2. 加入商品與運費
-        await safeFetch(
-          `http://localhost:9000/store/carts/${cartId}/line-items`,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ variant_id: TEST_VARIANT_ID, quantity: 1 }),
-          },
-        );
+        await safeFetch(`${backendUrl}/store/carts/${cartId}/line-items`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ variant_id: TEST_VARIANT_ID, quantity: 1 }),
+        });
 
         const shipOptRes = await safeFetch(
-          `http://localhost:9000/store/shipping-options?cart_id=${cartId}`,
+          `${backendUrl}/store/shipping-options?cart_id=${cartId}`,
           { headers },
         );
         const shipOptData = await shipOptRes.json();
         if (shipOptData.shipping_options?.length > 0) {
           await safeFetch(
-            `http://localhost:9000/store/carts/${cartId}/shipping-methods`,
+            `${backendUrl}/store/carts/${cartId}/shipping-methods`,
             {
               method: "POST",
               headers,
@@ -296,7 +295,7 @@ export default function CheckoutPage() {
         // 3. 呼叫後端自訂 API (TapPay 扣款)
         console.log(`⏳ 呼叫後端執行 TapPay 扣款...`);
         const customCheckoutRes = await fetch(
-          `http://localhost:9000/store/tappay-checkout`,
+          `${backendUrl}/store/tappay-checkout`,
           {
             method: "POST",
             headers: {
@@ -313,20 +312,11 @@ export default function CheckoutPage() {
             `結帳失敗: ${completeData?.message || completeData?.error || "未知錯誤"}`,
           );
 
-        // 4. 攔截 3D 驗證網址並強制跳轉
+        // 4. 攔截 3D 驗證網址並強制跳轉 (清理了重複的區塊)
         if (
           completeData.type === "order" &&
           completeData.order?.payment_status === "requires_action"
         ) {
-          const paymentUrl =
-            completeData.order.payments?.[0]?.data?.payment_url;
-          if (paymentUrl) {
-            console.log("🔗 跳轉 3D 驗證:", paymentUrl);
-            window.location.href = paymentUrl;
-            return; // 這裡安心 return，剩下的交給 Webhook！
-          }
-        }
-        {
           const paymentUrl =
             completeData.order.payments?.[0]?.data?.payment_url;
           if (paymentUrl) {
