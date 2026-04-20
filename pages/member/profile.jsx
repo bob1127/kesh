@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-
-import { useUser } from "../../components/context/UserContext";
+import { useUser } from "../../components/context/UserContext"; // 調整為你實際的路徑
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,6 +14,8 @@ import {
   Truck,
   ChevronDown,
   ChevronUp,
+  ShieldCheck, // 新增的圖示
+  Lock, // 新增的圖示
 } from "lucide-react";
 
 export default function MemberProfile() {
@@ -23,28 +24,41 @@ export default function MemberProfile() {
   const [activeTab, setActiveTab] = useState("profile"); // 'profile' | 'orders'
   const [orders, setOrders] = useState([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const [expandedOrders, setExpandedOrders] = useState({}); // { [orderId]: boolean }
+  const [expandedOrders, setExpandedOrders] = useState({});
 
-  // 1. 檢查登入狀態
+  // 🔥 狀態：用來記錄使用者是不是社群登入
+  const [isSocialLogin, setIsSocialLogin] = useState(false);
+  // 修改密碼的狀態
+  const [passwordData, setPasswordData] = useState({
+    current: "",
+    new: "",
+    confirm: "",
+  });
+  const [passwordStatus, setPasswordStatus] = useState("");
+
+  // 1. 檢查登入狀態與社群標記
   useEffect(() => {
     if (!loading && !userInfo) {
       router.push("/login");
+    }
+
+    // 檢查 localStorage 裡的社群登入標記
+    const isGoogle = localStorage.getItem("is_google_login") === "true";
+    const isFacebook = localStorage.getItem("is_facebook_login") === "true";
+    const isLine = localStorage.getItem("line_oauth_state") !== null; // LINE 的判斷方式依據你的實作微調
+
+    if (isGoogle || isFacebook || isLine) {
+      setIsSocialLogin(true);
     }
   }, [userInfo, loading, router]);
 
   // 2. 抓取訂單資料
   useEffect(() => {
-    console.log("準備抓取訂單，目前 UserInfo:", userInfo);
-
     if (userInfo?.email && activeTab === "orders") {
       setIsLoadingOrders(true);
-
-      console.log(`Fetching: /api/member/orders?email=${userInfo.email}`);
-
       fetch(`/api/member/orders?email=${userInfo.email}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("API 回傳資料:", data);
           setOrders(Array.isArray(data) ? data : []);
           setIsLoadingOrders(false);
         })
@@ -60,6 +74,29 @@ export default function MemberProfile() {
       ...prev,
       [orderId]: !prev[orderId],
     }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const submitPasswordUpdate = (e) => {
+    e.preventDefault();
+    if (passwordData.new !== passwordData.confirm) {
+      setPasswordStatus("兩次輸入的新密碼不一致");
+      return;
+    }
+    if (passwordData.new.length < 6) {
+      setPasswordStatus("新密碼長度需至少 6 個字元");
+      return;
+    }
+    setPasswordStatus("正在更新密碼...");
+    // 這裡未來可以接你更新密碼的 API
+    setTimeout(() => {
+      setPasswordStatus("此功能需在後端設定密碼更新 API 後方可生效。");
+      setPasswordData({ current: "", new: "", confirm: "" });
+    }, 1500);
   };
 
   if (loading || !userInfo) return null;
@@ -136,66 +173,143 @@ export default function MemberProfile() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* 左：帳號概覽 */}
-                      <section className="lg:col-span-1 border border-gray-200 bg-white rounded-sm">
-                        <div className="p-6 border-b border-gray-100">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-lg font-bold">
-                              {userInfo?.name?.charAt(0)?.toUpperCase() || "U"}
+                      {/* 左：帳號概覽 & 安全設定 */}
+                      <section className="lg:col-span-1 flex flex-col gap-6">
+                        {/* 帳號概覽區塊 */}
+                        <div className="border border-gray-200 bg-white rounded-sm">
+                          <div className="p-6 border-b border-gray-100">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-lg font-bold">
+                                {userInfo?.name?.charAt(0)?.toUpperCase() ||
+                                  "U"}
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-400 uppercase tracking-wider">
+                                  Account
+                                </p>
+                                <p className="text-base font-bold leading-tight">
+                                  {userInfo?.name ||
+                                    userInfo?.username ||
+                                    "會員"}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  @{userInfo?.username || "—"}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-xs text-gray-400 uppercase tracking-wider">
-                                Account
-                              </p>
-                              <p className="text-base font-bold leading-tight">
-                                {userInfo?.name || userInfo?.username || "會員"}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                @{userInfo?.username || "—"}
-                              </p>
-                            </div>
+                          </div>
+
+                          <div className="p-6 space-y-4">
+                            <InfoRow
+                              icon={<Mail size={16} />}
+                              label="Email"
+                              value={userInfo?.email || "—"}
+                            />
+                            <InfoRow
+                              icon={<Phone size={16} />}
+                              label="Phone"
+                              value={
+                                userInfo?.phone ||
+                                userInfo?.billing?.phone ||
+                                "—"
+                              }
+                            />
+                            <InfoRow
+                              icon={<User size={16} />}
+                              label="Member Level"
+                              value={userInfo?.roleLabel || "一般會員"}
+                            />
                           </div>
                         </div>
 
-                        <div className="p-6 space-y-4">
-                          <InfoRow
-                            icon={<Mail size={16} />}
-                            label="Email"
-                            value={userInfo?.email || "—"}
-                          />
-                          <InfoRow
-                            icon={<Phone size={16} />}
-                            label="Phone"
-                            value={
-                              userInfo?.phone || userInfo?.billing?.phone || "—"
-                            }
-                          />
-                          <InfoRow
-                            icon={<User size={16} />}
-                            label="Member Level"
-                            value={userInfo?.roleLabel || "一般會員"}
-                          />
-
-                          <div className="pt-4 border-t border-gray-100">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">
-                              Quick Notes
-                            </p>
-                            <ul className="text-sm text-gray-600 space-y-2">
-                              <li className="flex items-center justify-between">
-                                <span className="text-gray-500">會員狀態</span>
-                                <span className="font-semibold">正常</span>
-                              </li>
-                              <li className="flex items-center justify-between">
-                                <span className="text-gray-500">通知</span>
-                                <span className="font-semibold">Email</span>
-                              </li>
-                            </ul>
+                        {/* 🔥 帳號安全 (修改密碼) 區塊 */}
+                        <div className="border border-gray-200 bg-white rounded-sm p-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <ShieldCheck size={18} className="text-black" />
+                            <h3 className="text-sm font-bold uppercase tracking-widest">
+                              Security
+                            </h3>
                           </div>
+
+                          {isSocialLogin ? (
+                            /* 社群登入的防呆提示 */
+                            <div className="bg-gray-50 border border-gray-200 p-4 rounded-sm text-sm text-gray-600 leading-relaxed">
+                              您目前使用{" "}
+                              <span className="font-bold text-black">
+                                社群帳號
+                              </span>{" "}
+                              進行快速登入。
+                              <br />
+                              <br />
+                              為確保您的帳號安全與連線穩定，社群綁定用戶不支援手動修改密碼服務。
+                            </div>
+                          ) : (
+                            /* 一般註冊的修改密碼表單 */
+                            <form
+                              onSubmit={submitPasswordUpdate}
+                              className="space-y-4"
+                            >
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                                  Current Password
+                                </label>
+                                <input
+                                  type="password"
+                                  name="current"
+                                  required
+                                  value={passwordData.current}
+                                  onChange={handlePasswordChange}
+                                  className="w-full border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black transition-colors rounded-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                                  New Password
+                                </label>
+                                <input
+                                  type="password"
+                                  name="new"
+                                  required
+                                  minLength={6}
+                                  value={passwordData.new}
+                                  onChange={handlePasswordChange}
+                                  className="w-full border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black transition-colors rounded-sm"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                                  Confirm New Password
+                                </label>
+                                <input
+                                  type="password"
+                                  name="confirm"
+                                  required
+                                  minLength={6}
+                                  value={passwordData.confirm}
+                                  onChange={handlePasswordChange}
+                                  className="w-full border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black transition-colors rounded-sm"
+                                />
+                              </div>
+
+                              {passwordStatus && (
+                                <p className="text-xs text-[#ef4628] font-bold">
+                                  {passwordStatus}
+                                </p>
+                              )}
+
+                              <button
+                                type="submit"
+                                className="w-full flex justify-center items-center gap-2 bg-black text-white text-xs font-bold uppercase tracking-widest py-3 mt-2 hover:bg-[#ef4628] transition-colors rounded-sm"
+                              >
+                                <Lock size={14} /> Update Password
+                              </button>
+                            </form>
+                          )}
                         </div>
                       </section>
 
                       {/* 右：預設運送地址 */}
-                      <section className="lg:col-span-2 border border-gray-200 bg-white rounded-sm">
+                      <section className="lg:col-span-2 border border-gray-200 bg-white rounded-sm h-fit">
                         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                           <div>
                             <p className="text-xs text-gray-400 uppercase tracking-wider">
@@ -342,11 +456,11 @@ export default function MemberProfile() {
                                   order?.shipping?.last_name || ""
                                 }`.trim()
                               : order?.billing?.first_name ||
-                                order?.billing?.last_name
-                              ? `${order?.billing?.first_name || ""} ${
-                                  order?.billing?.last_name || ""
-                                }`.trim()
-                              : "—";
+                                  order?.billing?.last_name
+                                ? `${order?.billing?.first_name || ""} ${
+                                    order?.billing?.last_name || ""
+                                  }`.trim()
+                                : "—";
 
                           const shippingPhone =
                             order?.shipping?.phone ||
@@ -355,7 +469,7 @@ export default function MemberProfile() {
 
                           const shippingAddress = formatWCAddress(
                             order?.shipping,
-                            order?.billing
+                            order?.billing,
                           );
 
                           return (
@@ -434,7 +548,7 @@ export default function MemberProfile() {
                                         <p className="text-xs text-gray-400 mt-1">
                                           {order.shipping_total
                                             ? `運費：NT$ ${formatMoney(
-                                                order.shipping_total
+                                                order.shipping_total,
                                               )}`
                                             : ""}
                                         </p>
@@ -553,7 +667,7 @@ export default function MemberProfile() {
                                                               ：{" "}
                                                               {String(
                                                                 m.display_value ??
-                                                                  m.value
+                                                                  m.value,
                                                               )}
                                                             </p>
                                                           ))}
@@ -578,7 +692,7 @@ export default function MemberProfile() {
                                                   </div>
                                                 </div>
                                               );
-                                            }
+                                            },
                                           )}
                                         </div>
                                       </div>
@@ -596,11 +710,11 @@ export default function MemberProfile() {
                                               value={`NT$ ${formatMoney(
                                                 order.total -
                                                   (Number(
-                                                    order.shipping_total
+                                                    order.shipping_total,
                                                   ) || 0) +
                                                   (Number(
-                                                    order.discount_total
-                                                  ) || 0)
+                                                    order.discount_total,
+                                                  ) || 0),
                                               )}`}
                                               muted
                                             />
@@ -609,7 +723,7 @@ export default function MemberProfile() {
                                               value={
                                                 Number(order.discount_total) > 0
                                                   ? `- NT$ ${formatMoney(
-                                                      order.discount_total
+                                                      order.discount_total,
                                                     )}`
                                                   : "—"
                                               }
@@ -620,7 +734,7 @@ export default function MemberProfile() {
                                               value={
                                                 Number(order.shipping_total) > 0
                                                   ? `NT$ ${formatMoney(
-                                                      order.shipping_total
+                                                      order.shipping_total,
                                                     )}`
                                                   : "—"
                                               }
@@ -631,7 +745,7 @@ export default function MemberProfile() {
                                               value={
                                                 Number(order.total_tax) > 0
                                                   ? `NT$ ${formatMoney(
-                                                      order.total_tax
+                                                      order.total_tax,
                                                     )}`
                                                   : "—"
                                               }
@@ -641,7 +755,7 @@ export default function MemberProfile() {
                                               <SummaryRow
                                                 label="總計"
                                                 value={`NT$ ${formatMoney(
-                                                  order.total
+                                                  order.total,
                                                 )}`}
                                                 strong
                                               />

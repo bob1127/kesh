@@ -385,7 +385,7 @@ export const SlideTabsExample = () => {
                 ) : (
                   <div className="w-full">
                     {openMega === "categories" && (
-                      <div className="w-full">
+                      <div className="w-full mx-auto max-w-[1920px] lg:w-[80%]">
                         <div className="flex justify-between items-end border-b border-gray-200 pb-2 mb-8">
                           <h3 className="text-sm font-bold tracking-widest uppercase text-gray-900">
                             {t("mega.categories") || "產品類別"}
@@ -410,7 +410,7 @@ export const SlideTabsExample = () => {
                                       src={cat.image}
                                       alt={cat.name}
                                       fill
-                                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                      className="object-cover group-hover:scale-110   transition-transform duration-500"
                                       unoptimized
                                     />
                                   ) : (

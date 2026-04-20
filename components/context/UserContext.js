@@ -13,10 +13,14 @@ export const UserProvider = ({ children }) => {
   const verifyMedusaSession = async () => {
     setLoading(true);
     const token = localStorage.getItem("medusa_auth_token");
-    const isGoogleLogin = localStorage.getItem("is_google_login") === "true"; 
     
-    const savedGoogleName = localStorage.getItem("google_name");
-    const savedGoogleAvatar = localStorage.getItem("google_avatar");
+    // 🌍 讀取三大社群登入的標記
+    const isGoogle = localStorage.getItem("is_google_login") === "true";
+    const isFacebook = localStorage.getItem("is_facebook_login") === "true";
+    const isLine = localStorage.getItem("is_line_login") === "true";
+    
+    const socialName = localStorage.getItem("google_name") || localStorage.getItem("facebook_name") || localStorage.getItem("line_name");
+    const socialAvatar = localStorage.getItem("google_avatar") || localStorage.getItem("facebook_avatar") || localStorage.getItem("line_avatar");
 
     if (!token) {
       setUserInfo(null);
@@ -25,7 +29,7 @@ export const UserProvider = ({ children }) => {
     }
 
     const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-    const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+    const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
 
     try {
       const res = await fetch(`${BACKEND_URL}/store/customers/me`, {
@@ -37,33 +41,41 @@ export const UserProvider = ({ children }) => {
 
       if (res.ok) {
         const data = await res.json();
+        const customer = data.customer || data; // 容錯處理：適應 Medusa 不同版本的物件結構
         
-        // 🔥 精準判斷名字：Google 登入優先 -> 註冊填的 first_name -> Email 前綴
+        // 🔥 精準判斷名字：社群優先 -> 註冊填的 -> Email前綴
         let displayName = "";
-        if (isGoogleLogin && savedGoogleName) {
-            displayName = savedGoogleName;
-        } else if (data.customer.first_name && data.customer.first_name !== "Member") {
-            displayName = data.customer.first_name;
-        } else if (data.customer.email) {
-            displayName = data.customer.email.split('@')[0];
+        if ((isGoogle || isFacebook || isLine) && socialName) {
+            displayName = socialName;
+        } else if (customer.first_name && customer.first_name !== "Member") {
+            displayName = customer.first_name;
+        } else if (customer.email) {
+            displayName = customer.email.split('@')[0];
         } else {
             displayName = "KÉSH VIP";
         }
 
         setUserInfo({
-          id: data.customer.id,
+          id: customer.id,
           name: displayName,
-          email: data.customer.email,
-          avatar: (isGoogleLogin && savedGoogleAvatar) ? savedGoogleAvatar : null,
+          email: customer.email,
+          phone: customer.phone,
+          avatar: ((isGoogle || isFacebook || isLine) && socialAvatar) ? socialAvatar : null,
         });
       } else {
-        // 🔥 修正：如果 Token 無效 (例如過期)，必須立刻清空並登出！絕對不能放行！
-        localStorage.removeItem("medusa_auth_token");
-        setUserInfo(null);
+        console.warn(`[UserContext] 驗證警告：API 回傳狀態碼 ${res.status}`);
+        
+        // 🛡️ 防護升級：只有明確是 401 (未授權/Token過期) 才強制登出清空
+        if (res.status === 401) {
+            logout(false); // 傳遞 false 避免不斷跳轉造成死循環
+        } else {
+            // 其他狀況 (如 404 同步延遲) 先保留 Token，但畫面顯示為尚未登入，避免誤刪
+            setUserInfo(null);
+        }
       }
     } catch (error) {
-      console.error("❌ [UserContext] 驗證發生錯誤:", error);
-      setUserInfo(null);
+      console.error("❌ [UserContext] 驗證發生連線錯誤:", error);
+      setUserInfo(null); // 網路斷線時不刪 Token
     } finally {
       setLoading(false);
     }
@@ -71,15 +83,34 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     verifyMedusaSession();
+
+    // 💡 黑魔法：跨分頁同步登入狀態
+    const handleStorageChange = (e) => {
+        if (e.key === "medusa_auth_token") {
+            verifyMedusaSession();
+        }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [router.pathname]);
 
-  const logout = () => {
+  const logout = (redirect = true) => {
+    // 徹底清除所有狀態
     localStorage.removeItem("medusa_auth_token");
     localStorage.removeItem("is_google_login");
+    localStorage.removeItem("is_facebook_login");
+    localStorage.removeItem("is_line_login");
     localStorage.removeItem("google_name");
     localStorage.removeItem("google_avatar");
+    localStorage.removeItem("facebook_name");
+    localStorage.removeItem("facebook_avatar");
+    localStorage.removeItem("line_name");
+    localStorage.removeItem("line_avatar");
+    
     setUserInfo(null);
-    router.push("/login");
+    if (redirect) {
+        window.location.href = "/login";
+    }
   };
 
   return (

@@ -7,6 +7,7 @@ import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
+// 🔵 Google 圖示組件
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
     <path
@@ -25,6 +26,24 @@ const GoogleIcon = () => (
       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
       fill="#EA4335"
     />
+  </svg>
+);
+
+// 🟢 LINE 圖示組件
+const LineIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#06C755">
+    <path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 4.269 8.846 10.036 9.608.391.084.922.258 1.057.592.122.298.079.76.038 1.057l-.239 1.442c-.063.385-.296 1.442 1.265.783 1.562-.659 8.438-4.966 10.87-8.006 1.139-1.42 1.745-2.834 1.745-4.436z" />
+    <path
+      fill="#FFF"
+      d="M5.385 13.06h-1.57A.428.428 0 013.4 12.63V7.936a.428.428 0 01.415-.428h1.57c.236 0 .428.192.428.428v4.268h2.083c.236 0 .428.192.428.428v.428a.428.428 0 01-.428.428zM10.426 13.06h-1.57a.428.428 0 01-.428-.428V7.936a.428.428 0 01.428-.428h1.57c.236 0 .428.192.428.428v4.696a.428.428 0 01-.428.428zM16.666 13.06h-1.57a.428.428 0 01-.428-.428V9.736l-2.028 2.927a.428.428 0 01-.352.185h-1.129a.428.428 0 01-.428-.428V7.936a.428.428 0 01.428-.428h1.57c.236 0 .428.192.428.428v2.896l2.028-2.927a.428.428 0 01.352-.185h1.129c.236 0 .428.192.428.428v4.696a.428.428 0 01-.428.428zM20.6 8.364h-2.083v1.285h2.083c.236 0 .428.192.428.428v.428a.428.428 0 01-.428.428H18.51v1.285H20.6c.236 0 .428.192.428.428v.428a.428.428 0 01-.428.428h-2.511a.428.428 0 01-.428-.428V7.936a.428.428 0 01.428-.428H20.6c.236 0 .428.192.428.428v.428a.428.428 0 01-.428.428z"
+    />
+  </svg>
+);
+
+// 🔵 Facebook 圖示組件
+const FacebookIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
   </svg>
 );
 
@@ -63,24 +82,45 @@ export default function Register() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGoogleLogin = async () => {
+  const handleLineLogin = () => {
     if (isProcessing.current) return;
-    isProcessing.current = true;
-    const BACKEND_URL =
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-    const frontendCallbackUrl = "http://localhost:3000/auth/callback";
-    try {
-      const res = await fetch(
-        `${BACKEND_URL}/auth/customer/google?callback_url=${encodeURIComponent(frontendCallbackUrl)}`,
-      );
-      const data = await res.json();
-      if (data.location) window.location.href = data.location;
-    } finally {
-      isProcessing.current = false;
-    }
+    const LINE_CLIENT_ID = process.env.NEXT_PUBLIC_LINE_CHANNEL_ID;
+    if (!LINE_CLIENT_ID)
+      return setErrorMsg("系統設定異常：找不到 LINE Channel ID");
+    const currentOrigin = window.location.origin;
+    const REDIRECT_URI = encodeURIComponent(
+      `${currentOrigin}/auth/line/callback`,
+    );
+    const STATE = Math.random().toString(36).substring(7);
+    localStorage.setItem("line_oauth_state", STATE);
+    window.location.href = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${LINE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=profile%20openid%20email`;
   };
 
-  // 🚀 第一階段：發送驗證碼到信箱
+  const handleGoogleLogin = () => {
+    if (isProcessing.current) return;
+    const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!GOOGLE_CLIENT_ID)
+      return setErrorMsg("系統設定異常：找不到 Google Client ID");
+    const currentOrigin = window.location.origin;
+    const REDIRECT_URI = encodeURIComponent(`${currentOrigin}/auth/callback`);
+    const STATE = Math.random().toString(36).substring(7);
+    localStorage.setItem("google_oauth_state", STATE);
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=email%20profile`;
+  };
+
+  const handleFacebookLogin = () => {
+    if (isProcessing.current) return;
+    const FB_CLIENT_ID = process.env.NEXT_PUBLIC_FACEBOOK_CLIENT_ID;
+    if (!FB_CLIENT_ID) return setErrorMsg("系統設定異常：找不到 FB Client ID");
+    const currentOrigin = window.location.origin;
+    const REDIRECT_URI = encodeURIComponent(
+      `${currentOrigin}/auth/facebook/callback`,
+    );
+    const STATE = Math.random().toString(36).substring(7);
+    localStorage.setItem("facebook_oauth_state", STATE);
+    window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=email,public_profile`;
+  };
+
   const handleSendOTP = async (e) => {
     e.preventDefault();
     if (isProcessing.current) return;
@@ -107,7 +147,6 @@ export default function Register() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "發送失敗");
 
-      // 儲存加密包並切換到步驟 2
       setOtpHash(data.hash);
       setOtpExpires(data.expires);
       setStep(2);
@@ -119,7 +158,6 @@ export default function Register() {
     }
   };
 
-  // 🚀 第二階段：核對驗證碼並呼叫 Medusa 註冊
   const handleVerifyAndRegister = async (e) => {
     e.preventDefault();
     if (isProcessing.current) return;
@@ -130,7 +168,7 @@ export default function Register() {
     isProcessing.current = true;
 
     try {
-      // 1. 先去自建的 API 核對驗證碼
+      // 1. 自建 API 核對驗證碼
       const verifyRes = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -147,7 +185,7 @@ export default function Register() {
         throw new Error(vData.error || "驗證碼錯誤");
       }
 
-      // 2. 驗證成功！開始正式呼叫 Medusa 註冊
+      // 2. 呼叫 Medusa 註冊 Auth Identity
       const BACKEND_URL =
         process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
       const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
@@ -170,15 +208,15 @@ export default function Register() {
       const authData = await authRes.json();
       if (!authRes.ok) throw new Error("註冊失敗，該信箱可能已被註冊");
 
-      const token = authData.token;
+      const registerToken = authData.token;
 
-      // 建立顧客檔案
+      // 3. 建立顧客檔案 (綁定名字)
       await fetch(`${BACKEND_URL}/store/customers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-publishable-api-key": API_KEY,
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${registerToken}`,
         },
         body: JSON.stringify({
           email: formData.email.toLowerCase(),
@@ -186,9 +224,45 @@ export default function Register() {
         }),
       });
 
-      localStorage.setItem("medusa_auth_token", token);
+      // 🔥 4. 關鍵修復：顧客檔案建立後，自動「重新登入」以取得包含完整顧客資料的最終 Token
+      const finalLoginRes = await fetch(
+        `${BACKEND_URL}/auth/customer/emailpass`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-publishable-api-key": API_KEY,
+          },
+          body: JSON.stringify({
+            email: formData.email.toLowerCase(),
+            password: formData.password,
+          }),
+        },
+      );
+
+      if (!finalLoginRes.ok) throw new Error("同步登入狀態失敗，請手動登入");
+      const finalLoginData = await finalLoginRes.json();
+      const finalToken = finalLoginData.token;
+
+      // 5. 清除標記並寫入最終 Token
+      localStorage.removeItem("is_google_login");
+      localStorage.removeItem("is_facebook_login");
+      localStorage.removeItem("is_line_login");
+      localStorage.removeItem("google_avatar");
+      localStorage.removeItem("google_name");
+      localStorage.removeItem("facebook_avatar");
+      localStorage.removeItem("facebook_name");
+      localStorage.removeItem("line_oauth_state");
+      localStorage.removeItem("google_oauth_state");
+      localStorage.removeItem("facebook_oauth_state");
+
+      localStorage.setItem("medusa_auth_token", finalToken);
+
       alert("驗證成功！歡迎加入 KÉSH de¹");
-      router.push("/", "/", { locale: router.locale });
+
+      // 6. 硬重載跳轉回首頁
+      window.location.href =
+        router.locale === "zh-TW" || !router.locale ? "/" : `/${router.locale}`;
     } catch (error) {
       setErrorMsg(error.message);
     } finally {
@@ -225,14 +299,43 @@ export default function Register() {
                 <div className="flex flex-col gap-3 mb-8">
                   <button
                     type="button"
+                    onClick={handleLineLogin}
+                    disabled={loading}
+                    className="flex items-center justify-center py-3.5 border border-[#06C755] bg-[#06C755] hover:bg-[#05b34c] transition-all rounded-sm group relative disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="absolute left-6">
+                      <LineIcon />
+                    </div>
+                    <span className="text-sm font-bold text-white uppercase tracking-wide">
+                      {t("register.line") || "Continue with LINE"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={handleGoogleLogin}
-                    className="flex items-center justify-center py-3.5 border border-gray-300 hover:border-black hover:bg-gray-50 transition-all rounded-sm group relative"
+                    disabled={loading}
+                    className="flex items-center justify-center py-3.5 border border-gray-300 hover:border-black hover:bg-gray-50 transition-all rounded-sm group relative disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="absolute left-6">
                       <GoogleIcon />
                     </div>
                     <span className="text-sm font-bold text-gray-700 group-hover:text-black uppercase tracking-wide">
-                      Continue with Google
+                      {t("register.google") || "Continue with Google"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleFacebookLogin}
+                    disabled={loading}
+                    className="flex items-center justify-center py-3.5 border border-[#1877F2] bg-white hover:bg-blue-50 transition-all rounded-sm group relative disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <div className="absolute left-6">
+                      <FacebookIcon />
+                    </div>
+                    <span className="text-sm font-bold text-[#1877F2] uppercase tracking-wide">
+                      {t("register.facebook") || "Continue with Facebook"}
                     </span>
                   </button>
                 </div>
