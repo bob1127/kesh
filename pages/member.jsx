@@ -7,58 +7,42 @@ import { useRouter } from "next/router";
 import { useUser } from "../components/context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  User,
-  Package,
-  Clock,
-  CheckCircle,
-  CreditCard,
-  LogOut,
-  ShoppingBag,
-  AlertCircle,
   LayoutDashboard,
+  ShoppingBag,
   MapPin,
   Settings,
+  LogOut,
+  ChevronDown,
+  ChevronUp,
+  Landmark,
 } from "lucide-react";
-
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-// --- 狀態標籤 helper (結合 i18n) ---
-const getStatusBadge = (status, t) => {
-  switch (status) {
-    case "pending":
-    case "requires_action":
-      return {
-        label: t("member.status.pending"),
-        color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-        icon: <Clock size={14} />,
-      };
-    case "processing":
-      return {
-        label: t("member.status.processing"),
-        color: "bg-blue-100 text-blue-700 border-blue-200",
-        icon: <Package size={14} />,
-      };
-    case "completed":
-      return {
-        label: t("member.status.completed"),
-        color: "bg-green-100 text-green-700 border-green-200",
-        icon: <CheckCircle size={14} />,
-      };
-    case "canceled":
-      return {
-        label: t("member.status.canceled"),
-        color: "bg-gray-100 text-gray-500 border-gray-200",
-        icon: <AlertCircle size={14} />,
-      };
-    default:
-      return {
-        label: t("member.status.unknown"),
-        color: "bg-gray-50 text-gray-600 border-gray-200",
-        icon: <Package size={14} />,
-      };
-  }
+const getStatusBadge = (paymentStatus) => {
+  if (paymentStatus === "captured")
+    return {
+      label: "已完成",
+      color: "bg-[#f2fcf5] text-[#166534] border border-[#dcfce7]",
+    };
+  if (paymentStatus === "awaiting" || paymentStatus === "requires_action")
+    return {
+      label: "待付款",
+      color: "bg-[#fffbeb] text-[#b45309] border border-[#fef3c7]",
+    };
+  if (paymentStatus === "canceled")
+    return {
+      label: "已取消",
+      color: "bg-[#f9fafb] text-[#52525b] border border-[#f3f4f6]",
+    };
+  return {
+    label: "處理中",
+    color: "bg-[#eff6ff] text-[#1d4ed8] border border-[#dbeafe]",
+  };
 };
+
+const formatMoney = (v) =>
+  Number.isNaN(Number(v)) ? "0" : Math.round(Number(v)).toLocaleString();
 
 export default function MemberProfile() {
   const { userInfo, loading: authLoading, logout } = useUser();
@@ -66,17 +50,14 @@ export default function MemberProfile() {
   const { t } = useTranslation("common");
 
   const [orders, setOrders] = useState([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, orders, addresses, settings
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [activeTab, setActiveTab] = useState("orders");
+  const [expandedOrders, setExpandedOrders] = useState({});
 
-  // 1. 驗證登入狀態
   useEffect(() => {
-    if (!authLoading && !userInfo) {
-      router.push("/login");
-    }
+    if (!authLoading && !userInfo) router.push("/login");
   }, [authLoading, userInfo, router]);
 
-  // 2. 抓取訂單資料
   useEffect(() => {
     const fetchMedusaOrders = async () => {
       const token = localStorage.getItem("medusa_auth_token");
@@ -86,191 +67,118 @@ export default function MemberProfile() {
         setLoadingOrders(true);
         const BACKEND_URL =
           process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-        const res = await fetch(`${BACKEND_URL}/store/customers/me/orders`, {
+        const PUB_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+        const res = await fetch(`${BACKEND_URL}/store/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
-            "x-publishable-api-key":
-              process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+            "x-publishable-api-key": PUB_KEY,
           },
         });
 
         if (res.ok) {
           const data = await res.json();
-          setOrders(data.orders || []);
+          const ordersArray = data.orders || (Array.isArray(data) ? data : []);
+          ordersArray.sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at),
+          );
+          setOrders(ordersArray);
         }
       } catch (error) {
-        console.error("Failed to fetch orders", error);
+        console.error("❌ 訂單抓取失敗:", error);
       } finally {
         setLoadingOrders(false);
       }
     };
-
-    if (userInfo) {
+    if (userInfo && (activeTab === "dashboard" || activeTab === "orders"))
       fetchMedusaOrders();
-    }
-  }, [userInfo]);
+  }, [userInfo, activeTab]);
 
+  const toggleExpanded = (id) =>
+    setExpandedOrders((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const completedOrders = orders.filter((o) => o.payment_status === "captured");
   const pendingOrders = orders.filter(
-    (o) => o.status === "pending" || o.payment_status === "requires_action",
+    (o) =>
+      o.payment_status === "awaiting" || o.payment_status === "requires_action",
   );
-  const completedOrders = orders.filter((o) => o.status === "completed");
+  const totalSpent = completedOrders.reduce(
+    (acc, curr) => acc + (curr.total || 0),
+    0,
+  );
 
-  if (authLoading) {
+  if (authLoading || !userInfo)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ef4628]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black"></div>
       </div>
     );
-  }
 
-  if (!userInfo) return null;
-
-  // --- 定義左側選單 ---
   const menuItems = [
-    {
-      id: "dashboard",
-      label: t("member.tabs.dashboard"),
-      icon: <LayoutDashboard size={18} />,
-    },
-    {
-      id: "orders",
-      label: t("member.tabs.orders"),
-      icon: <ShoppingBag size={18} />,
-    },
-    {
-      id: "addresses",
-      label: t("member.tabs.addresses"),
-      icon: <MapPin size={18} />,
-    },
-    {
-      id: "settings",
-      label: t("member.tabs.settings"),
-      icon: <Settings size={18} />,
-    },
+    { id: "dashboard", label: "帳戶總覽", icon: <LayoutDashboard size={16} /> },
+    { id: "orders", label: "我的訂單", icon: <ShoppingBag size={16} /> },
+    { id: "addresses", label: "收件地址", icon: <MapPin size={16} /> },
+    { id: "settings", label: "帳號設定", icon: <Settings size={16} /> },
   ];
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pt-24 pb-20">
+    <div className="min-h-screen bg-white pt-24 pb-20">
       <Head>
-        <title>{t("member.title")} | KÉSH de¹</title>
+        <title>會員中心 | KÉSH de¹</title>
       </Head>
-
       <div className="max-w-[1200px] mx-auto px-6">
-        {/* Header */}
-        <div className="mb-10 pt-4 border-b border-gray-200 pb-6">
-          <h1 className="text-2xl md:text-3xl font-medium tracking-widest uppercase mb-2 text-black">
-            {t("member.title")}
-          </h1>
-          <p className="text-gray-500 text-sm tracking-wide">
-            {t("member.subtitle")}
-          </p>
+        <div className="mb-12 pt-4 border-b border-gray-100 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-light tracking-widest uppercase mb-2 text-black">
+              My Account
+            </h1>
+            <p className="text-gray-400 text-sm tracking-wide">
+              管理您的訂單與個人資料
+            </p>
+          </div>
+          <div className="text-xs text-gray-400 tracking-widest uppercase">
+            Hi, {userInfo.name}
+          </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* --- 左側：導航選單 --- */}
-          <div className="lg:w-1/4">
-            <div className="bg-white rounded-none border border-gray-200 p-6 sticky top-28">
-              {/* Profile Overview */}
-              <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-                <div className="w-14 h-14 rounded-full bg-gray-100 overflow-hidden relative border border-gray-200 flex-shrink-0">
-                  {userInfo.avatar ? (
-                    <Image
-                      src={userInfo.avatar}
-                      alt="Profile"
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <User size={24} />
-                    </div>
-                  )}
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
-                    {t("member.welcome")}
-                  </p>
-                  <h2 className="text-base font-bold text-gray-900 truncate">
-                    {userInfo.name}
-                  </h2>
-                </div>
-              </div>
-
-              {/* Menu Links */}
-              <nav className="flex flex-col gap-2">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* 左側選單 */}
+          <div className="lg:w-64 shrink-0">
+            <div className="sticky top-28">
+              <nav className="flex flex-col gap-1">
                 {menuItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center gap-3 w-full text-left px-4 py-3 text-sm tracking-wide transition-colors ${
-                      activeTab === item.id
-                        ? "bg-[#ef4628] text-white font-medium"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-black"
-                    }`}
+                    className={`flex items-center gap-4 w-full text-left px-4 py-3 text-xs tracking-widest uppercase transition-all duration-300 ${activeTab === item.id ? "bg-black text-white font-bold" : "text-gray-500 hover:bg-gray-50 hover:text-black"}`}
                   >
-                    {item.icon} {item.label}
+                    <span
+                      className={
+                        activeTab === item.id ? "opacity-100" : "opacity-60"
+                      }
+                    >
+                      {item.icon}
+                    </span>
+                    {item.label}
                   </button>
                 ))}
-
-                <button
-                  onClick={logout}
-                  className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm tracking-wide text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors mt-4 border-t border-gray-100"
-                >
-                  <LogOut size={18} /> {t("member.tabs.logout")}
-                </button>
+                <div className="pt-6 mt-6 border-t border-gray-100">
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-4 w-full text-left px-4 py-3 text-xs tracking-widest uppercase text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <span className="opacity-60">
+                      <LogOut size={16} />
+                    </span>
+                    登出帳號
+                  </button>
+                </div>
               </nav>
             </div>
           </div>
 
-          {/* --- 右側：動態內容區 --- */}
-          <div className="lg:w-3/4">
+          {/* 右側內容 */}
+          <div className="flex-1">
             <AnimatePresence mode="wait">
-              {/* 1. Dashboard 總覽 */}
-              {activeTab === "dashboard" && (
-                <motion.div
-                  key="dashboard"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <h3 className="text-lg font-bold tracking-widest uppercase mb-6 text-black border-b border-black pb-2 inline-block">
-                    {t("member.tabs.dashboard")}
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-                    <div className="bg-white p-6 border border-gray-200">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">
-                        {t("member.dashboard.total_spent")}
-                      </p>
-                      <p className="text-2xl font-medium text-black tracking-tight">
-                        NT${" "}
-                        {(
-                          orders.reduce((acc, curr) => acc + curr.total, 0) /
-                          100
-                        ).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="bg-white p-6 border border-gray-200">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">
-                        {t("member.dashboard.completed_orders")}
-                      </p>
-                      <p className="text-2xl font-medium text-black">
-                        {completedOrders.length}
-                      </p>
-                    </div>
-                    <div className="bg-white p-6 border border-gray-200">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-2">
-                        {t("member.dashboard.pending_orders")}
-                      </p>
-                      <p className="text-2xl font-medium text-[#ef4628]">
-                        {pendingOrders.length}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* 2. Orders 訂單列表 */}
               {activeTab === "orders" && (
                 <motion.div
                   key="orders"
@@ -278,171 +186,300 @@ export default function MemberProfile() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
-                  <h3 className="text-lg font-bold tracking-widest uppercase mb-6 text-black border-b border-black pb-2 inline-block">
-                    {t("member.tabs.orders")}
-                  </h3>
+                  <div className="flex justify-between items-end mb-8">
+                    <h3 className="text-sm font-bold tracking-widest uppercase text-black">
+                      Order History
+                    </h3>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                      {orders.length} Orders
+                    </p>
+                  </div>
 
-                  {loadingOrders ? (
-                    <div className="space-y-4">
-                      {[1, 2].map((i) => (
-                        <div
-                          key={i}
-                          className="h-32 bg-gray-200 animate-pulse border border-gray-200"
-                        ></div>
-                      ))}
-                    </div>
-                  ) : orders.length === 0 ? (
-                    <div className="bg-white py-16 px-6 text-center border border-gray-200">
-                      <ShoppingBag
-                        size={40}
-                        strokeWidth={1}
-                        className="mx-auto text-gray-300 mb-4"
-                      />
-                      <p className="text-gray-500 tracking-widest text-sm mb-4">
-                        {t("member.orders.empty")}
+                  {orders.length === 0 ? (
+                    <div className="py-24 text-center border border-gray-100 bg-gray-50 flex flex-col items-center">
+                      <ShoppingBag size={32} className="text-gray-400 mb-6" />
+                      <p className="text-gray-500 tracking-widest text-xs uppercase mb-6">
+                        您目前沒有任何訂單紀錄
                       </p>
                       <Link
                         href="/category/all"
-                        className="text-[#ef4628] text-xs font-bold uppercase tracking-widest border-b border-[#ef4628] pb-1 hover:text-black hover:border-black transition-colors"
+                        className="bg-black text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors"
                       >
-                        {t("member.orders.shop_now")}
+                        開始購物
                       </Link>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {orders.map((order) => {
-                        const statusObj = getStatusBadge(order.status, t);
+                        const expanded = Boolean(expandedOrders[order.id]);
+                        const badge = getStatusBadge(order.payment_status);
                         const date = new Date(
                           order.created_at,
-                        ).toLocaleDateString(
-                          router.locale === "ko" ? "ko-KR" : "zh-TW",
-                        );
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        });
+
+                        const sAddr = order.shipping_address || {};
+                        const storeName = sAddr.company;
+                        const cleanLastName =
+                          sAddr.last_name === "Customer"
+                            ? ""
+                            : sAddr.last_name || "";
+                        const shippingName =
+                          `${sAddr.first_name || ""} ${cleanLastName}`.trim() ||
+                          "—";
+                        const shippingAddressParts = [
+                          sAddr.postal_code,
+                          sAddr.province,
+                          sAddr.city,
+                          sAddr.address_1,
+                        ].filter(Boolean);
+                        const shippingAddress =
+                          shippingAddressParts.join(" ") || "—";
+
+                        const paymentType =
+                          order.metadata?.payment_method === "ATM"
+                            ? "ATM 轉帳繳費"
+                            : "線上刷卡 (TapPay)";
+
+                        // 🔥 擷取存在 metadata 裡的匯款帳號 (如果有的話)
+                        const atmBankCode = order.metadata?.atm_bank_code;
+                        const atmVaccount = order.metadata?.atm_vaccount;
+                        const atmExpire = order.metadata?.atm_expire_date;
+                        // 判斷是否為「未付款的 ATM 訂單」
+                        const showAtmTransferInfo =
+                          order.metadata?.payment_method === "ATM" &&
+                          (order.payment_status === "awaiting" ||
+                            order.payment_status === "requires_action") &&
+                          atmVaccount;
 
                         return (
                           <div
                             key={order.id}
-                            className="bg-white border border-gray-200 hover:border-gray-400 transition-colors"
+                            className={`border transition-colors duration-300 ${expanded ? "border-black" : "border-gray-200 hover:border-gray-400"}`}
                           >
-                            <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-4 mb-3">
-                                  <span className="text-base font-bold text-black tracking-widest uppercase">
+                            <div
+                              className="p-6 cursor-pointer"
+                              onClick={() => toggleExpanded(order.id)}
+                            >
+                              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+                                <div className="col-span-2 md:col-span-1">
+                                  <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
+                                    Order No.
+                                  </p>
+                                  <p className="text-sm font-medium text-black tracking-wider">
                                     #{order.display_id}
-                                  </span>
+                                  </p>
+                                </div>
+                                <div className="hidden md:block">
+                                  <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
+                                    Date
+                                  </p>
+                                  <p className="text-xs text-gray-800 uppercase tracking-wider">
+                                    {date}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
+                                    Status
+                                  </p>
                                   <span
-                                    className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${statusObj.color}`}
+                                    className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest ${badge.color}`}
                                   >
-                                    {statusObj.icon} {statusObj.label}
+                                    {badge.label}
                                   </span>
                                 </div>
-                                <div className="text-[12px] text-gray-500 font-medium tracking-wide flex gap-4">
-                                  <span>{date}</span>
-                                  <span className="text-gray-300">|</span>
-                                  <span>
-                                    {order.items?.length || 0}{" "}
-                                    {t("member.orders.items")}
-                                  </span>
+                                <div className="hidden md:block text-right">
+                                  <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
+                                    Total
+                                  </p>
+                                  <p className="text-sm font-medium text-black">
+                                    NT$ {formatMoney(order.total)}
+                                  </p>
                                 </div>
-                              </div>
-                              <div className="flex-1 md:text-right border-t border-gray-100 pt-4 md:border-0 md:pt-0">
-                                <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1">
-                                  {t("member.orders.order_amount")}
-                                </p>
-                                <p className="text-lg font-bold text-black tracking-tight">
-                                  NT$ {(order.total / 100).toLocaleString()}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
-                                <button className="px-5 py-2.5 border border-black text-black text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
-                                  {t("member.orders.view_details")}
-                                </button>
+                                <div className="col-span-2 md:col-span-1 flex justify-end">
+                                  <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black transition-colors">
+                                    {expanded ? "Close" : "View"}
+                                    {expanded ? (
+                                      <ChevronUp size={14} />
+                                    ) : (
+                                      <ChevronDown size={14} />
+                                    )}
+                                  </button>
+                                </div>
                               </div>
                             </div>
+
+                            <AnimatePresence initial={false}>
+                              {expanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="border-t border-gray-100 bg-[#fafafa] p-6 md:p-8 flex flex-col lg:flex-row gap-12">
+                                    {/* 左：商品明細 */}
+                                    <div className="flex-1">
+                                      <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-6 pb-2 border-b border-gray-200">
+                                        Purchased Items
+                                      </h4>
+                                      <div className="space-y-6">
+                                        {(order.items || []).map((item) => (
+                                          <div
+                                            key={item.id}
+                                            className="flex gap-6"
+                                          >
+                                            <div className="w-20 h-20 bg-gray-100 border border-gray-200 shrink-0">
+                                              <img
+                                                src={item.thumbnail}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </div>
+                                            <div className="flex-1 flex flex-col justify-between py-1">
+                                              <div>
+                                                <p className="font-bold text-xs tracking-wider text-black">
+                                                  {item.title}
+                                                </p>
+                                              </div>
+                                              <div className="flex justify-between items-end">
+                                                <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                                                  Qty: {item.quantity}
+                                                </p>
+                                                <p className="text-xs font-bold tracking-wider text-black">
+                                                  NT$ {formatMoney(item.total)}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* 右：收件資訊與金額總算 */}
+                                    <div className="lg:w-[300px] flex flex-col gap-10 shrink-0">
+                                      {/* 🔥 如果是未付款的 ATM，顯示專屬匯款卡片 */}
+                                      {showAtmTransferInfo && (
+                                        <div className="bg-[#fffbeb] border border-[#fef3c7] p-5 rounded-sm">
+                                          <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[#fde68a]">
+                                            <Landmark
+                                              size={14}
+                                              className="text-[#b45309]"
+                                            />
+                                            <h4 className="text-[10px] font-bold text-[#b45309] uppercase tracking-widest">
+                                              Pending Payment
+                                            </h4>
+                                          </div>
+                                          <div className="space-y-3 text-xs text-[#92400e]">
+                                            <div>
+                                              <p className="text-[9px] uppercase tracking-widest mb-0.5 opacity-70">
+                                                Bank Code
+                                              </p>
+                                              <p className="font-bold">
+                                                {atmBankCode}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[9px] uppercase tracking-widest mb-0.5 opacity-70">
+                                                Account No.
+                                              </p>
+                                              <p className="font-bold text-base tracking-widest">
+                                                {atmVaccount}
+                                              </p>
+                                            </div>
+                                            <div>
+                                              <p className="text-[9px] uppercase tracking-widest mb-0.5 opacity-70">
+                                                Deadline
+                                              </p>
+                                              <p className="font-medium text-red-500">
+                                                {atmExpire}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      <div>
+                                        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-200">
+                                          Shipping Details
+                                        </h4>
+                                        <div className="text-xs text-gray-700 space-y-4 leading-relaxed">
+                                          <div>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                              Recipient
+                                            </p>
+                                            <p className="font-bold text-black uppercase tracking-wider">
+                                              {shippingName}
+                                            </p>
+                                            <p className="text-gray-500">
+                                              {sAddr.phone}
+                                            </p>
+                                          </div>
+                                          <div>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                              Payment Method
+                                            </p>
+                                            <p className="font-medium text-black">
+                                              {paymentType}
+                                            </p>
+                                          </div>
+                                          <div>
+                                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                              Address / Store
+                                            </p>
+                                            {storeName && (
+                                              <p className="font-bold text-black bg-[#f3f4f6] px-2 py-1 inline-block mb-1 border border-gray-200">
+                                                {storeName}
+                                              </p>
+                                            )}
+                                            <p className="text-gray-500">
+                                              {shippingAddress}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <div>
+                                        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-200">
+                                          Order Summary
+                                        </h4>
+                                        <div className="space-y-3 text-xs tracking-wider text-gray-600">
+                                          <div className="flex justify-between">
+                                            <span>Subtotal</span>
+                                            <span>
+                                              NT$ {formatMoney(order.subtotal)}
+                                            </span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span>Shipping</span>
+                                            <span>
+                                              {Number(order.shipping_total) > 0
+                                                ? `NT$ ${formatMoney(order.shipping_total)}`
+                                                : "Free"}
+                                            </span>
+                                          </div>
+                                          <div className="flex justify-between border-t border-gray-200 pt-3 mt-3 text-black font-bold text-sm">
+                                            <span>Total</span>
+                                            <span>
+                                              NT$ {formatMoney(order.total)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
                         );
                       })}
                     </div>
                   )}
-                </motion.div>
-              )}
-
-              {/* 3. Addresses 收件地址 (UI 佔位符) */}
-              {activeTab === "addresses" && (
-                <motion.div
-                  key="addresses"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <div className="flex justify-between items-end mb-6">
-                    <h3 className="text-lg font-bold tracking-widest uppercase text-black border-b border-black pb-2 inline-block">
-                      {t("member.tabs.addresses")}
-                    </h3>
-                    <button className="text-[#ef4628] text-xs font-bold uppercase tracking-widest hover:text-black transition-colors">
-                      + {t("member.addresses.add_new")}
-                    </button>
-                  </div>
-                  <div className="bg-white py-16 px-6 text-center border border-gray-200">
-                    <MapPin
-                      size={40}
-                      strokeWidth={1}
-                      className="mx-auto text-gray-300 mb-4"
-                    />
-                    <p className="text-gray-500 tracking-widest text-sm">
-                      {t("member.addresses.empty")}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* 4. Settings 帳號設定 (UI 佔位符) */}
-              {activeTab === "settings" && (
-                <motion.div
-                  key="settings"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <h3 className="text-lg font-bold tracking-widest uppercase mb-6 text-black border-b border-black pb-2 inline-block">
-                    {t("member.tabs.settings")}
-                  </h3>
-                  <div className="bg-white p-6 sm:p-8 border border-gray-200">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">
-                      {t("member.settings.title")}
-                    </h4>
-                    <form
-                      className="space-y-6 max-w-md"
-                      onSubmit={(e) => e.preventDefault()}
-                    >
-                      <div>
-                        <label className="block text-[11px] font-bold text-black uppercase tracking-widest mb-2">
-                          {t("member.settings.name")}
-                        </label>
-                        <input
-                          type="text"
-                          defaultValue={userInfo.name}
-                          className="w-full border border-gray-300 px-4 py-3 text-sm outline-none focus:border-black transition-colors bg-gray-50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-black uppercase tracking-widest mb-2">
-                          {t("member.settings.email")}
-                        </label>
-                        <input
-                          type="email"
-                          disabled
-                          defaultValue={userInfo.email}
-                          className="w-full border border-gray-200 px-4 py-3 text-sm outline-none bg-gray-100 text-gray-500 cursor-not-allowed"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className="bg-black text-white px-8 py-3.5 text-xs font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors mt-4"
-                      >
-                        {t("member.settings.save")}
-                      </button>
-                    </form>
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -452,11 +489,8 @@ export default function MemberProfile() {
     </div>
   );
 }
-
 export async function getStaticProps({ locale }) {
   return {
-    props: {
-      ...(await serverSideTranslations(locale || "zh-TW", ["common"])),
-    },
+    props: { ...(await serverSideTranslations(locale || "zh-TW", ["common"])) },
   };
 }
