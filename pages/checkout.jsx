@@ -1,25 +1,405 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useCart } from "../components/context/CartContext";
 import { useUser } from "../components/context/UserContext";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import {
-  Store,
-  CreditCard,
-  ChevronLeft,
-  Truck,
-  Receipt,
-  Landmark,
-  X,
-} from "lucide-react";
+import { CreditCard, ChevronLeft, Truck, Landmark, X } from "lucide-react";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
-// 💎 精品級 ATM 彈窗組件
-const AtmPopup = ({ bankCode, vAccount, expireDate, onClose }) => {
+// 🔥 內建台灣縣市區域資料庫 (保留中文以符合台灣實際寄送地址)
+const TAIWAN_CITIES = {
+  臺北市: [
+    "中正區",
+    "大同區",
+    "中山區",
+    "松山區",
+    "大安區",
+    "萬華區",
+    "信義區",
+    "士林區",
+    "北投區",
+    "內湖區",
+    "南港區",
+    "文山區",
+  ],
+  新北市: [
+    "萬里區",
+    "金山區",
+    "板橋區",
+    "汐止區",
+    "深坑區",
+    "石碇區",
+    "瑞芳區",
+    "平溪區",
+    "雙溪區",
+    "貢寮區",
+    "新店區",
+    "坪林區",
+    "烏來區",
+    "永和區",
+    "中和區",
+    "土城區",
+    "三峽區",
+    "樹林區",
+    "鶯歌區",
+    "三重區",
+    "新莊區",
+    "泰山區",
+    "林口區",
+    "蘆洲區",
+    "五股區",
+    "八里區",
+    "淡水區",
+    "三芝區",
+    "石門區",
+  ],
+  桃園市: [
+    "中壢區",
+    "平鎮區",
+    "龍潭區",
+    "楊梅區",
+    "新屋區",
+    "觀音區",
+    "桃園區",
+    "龜山區",
+    "八德區",
+    "大溪區",
+    "復興區",
+    "大園區",
+    "蘆竹區",
+  ],
+  臺中市: [
+    "中區",
+    "東區",
+    "南區",
+    "西區",
+    "北區",
+    "北屯區",
+    "西屯區",
+    "南屯區",
+    "太平區",
+    "大里區",
+    "霧峰區",
+    "烏日區",
+    "豐原區",
+    "后里區",
+    "石岡區",
+    "東勢區",
+    "和平區",
+    "新社區",
+    "潭子區",
+    "大雅區",
+    "神岡區",
+    "大肚區",
+    "沙鹿區",
+    "龍井區",
+    "梧棲區",
+    "清水區",
+    "大甲區",
+    "外埔區",
+    "大安區",
+  ],
+  臺南市: [
+    "中西區",
+    "東區",
+    "南區",
+    "北區",
+    "安平區",
+    "安南區",
+    "永康區",
+    "歸仁區",
+    "新化區",
+    "左鎮區",
+    "玉井區",
+    "楠西區",
+    "南化區",
+    "仁德區",
+    "關廟區",
+    "龍崎區",
+    "官田區",
+    "麻豆區",
+    "佳里區",
+    "西港區",
+    "七股區",
+    "將軍區",
+    "學甲區",
+    "北門區",
+    "新營區",
+    "後壁區",
+    "白河區",
+    "東山區",
+    "六甲區",
+    "下營區",
+    "柳營區",
+    "鹽水區",
+    "善化區",
+    "大內區",
+    "山上區",
+    "新市區",
+    "安定區",
+  ],
+  高雄市: [
+    "新興區",
+    "前金區",
+    "苓雅區",
+    "鹽埕區",
+    "鼓山區",
+    "旗津區",
+    "前鎮區",
+    "三民區",
+    "楠梓區",
+    "小港區",
+    "左營區",
+    "仁武區",
+    "大社區",
+    "岡山區",
+    "路竹區",
+    "阿蓮區",
+    "田寮區",
+    "燕巢區",
+    "橋頭區",
+    "梓官區",
+    "彌陀區",
+    "永安區",
+    "湖內區",
+    "鳳山區",
+    "大寮區",
+    "林園區",
+    "鳥松區",
+    "大樹區",
+    "旗山區",
+    "美濃區",
+    "六龜區",
+    "內門區",
+    "杉林區",
+    "甲仙區",
+    "桃源區",
+    "那瑪夏區",
+    "茂林區",
+  ],
+  基隆市: [
+    "仁愛區",
+    "信義區",
+    "中正區",
+    "中山區",
+    "安樂區",
+    "暖暖區",
+    "七堵區",
+  ],
+  新竹市: ["東區", "北區", "香山區"],
+  嘉義市: ["東區", "西區"],
+  新竹縣: [
+    "竹北市",
+    "湖口鄉",
+    "新豐鄉",
+    "新埔鎮",
+    "關西鎮",
+    "芎林鄉",
+    "寶山鄉",
+    "竹東鎮",
+    "五峰鄉",
+    "橫山鄉",
+    "尖石鄉",
+    "北埔鄉",
+    "峨眉鄉",
+  ],
+  苗栗縣: [
+    "竹南鎮",
+    "頭份市",
+    "三灣鄉",
+    "南庄鄉",
+    "獅潭鄉",
+    "後龍鎮",
+    "通霄鎮",
+    "苑裡鎮",
+    "苗栗市",
+    "造橋鄉",
+    "頭屋鄉",
+    "公館鄉",
+    "大湖鄉",
+    "泰安鄉",
+    "銅鑼鄉",
+    "三義鄉",
+    "西湖鄉",
+    "卓蘭鎮",
+  ],
+  彰化縣: [
+    "彰化市",
+    "芬園鄉",
+    "花壇鄉",
+    "秀水鄉",
+    "鹿港鎮",
+    "福興鄉",
+    "線西鄉",
+    "和美鎮",
+    "伸港鄉",
+    "員林市",
+    "社頭鄉",
+    "永靖鄉",
+    "埔心鄉",
+    "溪湖鎮",
+    "大村鄉",
+    "埔鹽鄉",
+    "田中鎮",
+    "北斗鎮",
+    "田尾鄉",
+    "埤頭鄉",
+    "溪州鄉",
+    "竹塘鄉",
+    "二林鎮",
+    "大城鄉",
+    "芳苑鄉",
+    "二水鄉",
+  ],
+  南投縣: [
+    "南投市",
+    "中寮鄉",
+    "草屯鎮",
+    "國姓鄉",
+    "埔里鎮",
+    "仁愛鄉",
+    "名間鄉",
+    "集集鎮",
+    "水里鄉",
+    "魚池鄉",
+    "信義鄉",
+    "竹山鎮",
+    "鹿谷鄉",
+  ],
+  雲林縣: [
+    "斗南鎮",
+    "大埤鄉",
+    "虎尾鎮",
+    "土庫鎮",
+    "褒忠鄉",
+    "東勢鄉",
+    "臺西鄉",
+    "崙背鄉",
+    "麥寮鄉",
+    "斗六市",
+    "林內鄉",
+    "古坑鄉",
+    "莿桐鄉",
+    "西螺鎮",
+    "二崙鄉",
+    "北港鎮",
+    "水林鄉",
+    "口湖鄉",
+    "四湖鄉",
+    "元長鄉",
+  ],
+  嘉義縣: [
+    "番路鄉",
+    "梅山鄉",
+    "竹崎鄉",
+    "阿里山鄉",
+    "中埔鄉",
+    "大埔鄉",
+    "水上鄉",
+    "鹿草鄉",
+    "太保市",
+    "朴子市",
+    "東石鄉",
+    "六腳鄉",
+    "新港鄉",
+    "民雄鄉",
+    "大林鎮",
+    "溪口鄉",
+    "義竹鄉",
+    "布袋鎮",
+  ],
+  屏東縣: [
+    "屏東市",
+    "三地門鄉",
+    "霧臺鄉",
+    "瑪家鄉",
+    "九如鄉",
+    "里港鄉",
+    "高樹鄉",
+    "鹽埔鄉",
+    "長治鄉",
+    "麟洛鄉",
+    "竹田鄉",
+    "內埔鄉",
+    "萬丹鄉",
+    "潮州鎮",
+    "泰武鄉",
+    "來義鄉",
+    "萬巒鄉",
+    "崁頂鄉",
+    "新埤鄉",
+    "南州鄉",
+    "林邊鄉",
+    "東港鎮",
+    "琉球鄉",
+    "佳冬鄉",
+    "新園鄉",
+    "枋寮鄉",
+    "枋山鄉",
+    "春日鄉",
+    "獅子鄉",
+    "車城鄉",
+    "牡丹鄉",
+    "恆春鎮",
+    "滿州鄉",
+  ],
+  宜蘭縣: [
+    "宜蘭市",
+    "頭城鎮",
+    "礁溪鄉",
+    "壯圍鄉",
+    "員山鄉",
+    "羅東鎮",
+    "三星鄉",
+    "大同鄉",
+    "五結鄉",
+    "冬山鄉",
+    "蘇澳鎮",
+    "南澳鄉",
+  ],
+  花蓮縣: [
+    "花蓮市",
+    "新城鄉",
+    "秀林鄉",
+    "吉安鄉",
+    "壽豐鄉",
+    "鳳林鎮",
+    "光復鄉",
+    "豐濱鄉",
+    "瑞穗鄉",
+    "萬榮鄉",
+    "玉里鎮",
+    "卓溪鄉",
+    "富里鄉",
+  ],
+  臺東縣: [
+    "臺東市",
+    "綠島鄉",
+    "蘭嶼鄉",
+    "延平鄉",
+    "卑南鄉",
+    "鹿野鄉",
+    "關山鎮",
+    "海端鄉",
+    "池上鄉",
+    "東河鄉",
+    "成功鎮",
+    "長濱鄉",
+    "太麻里鄉",
+    "金峰鄉",
+    "大武鄉",
+    "達仁鄉",
+  ],
+  澎湖縣: ["馬公市", "西嶼鄉", "望安鄉", "七美鄉", "白沙鄉", "湖西鄉"],
+  金門縣: ["金沙鎮", "金湖鎮", "金寧鄉", "金城鎮", "烈嶼鄉", "烏坵鄉"],
+  連江縣: ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"],
+};
+
+// 💎 精品級 ATM 彈窗組件 (引入 t 函數)
+const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <motion.div
@@ -42,19 +422,19 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose }) => {
               <Landmark size={24} strokeWidth={1.5} />
             </div>
             <h2 className="text-xl font-bold tracking-widest uppercase text-black mb-3">
-              Order Confirmed
+              {t("checkout.popup.title")}
             </h2>
             <p className="text-xs text-gray-500 tracking-wide leading-relaxed">
-              您的訂單已成功建立。
+              {t("checkout.popup.desc1")}
               <br />
-              請透過實體 ATM 或網路銀行，於期限內完成轉帳。
+              {t("checkout.popup.desc2")}
             </p>
           </div>
 
           <div className="bg-[#fafafa] border border-gray-100 p-6 space-y-5 mb-8">
             <div className="flex justify-between items-center border-b border-gray-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Bank Code (銀行代碼)
+                {t("checkout.popup.bankCode")}
               </p>
               <p className="text-sm font-bold tracking-widest text-black">
                 {bankCode}
@@ -62,7 +442,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose }) => {
             </div>
             <div className="flex justify-between items-center border-b border-gray-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Account (繳費帳號)
+                {t("checkout.popup.account")}
               </p>
               <p className="text-lg font-bold tracking-widest text-[#ef4628]">
                 {vAccount}
@@ -70,7 +450,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose }) => {
             </div>
             <div className="flex justify-between items-center pt-1">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Deadline (繳費期限)
+                {t("checkout.popup.deadline")}
               </p>
               <p className="text-xs font-medium tracking-widest text-gray-600">
                 {expireDate}
@@ -82,7 +462,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose }) => {
             onClick={onClose}
             className="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors shadow-lg"
           >
-            查看訂單明細
+            {t("checkout.popup.viewOrder")}
           </button>
         </div>
       </motion.div>
@@ -94,6 +474,8 @@ export default function CheckoutPage() {
   const { cartItems } = useCart();
   const { userInfo } = useUser();
   const router = useRouter();
+
+  // 🔥 引入多語系 Hook
   const { t } = useTranslation("common");
 
   const [loading, setLoading] = useState(false);
@@ -107,25 +489,14 @@ export default function CheckoutPage() {
     expireDate: "",
   });
 
-  const [cvsStore, setCvsStore] = useState({
-    storeId: "",
-    storeName: "",
-    address: "",
-    shipType: "",
-  });
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    shippingMethod: "HOME",
+    city: "",
+    district: "",
+    street: "",
     paymentMethod: "CREDIT_CARD",
-  });
-  const [invoiceData, setInvoiceData] = useState({
-    type: "PERSONAL",
-    carrier: "NONE",
-    mobileBarcode: "",
-    vatNumber: "",
-    companyTitle: "",
   });
 
   const subtotal = useMemo(
@@ -144,7 +515,7 @@ export default function CheckoutPage() {
   const total = subtotal;
 
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo)
       setFormData((prev) => ({
         ...prev,
         name:
@@ -154,7 +525,6 @@ export default function CheckoutPage() {
         email: userInfo.email || prev.email,
         phone: userInfo.phone || prev.phone,
       }));
-    }
   }, [userInfo]);
 
   useEffect(() => {
@@ -196,31 +566,17 @@ export default function CheckoutPage() {
             });
             clearInterval(initTapPay);
           }
-        } else {
-          clearInterval(initTapPay);
-        }
+        } else clearInterval(initTapPay);
       }
     }, 500);
     return () => clearInterval(initTapPay);
   }, [formData.paymentMethod]);
 
-  const handleChange = (e) =>
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const handleOpenTapPayCvsMap = (shipType) => {
-    if (!window.TPDirect) return alert("系統載入中，請稍候再試");
-    window.TPDirect.cashOnDelivery.setShipType(shipType, (status, msg) => {
-      if (status === 0) {
-        window.TPDirect.cashOnDelivery.getStoreId((s, m, result) => {
-          if (s === 0)
-            setCvsStore({
-              storeId: result.store_id,
-              storeName: result.store_name,
-              address: result.store_address,
-              shipType,
-            });
-        });
-      } else alert("設定物流通路失敗: " + msg);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      if (name === "city") return { ...prev, [name]: value, district: "" };
+      return { ...prev, [name]: value };
     });
   };
 
@@ -229,17 +585,15 @@ export default function CheckoutPage() {
     isProcessing.current = true;
 
     if (
-      ["TW_UNIMART", "TW_FAMI", "TW_HILIFE", "TW_OK"].includes(
-        formData.shippingMethod,
-      ) &&
-      !cvsStore.storeId
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.city ||
+      !formData.district ||
+      !formData.street
     ) {
       isProcessing.current = false;
-      return alert("請先選擇超商門市！");
-    }
-    if (!formData.name || !formData.email || !formData.phone) {
-      isProcessing.current = false;
-      return alert("請填寫完整的聯絡人資訊！");
+      return alert(t("checkout.alert.fillInfo"));
     }
 
     try {
@@ -249,21 +603,21 @@ export default function CheckoutPage() {
       if (formData.paymentMethod === "CREDIT_CARD") {
         if (TPDirect.card.getTappayFieldsStatus().canGetPrime === false) {
           isProcessing.current = false;
-          return alert("信用卡資訊填寫有誤！");
+          return alert(t("checkout.alert.cardError"));
         }
         prime = await new Promise((resolve, reject) => {
           TPDirect.card.getPrime((result) => {
             if (result.status === 0) resolve(result.card.prime);
-            else reject(new Error(`信用卡驗證失敗: ${result.msg}`));
+            else reject(new Error(`Error: ${result.msg}`));
           });
         });
       } else if (formData.paymentMethod === "ATM") {
         prime = await new Promise((resolve, reject) => {
           TPDirect.virtualAccount.getPrime((error, result) => {
             if (error)
-              reject(new Error(`產生虛擬帳號失敗: ${error.msg || "未知錯誤"}`));
+              reject(new Error(error.msg || t("checkout.alert.atmError")));
             else if (result && result.status === 0) resolve(result.prime);
-            else reject(new Error("產生虛擬帳號失敗: 系統忙線中"));
+            else reject(new Error(t("checkout.alert.atmError")));
           });
         });
       }
@@ -273,7 +627,6 @@ export default function CheckoutPage() {
         process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
       const TEST_VARIANT_ID = "variant_01KNEMZ3TQNWZHM40W4JCH874D";
       const token = localStorage.getItem("medusa_auth_token");
-
       const headers = {
         "Content-Type": "application/json",
         "x-publishable-api-key": PUBLISHABLE_API_KEY,
@@ -282,7 +635,6 @@ export default function CheckoutPage() {
 
       const backendUrl =
         process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
       const regionRes = await fetch(`${backendUrl}/store/regions`, { headers });
       const activeRegionId = (await regionRes.json()).regions[0].id;
 
@@ -296,11 +648,10 @@ export default function CheckoutPage() {
           shipping_address: {
             first_name: formData.name,
             phone: formData.phone,
-            company: cvsStore.storeId ? cvsStore.storeName : "",
-            address_1: cvsStore.storeId ? cvsStore.address : "Taipei",
-            city: "Taipei",
+            province: formData.city,
+            city: formData.district,
+            address_1: formData.street,
             country_code: "tw",
-            postal_code: "100",
           },
         }),
       });
@@ -311,13 +662,12 @@ export default function CheckoutPage() {
         headers,
         body: JSON.stringify({ variant_id: TEST_VARIANT_ID, quantity: 1 }),
       });
-
       const shipOptRes = await fetch(
         `${backendUrl}/store/shipping-options?cart_id=${cartId}`,
         { headers },
       );
       const shipOptData = await shipOptRes.json();
-      if (shipOptData.shipping_options?.length > 0) {
+      if (shipOptData.shipping_options?.length > 0)
         await fetch(`${backendUrl}/store/carts/${cartId}/shipping-methods`, {
           method: "POST",
           headers,
@@ -325,16 +675,12 @@ export default function CheckoutPage() {
             option_id: shipOptData.shipping_options[0].id,
           }),
         });
-      }
 
       const customCheckoutRes = await fetch(
         `${backendUrl}/store/tappay-checkout`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-publishable-api-key": PUBLISHABLE_API_KEY,
-          },
+          headers,
           body: JSON.stringify({
             cart_id: cartId,
             prime: prime,
@@ -351,7 +697,7 @@ export default function CheckoutPage() {
       const completeData = await customCheckoutRes.json();
       if (!customCheckoutRes.ok)
         throw new Error(
-          `結帳失敗: ${completeData?.message || completeData?.error || "未知錯誤"}`,
+          completeData?.message || completeData?.error || "Error",
         );
 
       const paymentUrl =
@@ -362,7 +708,6 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 🔥 觸發彈窗
       if (completeData.bank_code && completeData.vaccount) {
         setAtmData({
           bankCode: completeData.bank_code,
@@ -373,11 +718,10 @@ export default function CheckoutPage() {
         return;
       }
 
-      alert("🎉 結帳大成功！");
       router.push("/member");
     } catch (err) {
-      console.error("❌ 流程中斷:", err);
-      alert(err.message || "結帳發生異常，請看 Console");
+      console.error("❌ Checkout Error:", err);
+      alert(err.message || "Error occurred");
     } finally {
       isProcessing.current = false;
       setLoading(false);
@@ -390,14 +734,19 @@ export default function CheckoutPage() {
   };
 
   if (cartItems.length === 0)
-    return <div className="p-32 text-center text-gray-400">BAG IS EMPTY</div>;
+    return (
+      <div className="p-32 text-center text-gray-400">
+        {t("checkout.emptyBag")}
+      </div>
+    );
 
   return (
     <PayPalScriptProvider options={{ clientId: "sb", currency: "TWD" }}>
       <div className="min-h-screen bg-white text-black">
-        {/* ATM 彈窗 */}
         <AnimatePresence>
-          {showAtmPopup && <AtmPopup {...atmData} onClose={closeAtmPopup} />}
+          {showAtmPopup && (
+            <AtmPopup {...atmData} onClose={closeAtmPopup} t={t} />
+          )}
         </AnimatePresence>
 
         <div className="flex flex-col-reverse lg:flex-row">
@@ -407,22 +756,23 @@ export default function CheckoutPage() {
                 href="/cart"
                 className="inline-flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-10 hover:text-black transition-colors"
               >
-                <ChevronLeft size={14} className="mr-1" /> Back to bag
+                <ChevronLeft size={14} className="mr-1" />{" "}
+                {t("checkout.backToBag")}
               </Link>
               <h1 className="text-3xl font-light tracking-tight uppercase mb-12">
-                Checkout
+                {t("checkout.title")}
               </h1>
 
               <div className="space-y-14">
                 <section>
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
-                    Customer Information
+                    {t("checkout.customerInfo")}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
                       name="name"
-                      placeholder="Full Name"
+                      placeholder={t("checkout.fullNamePlaceholder")}
                       value={formData.name}
                       onChange={handleChange}
                       className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
@@ -430,7 +780,7 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email Address"
+                      placeholder={t("checkout.emailPlaceholder")}
                       value={formData.email}
                       onChange={handleChange}
                       className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
@@ -438,9 +788,56 @@ export default function CheckoutPage() {
                     <input
                       type="tel"
                       name="phone"
-                      placeholder="Phone Number"
+                      placeholder={t("checkout.phonePlaceholder")}
                       className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
                       value={formData.phone}
+                      onChange={handleChange}
+                    />
+
+                    <select
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className={`border border-gray-200 p-4 text-sm outline-none focus:border-black appearance-none bg-white ${!formData.city ? "text-gray-400" : "text-black"}`}
+                    >
+                      <option value="" disabled>
+                        {t("checkout.selectCity")}
+                      </option>
+                      {Object.keys(TAIWAN_CITIES).map((city) => (
+                        <option key={city} value={city} className="text-black">
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      name="district"
+                      value={formData.district}
+                      onChange={handleChange}
+                      disabled={!formData.city}
+                      className={`border border-gray-200 p-4 text-sm outline-none focus:border-black appearance-none ${!formData.city ? "bg-gray-50 cursor-not-allowed text-gray-400" : "bg-white"} ${!formData.district ? "text-gray-400" : "text-black"}`}
+                    >
+                      <option value="" disabled>
+                        {t("checkout.selectDistrict")}
+                      </option>
+                      {formData.city &&
+                        TAIWAN_CITIES[formData.city].map((district) => (
+                          <option
+                            key={district}
+                            value={district}
+                            className="text-black"
+                          >
+                            {district}
+                          </option>
+                        ))}
+                    </select>
+
+                    <input
+                      type="text"
+                      name="street"
+                      placeholder={t("checkout.streetPlaceholder")}
+                      className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
+                      value={formData.street}
                       onChange={handleChange}
                     />
                   </div>
@@ -448,82 +845,31 @@ export default function CheckoutPage() {
 
                 <section>
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
-                    Shipping Method
+                    {t("checkout.shippingMethod")}
                   </h2>
-                  <div className="border border-gray-200 divide-y divide-gray-100">
-                    <label
-                      className={`flex items-center justify-between p-6 cursor-pointer ${formData.shippingMethod === "HOME" ? "bg-gray-50" : ""}`}
-                    >
+                  <div className="border border-gray-200">
+                    <label className="flex items-center justify-between p-6 bg-gray-50 cursor-default">
                       <div className="flex items-center gap-4">
                         <input
                           type="radio"
-                          name="shippingMethod"
-                          value="HOME"
-                          checked={formData.shippingMethod === "HOME"}
-                          onChange={handleChange}
+                          checked
+                          readOnly
                           className="accent-black"
                         />
                         <p className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                          <Truck size={14} /> Home Delivery
+                          <Truck size={14} /> {t("checkout.shippingDelivery")}
                         </p>
                       </div>
-                      <span className="text-xs font-bold">NT$80</span>
+                      <span className="text-xs font-bold text-[#ef4628]">
+                        {t("checkout.freeShipping")}
+                      </span>
                     </label>
-
-                    {[
-                      { id: "TW_UNIMART", name: "7-11 門市取貨" },
-                      { id: "TW_FAMI", name: "全家 門市取貨" },
-                      { id: "TW_HILIFE", name: "萊爾富 門市取貨" },
-                      { id: "TW_OK", name: "OK 門市取貨" },
-                    ].map((cvs) => (
-                      <div
-                        key={cvs.id}
-                        className={`${formData.shippingMethod === cvs.id ? "bg-gray-50" : ""}`}
-                      >
-                        <label className="flex items-center justify-between p-6 cursor-pointer">
-                          <div className="flex items-center gap-4">
-                            <input
-                              type="radio"
-                              name="shippingMethod"
-                              value={cvs.id}
-                              checked={formData.shippingMethod === cvs.id}
-                              onChange={handleChange}
-                              className="accent-black"
-                            />
-                            <p className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                              <Store size={14} /> {cvs.name}
-                            </p>
-                          </div>
-                        </label>
-                        {formData.shippingMethod === cvs.id && (
-                          <div className="px-14 pb-6">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenTapPayCvsMap(cvs.id)}
-                              className="text-xs border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
-                            >
-                              {cvsStore.storeId
-                                ? "重新選擇門市"
-                                : "開啟電子地圖選擇門市"}
-                            </button>
-                            {cvsStore.storeId && (
-                              <div className="mt-3 text-[11px] text-gray-600">
-                                <p className="font-bold text-black">
-                                  {cvsStore.storeName}
-                                </p>
-                                <p>{cvsStore.address}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
                   </div>
                 </section>
 
                 <section>
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
-                    Payment
+                    {t("checkout.payment")}
                   </h2>
                   <div className="border border-gray-200 divide-y divide-gray-100">
                     <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
@@ -536,7 +882,7 @@ export default function CheckoutPage() {
                         className="accent-black"
                       />
                       <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                        <CreditCard size={16} /> Credit Card (信用卡)
+                        <CreditCard size={16} /> {t("checkout.creditCard")}
                       </span>
                     </label>
                     {formData.paymentMethod === "CREDIT_CARD" && (
@@ -567,7 +913,7 @@ export default function CheckoutPage() {
                         className="accent-black"
                       />
                       <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                        <Landmark size={16} /> ATM 轉帳繳費
+                        <Landmark size={16} /> {t("checkout.atmTransfer")}
                       </span>
                     </label>
                   </div>
@@ -579,8 +925,8 @@ export default function CheckoutPage() {
                     className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.4em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {loading || isProcessing.current
-                      ? "PROCESSING..."
-                      : "COMPLETE PURCHASE"}
+                      ? t("checkout.processing")
+                      : t("checkout.completePurchase")}
                   </button>
                 </section>
               </div>
@@ -590,11 +936,11 @@ export default function CheckoutPage() {
           <div className="w-full lg:w-[45%] bg-[#fafafa] px-6 py-10 lg:px-14 lg:py-20 border-l border-gray-100 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
             <div className="max-w-[400px] mx-auto lg:mx-0">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-8 border-b border-gray-200 pb-2">
-                Order Summary
+                {t("checkout.orderSummary")}
               </h2>
               <div className="flex justify-between font-bold text-lg pt-4 border-t border-gray-200">
                 <span className="text-sm uppercase tracking-widest mt-1">
-                  Total
+                  {t("checkout.total")}
                 </span>
                 <span>NT$ {total.toLocaleString()}</span>
               </div>

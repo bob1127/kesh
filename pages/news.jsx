@@ -3,7 +3,6 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import https from "https";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -33,7 +32,6 @@ const HeroPost = ({ post, t }) => {
           />
           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
         </div>
-
         <div className="absolute bottom-0 left-0 md:left-auto md:right-[10%] md:bottom-[10%] w-full md:w-[500px] bg-[#ef4628]/90 text-white p-8 md:p-12 backdrop-blur-sm transition-all duration-300">
           <div className="flex justify-between items-start mb-4 border-b border-white/30 pb-4">
             <span className="text-xs font-bold tracking-[0.2em] uppercase">
@@ -94,23 +92,19 @@ const NewsCard = ({ post, index, t }) => {
             {post.date}
           </div>
         </div>
-
         <div className="flex flex-col flex-grow border-t border-gray-200 pt-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-[10px] font-bold text-[#ef4628] uppercase tracking-widest">
               {t("news.badge_news")}
             </span>
           </div>
-
           <h3 className="text-lg font-bold text-gray-900 leading-snug mb-3 uppercase group-hover:text-[#ef4628] transition-colors line-clamp-2">
             {post.title}
           </h3>
-
           <div
             className="text-xs text-gray-500 leading-relaxed line-clamp-3 mb-4 flex-grow"
             dangerouslySetInnerHTML={{ __html: post.excerpt }}
           />
-
           <div className="mt-auto">
             <span className="inline-block border-b border-black pb-0.5 text-[10px] font-bold tracking-widest uppercase group-hover:border-[#ef4628] group-hover:text-[#ef4628] transition-colors">
               {t("news.view_details")}
@@ -126,19 +120,34 @@ const NewsCard = ({ post, index, t }) => {
 export default function NewsPage({ posts }) {
   const { t } = useTranslation("common");
 
-  // 將第一篇文章設為 Hero，其餘為 Grid
   const heroPost = posts.length > 0 ? posts[0] : null;
   const gridPosts = posts.length > 1 ? posts.slice(1) : [];
+
+  // 🔥 SEO 結構化資料：ItemList (文章清單標記)
+  const schemaItemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: posts.map((post, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `${process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com"}/news/${post.slug}`,
+      name: post.title,
+    })),
+  };
 
   return (
     <>
       <Head>
         <title>{t("news.seo_title")}</title>
         <meta name="description" content={t("news.seo_desc")} />
+        {/* 注入自動生成的 JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaItemList) }}
+        />
       </Head>
 
       <main className="bg-white min-h-screen pt-24 pb-20">
-        {/* 頁面標題區 */}
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-6">
           <div>
             <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-2">
@@ -162,9 +171,7 @@ export default function NewsPage({ posts }) {
             </div>
           ) : (
             <>
-              {/* 傳遞 t 給子元件 */}
               <HeroPost post={heroPost} t={t} />
-
               {gridPosts.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
                   {gridPosts.map((post, index) => (
@@ -176,7 +183,6 @@ export default function NewsPage({ posts }) {
           )}
         </div>
 
-        {/* 底部裝飾 */}
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 mt-24">
           <div className="w-full h-[1px] bg-gray-200"></div>
           <div className="flex justify-between items-center py-6">
@@ -196,74 +202,45 @@ export default function NewsPage({ posts }) {
   );
 }
 
-// --- 🔥 SSG 抓取 WordPress 文章 ---
+// --- 🔥 SSG 抓取 Medusa 文章 ---
 export async function getStaticProps({ locale }) {
   const currentLang = locale || "zh-TW";
-  const WC_URL = process.env.WC_SITE_URL;
-
-  if (!WC_URL) {
-    return {
-      props: {
-        posts: [],
-        ...(await serverSideTranslations(currentLang, ["common"])),
-      },
-      revalidate: 60,
-    };
-  }
-
-  const agent = new https.Agent({ rejectUnauthorized: false });
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+  const PUB_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
 
   try {
-    // 💡 提示：如果你的 WordPress 外掛支援透過 lang 參數篩選語言 (例如 WPML 或 Polylang REST API)，
-    // 可以將網址改為：`${WC_URL}/wp-json/wp/v2/posts?_embed&per_page=12&status=publish&lang=${currentLang}`
-    const res = await fetch(
-      `${WC_URL}/wp-json/wp/v2/posts?_embed&per_page=12&status=publish`,
-      { agent },
-    );
+    // 呼叫我們自訂的 Medusa API
+    const res = await fetch(`${BACKEND_URL}/store/custom/posts`, {
+      headers: { "x-publishable-api-key": PUB_KEY },
+    });
 
-    if (!res.ok) throw new Error("Failed to fetch posts");
-
+    if (!res.ok) throw new Error("Failed to fetch posts from Medusa");
     const data = await res.json();
 
-    const formattedPosts = data.map((post) => {
-      let imageUrl = "/images/placeholder.jpg";
-      if (
-        post._embedded &&
-        post._embedded["wp:featuredmedia"] &&
-        post._embedded["wp:featuredmedia"][0]
-      ) {
-        let src = post._embedded["wp:featuredmedia"][0].source_url;
-        if (src.startsWith("http://")) {
-          src = src.replace("http://", "https://");
-        }
-        imageUrl = src;
-      }
-
-      const dateObj = new Date(post.date);
-      const formattedDate = dateObj
-        .toLocaleDateString("en-CA")
-        .replace(/-/g, ".");
-
-      return {
-        id: post.id,
-        slug: post.slug,
-        title: post.title.rendered,
-        excerpt: post.excerpt.rendered,
-        date: formattedDate,
-        image: imageUrl,
-      };
-    });
+    const formattedPosts = (data.posts || [])
+      .filter((p) => p.is_active)
+      .map((post) => {
+        const dateObj = new Date(post.created_at);
+        return {
+          id: post.id,
+          slug: post.slug,
+          title: post.title,
+          excerpt: post.excerpt || "",
+          date: dateObj.toLocaleDateString("en-CA").replace(/-/g, "."),
+          image: post.thumbnail || "/images/placeholder.jpg",
+        };
+      });
 
     return {
       props: {
         posts: formattedPosts,
-        // 🔥 注入多語系檔案
         ...(await serverSideTranslations(currentLang, ["common"])),
       },
       revalidate: 60,
     };
   } catch (error) {
-    console.error("News fetch error:", error);
+    console.error("News list fetch error:", error);
     return {
       props: {
         posts: [],

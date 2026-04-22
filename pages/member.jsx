@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useUser } from "../components/context/UserContext";
@@ -95,16 +94,6 @@ export default function MemberProfile() {
 
   const toggleExpanded = (id) =>
     setExpandedOrders((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const completedOrders = orders.filter((o) => o.payment_status === "captured");
-  const pendingOrders = orders.filter(
-    (o) =>
-      o.payment_status === "awaiting" || o.payment_status === "requires_action",
-  );
-  const totalSpent = completedOrders.reduce(
-    (acc, curr) => acc + (curr.total || 0),
-    0,
-  );
 
   if (authLoading || !userInfo)
     return (
@@ -244,11 +233,9 @@ export default function MemberProfile() {
                             ? "ATM 轉帳繳費"
                             : "線上刷卡 (TapPay)";
 
-                        // 🔥 擷取存在 metadata 裡的匯款帳號 (如果有的話)
                         const atmBankCode = order.metadata?.atm_bank_code;
                         const atmVaccount = order.metadata?.atm_vaccount;
                         const atmExpire = order.metadata?.atm_expire_date;
-                        // 判斷是否為「未付款的 ATM 訂單」
                         const showAtmTransferInfo =
                           order.metadata?.payment_method === "ATM" &&
                           (order.payment_status === "awaiting" ||
@@ -321,10 +308,10 @@ export default function MemberProfile() {
                                   transition={{ duration: 0.3 }}
                                   className="overflow-hidden"
                                 >
-                                  <div className="border-t border-gray-100 bg-[#fafafa] p-6 md:p-8 flex flex-col lg:flex-row gap-12">
+                                  <div className="border-t border-gray-100 bg-white p-6 md:p-8 flex flex-col lg:flex-row gap-12">
                                     {/* 左：商品明細 */}
                                     <div className="flex-1">
-                                      <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-6 pb-2 border-b border-gray-200">
+                                      <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-6 pb-2 border-b border-gray-100">
                                         Purchased Items
                                       </h4>
                                       <div className="space-y-6">
@@ -333,7 +320,7 @@ export default function MemberProfile() {
                                             key={item.id}
                                             className="flex gap-6"
                                           >
-                                            <div className="w-20 h-20 bg-gray-100 border border-gray-200 shrink-0">
+                                            <div className="w-20 h-20 bg-gray-50 border border-gray-100 shrink-0">
                                               <img
                                                 src={item.thumbnail}
                                                 alt={item.title}
@@ -360,42 +347,42 @@ export default function MemberProfile() {
                                       </div>
                                     </div>
 
-                                    {/* 右：收件資訊與金額總算 */}
-                                    <div className="lg:w-[300px] flex flex-col gap-10 shrink-0">
-                                      {/* 🔥 如果是未付款的 ATM，顯示專屬匯款卡片 */}
+                                    {/* 右：收件資訊與金額 */}
+                                    <div className="lg:w-[350px] flex flex-col gap-8 shrink-0">
+                                      {/* 🔥 升級為 Popup 質感的 ATM 卡片 */}
                                       {showAtmTransferInfo && (
-                                        <div className="bg-[#fffbeb] border border-[#fef3c7] p-5 rounded-sm">
-                                          <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[#fde68a]">
+                                        <div className="bg-[#fafafa] border border-gray-200 p-6 shadow-sm">
+                                          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-gray-200">
                                             <Landmark
-                                              size={14}
-                                              className="text-[#b45309]"
+                                              size={18}
+                                              className="text-black"
                                             />
-                                            <h4 className="text-[10px] font-bold text-[#b45309] uppercase tracking-widest">
-                                              Pending Payment
+                                            <h4 className="text-xs font-bold text-black uppercase tracking-widest">
+                                              Pending Payment (待付款)
                                             </h4>
                                           </div>
-                                          <div className="space-y-3 text-xs text-[#92400e]">
-                                            <div>
-                                              <p className="text-[9px] uppercase tracking-widest mb-0.5 opacity-70">
-                                                Bank Code
+                                          <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                Bank Code (銀行代碼)
                                               </p>
-                                              <p className="font-bold">
+                                              <p className="text-sm font-bold tracking-widest text-black">
                                                 {atmBankCode}
                                               </p>
                                             </div>
-                                            <div>
-                                              <p className="text-[9px] uppercase tracking-widest mb-0.5 opacity-70">
-                                                Account No.
+                                            <div className="flex justify-between items-center">
+                                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                Account (繳費帳號)
                                               </p>
-                                              <p className="font-bold text-base tracking-widest">
+                                              <p className="text-lg font-bold tracking-widest text-[#ef4628]">
                                                 {atmVaccount}
                                               </p>
                                             </div>
-                                            <div>
-                                              <p className="text-[9px] uppercase tracking-widest mb-0.5 opacity-70">
-                                                Deadline
+                                            <div className="flex justify-between items-center">
+                                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                Deadline (繳費期限)
                                               </p>
-                                              <p className="font-medium text-red-500">
+                                              <p className="text-xs font-medium tracking-widest text-gray-600">
                                                 {atmExpire}
                                               </p>
                                             </div>
@@ -404,13 +391,13 @@ export default function MemberProfile() {
                                       )}
 
                                       <div>
-                                        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-200">
+                                        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-100">
                                           Shipping Details
                                         </h4>
                                         <div className="text-xs text-gray-700 space-y-4 leading-relaxed">
                                           <div>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                              Recipient
+                                              Recipient (收件人)
                                             </p>
                                             <p className="font-bold text-black uppercase tracking-wider">
                                               {shippingName}
@@ -429,14 +416,9 @@ export default function MemberProfile() {
                                           </div>
                                           <div>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                              Address / Store
+                                              Shipping Address (配送地址)
                                             </p>
-                                            {storeName && (
-                                              <p className="font-bold text-black bg-[#f3f4f6] px-2 py-1 inline-block mb-1 border border-gray-200">
-                                                {storeName}
-                                              </p>
-                                            )}
-                                            <p className="text-gray-500">
+                                            <p className="text-gray-500 leading-relaxed">
                                               {shippingAddress}
                                             </p>
                                           </div>
@@ -444,7 +426,7 @@ export default function MemberProfile() {
                                       </div>
 
                                       <div>
-                                        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-200">
+                                        <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-100">
                                           Order Summary
                                         </h4>
                                         <div className="space-y-3 text-xs tracking-wider text-gray-600">
@@ -455,12 +437,8 @@ export default function MemberProfile() {
                                             </span>
                                           </div>
                                           <div className="flex justify-between">
-                                            <span>Shipping</span>
-                                            <span>
-                                              {Number(order.shipping_total) > 0
-                                                ? `NT$ ${formatMoney(order.shipping_total)}`
-                                                : "Free"}
-                                            </span>
+                                            <span>Shipping (順豐速運)</span>
+                                            <span>Free</span>
                                           </div>
                                           <div className="flex justify-between border-t border-gray-200 pt-3 mt-3 text-black font-bold text-sm">
                                             <span>Total</span>

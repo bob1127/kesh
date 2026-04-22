@@ -209,7 +209,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         <div className="max-w-[1440px] mx-auto px-6 md:px-10">
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
             {/* 左側圖片 */}
-            <div className="w-full md:w-[55%] lg:w-[60%] md:sticky md:top-32 z-10">
+            <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10">
               <Swiper
                 spaceBetween={10}
                 navigation={true}
@@ -220,7 +220,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                       : null,
                 }}
                 modules={[FreeMode, Navigation, Thumbs]}
-                className="w-full aspect-[4/5] bg-gray-50 mb-4 rounded-sm"
+                className="w-full aspect-[4/4] bg-gray-50 mb-4 rounded-sm"
               >
                 {product.images?.map((img, idx) => (
                   <SwiperSlide key={idx}>
@@ -266,7 +266,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
             </div>
 
             {/* 右側資訊 */}
-            <div className="w-full md:w-[45%] lg:w-[40%] pb-10">
+            <div className="w-full md:w-[45%] lg:w-[45%] 2xl:w-[50%] pb-10">
               <div className="mb-6 border-b border-gray-100 pb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">

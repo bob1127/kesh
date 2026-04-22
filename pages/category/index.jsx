@@ -9,12 +9,13 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const QUICK_LINKS = ["最新現貨", "經典包款", "熱門小皮件", "全配頂級收藏"];
-
-// --- 商品卡片組件 (維持原設計) ---
-const ProductCard = ({ product }) => {
+// --- 🛍️ 商品卡片組件 ---
+const ProductCard = ({ product, locale }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
+
+  const metaLang = locale === "zh-TW" ? "zh" : locale;
+  const displayTitle = product.metadata?.[`title_${metaLang}`] || product.title;
 
   const handleMouseMove = (e) => {
     const { left, top, width, height } =
@@ -54,7 +55,6 @@ const ProductCard = ({ product }) => {
             {product.status}
           </span>
         </div>
-
         <div
           className="w-full h-full bg-cover bg-center transition-transform duration-500 ease-out"
           style={{
@@ -69,7 +69,7 @@ const ProductCard = ({ product }) => {
           {product.brand}
         </div>
         <h2 className="text-[14px] font-medium text-gray-900 leading-snug tracking-wide group-hover:text-[#ef4628] transition-colors line-clamp-2">
-          {product.title}
+          {displayTitle}
         </h2>
         <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
           <p className="text-[15px] font-bold text-black tracking-wide">
@@ -84,7 +84,7 @@ const ProductCard = ({ product }) => {
   );
 };
 
-// --- FilterSidebar (維持原設計) ---
+// --- 🏷️ FilterSidebar ---
 const FilterSidebar = ({
   activeFilter,
   onFilterChange,
@@ -92,15 +92,21 @@ const FilterSidebar = ({
   onCloseMobile,
   dynamicBrands = [],
   dynamicCategories = [],
+  locale,
 }) => {
-  const { t } = useTranslation("common");
-
   const isActive = (type, value) =>
     activeFilter.type === type && activeFilter.value === value
       ? "text-[#ef4628] font-extrabold"
       : "text-gray-600 hover:text-black";
   const linkClass =
     "text-[13px] transition-colors block leading-tight cursor-pointer py-1";
+  const metaLang = locale === "zh-TW" ? "zh" : locale;
+  const tAllProducts =
+    locale === "en"
+      ? "All Products"
+      : locale === "ko"
+        ? "전체 상품"
+        : "全部商品";
 
   return (
     <div
@@ -122,25 +128,29 @@ const FilterSidebar = ({
                   }}
                   className={`flex justify-between w-full text-left ${linkClass} ${isActive("all", null)}`}
                 >
-                  <span>All Products</span>
+                  <span>{tAllProducts}</span>
                 </button>
               </li>
-              {dynamicCategories.map((cat) => (
-                <li key={cat.id}>
-                  <button
-                    onClick={() => {
-                      onFilterChange("category", cat.slug);
-                      if (isMobile) onCloseMobile();
-                    }}
-                    className={`flex justify-between w-full text-left ${linkClass} ${isActive("category", cat.slug)}`}
-                  >
-                    <span>{cat.name}</span>
-                    <span className="text-[10px] opacity-60">
-                      ({cat.count})
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {dynamicCategories.map((cat) => {
+                const displayName =
+                  cat.metadata?.[`name_${metaLang}`] || cat.name;
+                return (
+                  <li key={cat.id}>
+                    <button
+                      onClick={() => {
+                        onFilterChange("category", cat.slug);
+                        if (isMobile) onCloseMobile();
+                      }}
+                      className={`flex justify-between w-full text-left ${linkClass} ${isActive("category", cat.slug)}`}
+                    >
+                      <span>{displayName}</span>
+                      <span className="text-[10px] opacity-60">
+                        ({cat.count})
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="text-[12px] text-gray-400">Loading Categories...</p>
@@ -158,24 +168,28 @@ const FilterSidebar = ({
           <ul
             className={`${isMobile ? "grid grid-cols-2 gap-x-4 gap-y-3" : "space-y-2"}`}
           >
-            {dynamicBrands.map((brand) => (
-              <li key={brand.id}>
-                <button
-                  onClick={() => {
-                    onFilterChange("brand", brand.slug);
-                    if (isMobile) onCloseMobile();
-                  }}
-                  className={`flex justify-between items-center w-full text-left ${linkClass} ${isActive("brand", brand.slug)}`}
-                >
-                  <span className="truncate mr-1 md:underline md:decoration-gray-300 md:underline-offset-4 decoration-1">
-                    {brand.name}
-                  </span>
-                  <span className="text-[10px] opacity-60">
-                    ({brand.count})
-                  </span>
-                </button>
-              </li>
-            ))}
+            {dynamicBrands.map((brand) => {
+              const brandName =
+                brand.metadata?.[`name_${metaLang}`] || brand.name;
+              return (
+                <li key={brand.id}>
+                  <button
+                    onClick={() => {
+                      onFilterChange("brand", brand.slug);
+                      if (isMobile) onCloseMobile();
+                    }}
+                    className={`flex justify-between items-center w-full text-left ${linkClass} ${isActive("brand", brand.slug)}`}
+                  >
+                    <span className="truncate mr-1 md:underline md:decoration-gray-300 md:underline-offset-4 decoration-1">
+                      {brandName}
+                    </span>
+                    <span className="text-[10px] opacity-60">
+                      ({brand.count})
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-[12px] text-gray-400">Loading Brands...</p>
@@ -185,7 +199,6 @@ const FilterSidebar = ({
   );
 };
 
-// --- CompanyLocation (維持原設計) ---
 const CompanyLocation = () => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -264,10 +277,11 @@ const CompanyLocation = () => {
   );
 };
 
-// --- 🔥 主要頁面 Component ---
+// --- 🔥 主頁面: 總覽列表頁 (index.jsx) ---
 export default function CategoryOverview({ products, brands, categories }) {
   const router = useRouter();
-  const { t } = useTranslation("common");
+  const { locale } = router;
+  const metaLang = locale === "zh-TW" ? "zh" : locale;
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState({
     type: "all",
@@ -292,38 +306,37 @@ export default function CategoryOverview({ products, brands, categories }) {
     return products;
   }, [activeFilter, products]);
 
+  const tAllProducts =
+    locale === "en"
+      ? "All Products"
+      : locale === "ko"
+        ? "전체 상품"
+        : "Online Store";
+
   const getFilterDisplayName = () => {
-    if (activeFilter.type === "all" || !activeFilter.value)
-      return "Online Store";
+    if (activeFilter.type === "all" || !activeFilter.value) return tAllProducts;
     if (activeFilter.type === "brand") {
       const b = brands.find((x) => x.slug === activeFilter.value);
-      return b ? b.name : activeFilter.value;
+      return b
+        ? b.metadata?.[`name_${metaLang}`] || b.name
+        : activeFilter.value;
     }
     if (activeFilter.type === "category") {
       const c = categories.find((x) => x.slug === activeFilter.value);
-      return c ? c.name : activeFilter.value;
+      return c
+        ? c.metadata?.[`name_${metaLang}`] || c.name
+        : activeFilter.value;
     }
     return activeFilter.value;
   };
 
   const displayTitle = getFilterDisplayName();
-  const pageTitle = `${displayTitle} | KÉSH de¹ 凱仕國際精品`;
-  const pageDesc =
-    "KÉSH de¹ 凱仕國際精品線上商店，提供 Hermès, Chanel, LV 等國際精品。台中實體門市，100%正品保證。";
-
-  const SITE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://www.kesh-de1.com";
-  const currentUrl = `${SITE_URL}${router.asPath}`;
-  const ogImage =
-    filteredProducts.length > 0 && filteredProducts[0].image
-      ? filteredProducts[0].image
-      : `${SITE_URL}/default-og-image.jpg`;
+  const pageTitle = `${displayTitle} | KÉSH de¹`;
 
   return (
     <>
       <Head>
         <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
       </Head>
 
       <main className="py-20 bg-white text-black font-sans min-h-screen">
@@ -356,7 +369,6 @@ export default function CategoryOverview({ products, brands, categories }) {
           </div>
         </section>
 
-        {/* Mobile Filter Button */}
         <div className="md:hidden sticky top-[60px] z-40 bg-white border-t border-b border-gray-400 shadow-sm">
           <button
             onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
@@ -381,11 +393,11 @@ export default function CategoryOverview({ products, brands, categories }) {
               onCloseMobile={() => setIsMobileFilterOpen(false)}
               dynamicBrands={brands}
               dynamicCategories={categories}
+              locale={locale}
             />
           </div>
         </div>
 
-        {/* Main Content Area */}
         <section className="products-content border-t border-b border-gray-400 flex flex-col md:flex-row">
           <div className="filter hidden md:flex w-full md:w-[25%] border-b md:border-b-0 md:border-r border-gray-400 relative bg-white">
             <div className="sticky top-20 h-auto w-full p-0">
@@ -395,6 +407,7 @@ export default function CategoryOverview({ products, brands, categories }) {
                 isMobile={false}
                 dynamicBrands={brands}
                 dynamicCategories={categories}
+                locale={locale}
               />
             </div>
           </div>
@@ -403,7 +416,11 @@ export default function CategoryOverview({ products, brands, categories }) {
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    locale={locale}
+                  />
                 ))}
               </div>
             ) : (
@@ -425,16 +442,18 @@ export default function CategoryOverview({ products, brands, categories }) {
   );
 }
 
-// ==========================================
-// 🔥 SSG 數據抓取：全面替換為 Medusa 2.0 API
-// ==========================================
+// 🚀 只有 getStaticProps，絕對不能有 getStaticPaths！
 export async function getStaticProps({ locale }) {
   const currentLang = locale || "zh-TW";
-
-  // 從環境變數讀取您的 Medusa 設定
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+
+  if (!BACKEND_URL || !API_KEY)
+    return {
+      props: { products: [], brands: [], categories: [] },
+      revalidate: 60,
+    };
 
   try {
     const headers = {
@@ -442,60 +461,86 @@ export async function getStaticProps({ locale }) {
       "Content-Type": "application/json",
     };
 
-    // 1. 同時向 Medusa 抓取所有：商品、分類(Categories)、品牌系列(Collections)
-    const [pRes, catRes, colRes] = await Promise.all([
-      fetch(`${BACKEND_URL}/store/products?limit=100`, { headers }),
-      fetch(`${BACKEND_URL}/store/product-categories`, { headers }),
-      fetch(`${BACKEND_URL}/store/collections`, { headers }),
+    // 🔥 使用 fetchOptions 繞過快取
+    const fetchOptions = { headers, cache: "no-store" };
+
+    const [catRes, colRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/store/product-categories?limit=100`, fetchOptions),
+      fetch(`${BACKEND_URL}/store/collections?limit=100`, fetchOptions),
     ]);
 
-    const pData = await pRes.json();
     const catData = await catRes.json();
     const colData = await colRes.json();
-
-    const rawProducts = pData.products || [];
     const rawCategories = catData.product_categories || [];
     const rawCollections = colData.collections || [];
 
-    // 2. 格式化商品資料 (匹配原來的 ProductCard 需求)
+    const categoryMap = {};
+    await Promise.all(
+      rawCategories.map(async (cat) => {
+        try {
+          const res = await fetch(
+            `${BACKEND_URL}/store/products?category_id[]=${cat.id}&limit=100`,
+            fetchOptions,
+          );
+          const data = await res.json();
+          if (data.products)
+            data.products.forEach((p) => {
+              categoryMap[p.id] = cat;
+            });
+        } catch (e) {
+          console.error(e);
+        }
+      }),
+    );
+
+    const pRes = await fetch(
+      `${BACKEND_URL}/store/products?limit=100`,
+      fetchOptions,
+    );
+    const pData = await pRes.json();
+    const rawProducts = pData.products || [];
+
     const formattedProducts = rawProducts.map((p) => {
-      // 處理價格：Medusa 存的是分，除以 100 變回元
       const rawPrice = p.variants?.[0]?.prices?.[0]
         ? p.variants[0].prices[0].amount / 100
         : 0;
+      const mappedCat = categoryMap[p.id];
+      const catHandle = mappedCat?.handle || "others";
+      const colHandle = p.collection?.handle || "select";
 
       return {
         id: p.id,
-        slug: p.handle,
-        title: p.title.toUpperCase(),
-        // 將 Medusa 的 Collection 當作品牌
+        slug: p.handle ? p.handle.replace(/^\/+/, "") : "",
+        title: p.title ? p.title.toUpperCase() : "未命名",
         brand: p.collection?.title || "KÉSH de¹ Select",
-        brandSlug: p.collection?.handle || "select",
-        // 將 Medusa 的 Category 當作分類
-        category: p.categories?.[0]?.name || "Accessories",
-        categorySlug: p.categories?.[0]?.handle || "others",
+        brandSlug: colHandle.replace(/^\/+/, ""),
+        category: mappedCat?.name || "Accessories",
+        categorySlug: catHandle.replace(/^\/+/, ""),
         price: `NT$ ${rawPrice.toLocaleString()}`,
-        rawPrice: rawPrice,
-        tags: p.tags ? p.tags.map((t) => t.value) : [],
-        status: "RANK S", // 可以根據庫存後續優化
+        status: "RANK S",
         image: p.thumbnail || null,
+        metadata: p.metadata || {},
       };
     });
 
-    // 3. 自動計算各分類與品牌的商品數量
     const categoriesList = rawCategories.map((c) => ({
       id: c.id,
       name: c.name,
-      slug: c.handle,
-      count: formattedProducts.filter((p) => p.categorySlug === c.handle)
-        .length,
+      metadata: c.metadata || {},
+      slug: c.handle.replace(/^\/+/, ""),
+      count: formattedProducts.filter(
+        (p) => p.categorySlug === c.handle.replace(/^\/+/, ""),
+      ).length,
     }));
 
     const brandsList = rawCollections.map((c) => ({
       id: c.id,
       name: c.title,
-      slug: c.handle,
-      count: formattedProducts.filter((p) => p.brandSlug === c.handle).length,
+      metadata: c.metadata || {},
+      slug: c.handle.replace(/^\/+/, ""),
+      count: formattedProducts.filter(
+        (p) => p.brandSlug === c.handle.replace(/^\/+/, ""),
+      ).length,
     }));
 
     return {
@@ -505,11 +550,9 @@ export async function getStaticProps({ locale }) {
         brands: brandsList,
         categories: categoriesList,
       },
-      // 每 60 秒重新生成一次頁面以保持資料最新
       revalidate: 60,
     };
   } catch (error) {
-    console.error("❌ [Medusa SSG 抓取失敗]:", error);
     return {
       props: {
         ...(await serverSideTranslations(currentLang, ["common"])),
