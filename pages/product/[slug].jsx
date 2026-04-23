@@ -25,67 +25,12 @@ import {
   Minus,
   Info,
   CheckCircle2,
+  CreditCard,
+  Truck,
+  HelpCircle,
 } from "lucide-react";
 
 import HeroSlider from "../../components/HeroSlider";
-
-// --- 共用商品卡片組件 ---
-const ProductCard = ({ product }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
-
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setCursorPos({ x, y });
-  };
-
-  return (
-    <Link
-      href={`/product/${product.slug}`}
-      className="group relative flex flex-col bg-white border border-gray-100 hover:border-gray-300 transition-colors h-full"
-    >
-      <div
-        className="relative w-full aspect-[4/5] bg-[#f4f4f4] overflow-hidden cursor-crosshair"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setCursorPos({ x: 50, y: 50 });
-        }}
-        onMouseMove={handleMouseMove}
-      >
-        <div className="absolute top-3 right-3 z-20 pointer-events-none">
-          <span className="text-[10px] font-bold text-gray-500 border border-gray-400 px-1.5 py-0.5 rounded bg-white/80 backdrop-blur-sm">
-            {product.status}
-          </span>
-        </div>
-        <div
-          className="w-full h-full bg-cover bg-center transition-transform duration-700 ease-out"
-          style={{
-            backgroundImage: `url('${product.image || "/images/placeholder.jpg"}')`,
-            transform: isHovered ? "scale(1.15)" : "scale(1)",
-            transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`,
-          }}
-        ></div>
-      </div>
-      <div className="p-4 bg-white mt-auto flex flex-col gap-1">
-        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
-          {product.brand}
-        </div>
-        <h2 className="text-[13px] font-medium text-gray-900 leading-snug tracking-wide group-hover:text-[#ef4628] transition-colors line-clamp-2">
-          {product.title}
-        </h2>
-        <div className="mt-2 flex items-center justify-between pt-2">
-          <p className="text-[14px] font-bold text-black tracking-wide">
-            {product.price}
-          </p>
-        </div>
-      </div>
-    </Link>
-  );
-};
 
 // --- 通用摺疊組件 ---
 const GenericAccordion = ({
@@ -95,6 +40,10 @@ const GenericAccordion = ({
   isOpenDefault = false,
 }) => {
   const [isOpen, setIsOpen] = useState(isOpenDefault);
+
+  // 防呆：如果沒有內容就不顯示這個 Accordion
+  if (!children) return null;
+
   return (
     <div className="border-b border-gray-200 py-5 last:border-b-0">
       <button
@@ -117,43 +66,10 @@ const GenericAccordion = ({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="pt-4 text-[13px] text-gray-500 leading-relaxed font-medium">
+            {/* 將內容強制換行保留排版 */}
+            <div className="pt-4 text-[14.5px] text-stone-700 tracking-wide leading-[25px] font-medium whitespace-pre-wrap">
               {children}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-// --- FAQ 摺疊組件 ---
-const FAQAccordion = ({ question, answer }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div className="py-4 border-b border-gray-100 last:border-0">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center text-left group focus:outline-none"
-      >
-        <span className="text-[11px] font-bold uppercase tracking-widest text-[#ef4628] group-hover:text-black transition-colors">
-          {question}
-        </span>
-        <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
-          <ChevronDown size={14} className="text-gray-400" />
-        </motion.div>
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <p className="pt-3 text-[12px] text-gray-500 leading-relaxed">
-              {answer}
-            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -172,24 +88,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const pdT = t("product_detail", { returnObjects: true }) || {};
   const ui = pdT.ui || {};
 
-  const defaultFaqs = [
-    {
-      q: "ABOUT BRANDS",
-      a: "We specialize in international luxury brands such as Hermès, Chanel, Louis Vuitton, and Dior.",
-    },
-    {
-      q: "PAYMENT & SECURITY",
-      a: "We support multiple payment methods including VISA, MasterCard, JCB, Apple Pay, and PayPal.",
-    },
-    {
-      q: "SHIPPING & FEES",
-      a: "Standard delivery fee is NT$80. We strongly recommend insured courier delivery for luxury items.",
-    },
-  ];
-
-  const faqsToDisplay =
-    Array.isArray(pdT.faqs) && pdT.faqs.length > 0 ? pdT.faqs : defaultFaqs;
-
   if (router.isFallback || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center font-bold tracking-widest uppercase text-gray-500">
@@ -198,17 +96,27 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     );
   }
 
+  // 💡 多語系標題定義
+  const isEn = router.locale === "en";
+  const isKo = router.locale === "ko";
+
+  const tCondition = isEn ? "Condition" : isKo ? "상태" : "商品狀況";
+  const tPayment = isEn ? "Payment Methods" : isKo ? "결제 수단" : "付款方式";
+  const tShipping = isEn ? "Shipping Info" : isKo ? "배송 안내" : "配送說明";
+  const tFAQ = isEn ? "FAQ" : isKo ? "자주 묻는 질문" : "常見問題";
+  const tDetails = isEn ? "Product Details" : isKo ? "상품 상세" : "商品詳情";
+
   return (
     <>
       <Head>
         <title>{`${product.title} | ${product.brand} | KÉSH de¹`}</title>
-        <meta name="description" content={product.shortDescPlain} />
+        <meta name="description" content={product.title} />
       </Head>
 
-      <main className="bg-white text-black min-h-screen pt-24 md:pt-32 pb-0">
+      <main className="bg-white text-black min-h-screen pt-5 md:pt-14 pb-0">
         <div className="max-w-[1440px] mx-auto px-6 md:px-10">
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
-            {/* 左側圖片 */}
+            {/* ================= 左側：圖片區 ================= */}
             <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10">
               <Swiper
                 spaceBetween={10}
@@ -265,7 +173,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
               </Swiper>
             </div>
 
-            {/* 右側資訊 */}
+            {/* ================= 右側：商品資訊區 ================= */}
             <div className="w-full md:w-[45%] lg:w-[45%] 2xl:w-[50%] pb-10">
               <div className="mb-6 border-b border-gray-100 pb-6">
                 <div className="flex justify-between items-center mb-2">
@@ -276,13 +184,34 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                     {product.specs.rank}
                   </span>
                 </div>
-                <h1 className="text-2xl lg:text-3xl font-medium mb-3">
+                <h1 className="text-2xl lg:text-3xl !leading-[40px] tracking-wide font-medium mb-3">
                   {product.title}
                 </h1>
+
+                {/* 顯示副標題 */}
+                {product.subtitle && (
+                  <p className="text-[13px] text-gray-500 mb-4">
+                    {product.subtitle}
+                  </p>
+                )}
+
                 <p className="text-2xl font-bold tracking-tight text-black">
                   {product.price}
                 </p>
               </div>
+
+              {/* ⭐ 單行資訊：商品狀況 */}
+              {product.condition && (
+                <div className="flex sm:flex-row flex-col  items-start sm:items-center justify-between py-4 border-b border-gray-100 mb-6">
+                  <span className="text-[13px] font-bold uppercase tracking-widest flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-[#ef4628]" />
+                    {tCondition}
+                  </span>
+                  <span className="text-[13px] mt-3 text-gray-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded-sm font-medium">
+                    {product.condition}
+                  </span>
+                </div>
+              )}
 
               {/* 購買按鈕 */}
               <div className="mb-10 space-y-4">
@@ -311,45 +240,38 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                 </div>
               </div>
 
-              {product.productCondition && (
+              {/* ⭐ Accordion 區塊：把後台資料拉出來 */}
+              <div className="border-t border-gray-200">
+                {/* 商品詳情 (原 Description) */}
                 <GenericAccordion
-                  title={ui.condition_title || "ITEM CONDITION"}
-                  icon={CheckCircle2}
+                  title={tDetails}
+                  icon={Info}
                   isOpenDefault={true}
                 >
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: product.productCondition,
-                    }}
-                  />
+                  {product.description}
                 </GenericAccordion>
-              )}
-              {product.description && (
-                <GenericAccordion
-                  title={ui.details_title || "PRODUCT DETAILS"}
-                  isOpenDefault={true}
-                >
-                  <div
-                    dangerouslySetInnerHTML={{ __html: product.description }}
-                  />
-                </GenericAccordion>
-              )}
 
-              <div className="pt-8 mt-4 border-t border-gray-200">
-                <h3 className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Info size={14} className="text-[#ef4628]" />
-                  {ui.faq_title || "SHOPPING GUIDE & FAQ"}
-                </h3>
-                {faqsToDisplay.map((faq, idx) => (
-                  <FAQAccordion key={idx} question={faq.q} answer={faq.a} />
-                ))}
+                {/* 付款方式 */}
+                <GenericAccordion title={tPayment} icon={CreditCard}>
+                  {product.paymentInfo}
+                </GenericAccordion>
+
+                {/* 配送說明 */}
+                <GenericAccordion title={tShipping} icon={Truck}>
+                  {product.shippingInfo}
+                </GenericAccordion>
+
+                {/* 常見問題 */}
+                <GenericAccordion title={tFAQ} icon={HelpCircle}>
+                  {product.faqInfo}
+                </GenericAccordion>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10 mt-20 pt-10 border-t border-gray-200">
+        {/* 下方 Tabs */}
+        <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-10    ">
           <div className="flex justify-center gap-8 md:gap-16 border-b border-gray-200 mb-10">
             <button
               onClick={() => setActiveTab("features")}
@@ -376,7 +298,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
               )}
             </button>
           </div>
-          <div className="min-h-[400px]">
+          <div className="min-h-[400px] pb-20">
             <AnimatePresence mode="wait">
               {activeTab === "features" && (
                 <motion.div
@@ -391,6 +313,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                         title: "嚴選品質保證",
                         image:
                           "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251124_7.jpg",
+                      },
+                      // 🔥 加上第二張圖片，輪播就會動了！
+                      {
+                        title: "支援專業真品鑑定",
+                        image:
+                          "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251124_8.jpg",
                       },
                     ]}
                   />
@@ -421,7 +349,9 @@ export async function getStaticPaths({ locales }) {
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
   if (!BACKEND_URL || !API_KEY) return { paths: [], fallback: "blocking" };
+
   try {
+    // 這裡的請求不會出錯，因為沒有 &t 參數
     const res = await fetch(`${BACKEND_URL}/store/products?limit=100`, {
       headers: { "x-publishable-api-key": API_KEY },
     });
@@ -458,13 +388,14 @@ export async function getStaticProps({ params, locale }) {
       "Content-Type": "application/json",
     };
 
-    // 🔥 終極完美修正：明確列出所有需要的欄位，絕對不讓 API 報錯
+    // 🔥 修正：使用 fetchOptions 的 cache: "no-store" 取代網址裡的 &t
+    const fetchOptions = { headers, cache: "no-store" };
+
     const apiUrl = `${BACKEND_URL}/store/products?handle=${slug}&fields=id,handle,title,description,thumbnail,metadata,*images,*collection,*variants,*variants.prices`;
 
-    const res = await fetch(apiUrl, { headers });
+    const res = await fetch(apiUrl, fetchOptions);
     const data = await res.json();
 
-    // 🛡️ 除錯機制：如果 API 還是有問題，會印在終端機讓您看到
     if (!res.ok) {
       console.error("Medusa API 錯誤:", data);
     }
@@ -486,39 +417,52 @@ export async function getStaticProps({ params, locale }) {
       : 0;
 
     // 🌍 多語系內容切換邏輯
-    const isEn = currentLang === "en";
-    const isKo = currentLang === "ko" || currentLang === "kr";
+    const metaLang = currentLang === "zh-TW" ? "zh" : currentLang;
 
-    const localizedTitle = isEn
-      ? rawProduct.metadata?.title_en || rawProduct.title
-      : isKo
-        ? rawProduct.metadata?.title_ko || rawProduct.title
-        : rawProduct.title;
+    // 標題、副標、描述
+    const localizedTitle =
+      rawProduct.metadata?.[`title_${metaLang}`] || rawProduct.title;
+    const localizedSubtitle =
+      rawProduct.metadata?.[`subtitle_${metaLang}`] ||
+      rawProduct.subtitle ||
+      "";
+    const localizedDesc =
+      rawProduct.metadata?.[`desc_${metaLang}`] || rawProduct.description;
 
-    const localizedDesc = isEn
-      ? rawProduct.metadata?.description_en || rawProduct.description
-      : isKo
-        ? rawProduct.metadata?.description_ko || rawProduct.description
-        : rawProduct.description;
-
-    const localizedCondition = isEn
-      ? rawProduct.metadata?.condition_en ||
-        rawProduct.metadata?.product_condition
-      : isKo
-        ? rawProduct.metadata?.condition_ko ||
-          rawProduct.metadata?.product_condition
-        : rawProduct.metadata?.product_condition;
+    // 擴充 Widget 欄位
+    const localizedCondition =
+      rawProduct.metadata?.[`condition_${metaLang}`] ||
+      rawProduct.metadata?.condition_zh ||
+      "";
+    const localizedPayment =
+      rawProduct.metadata?.[`payment_${metaLang}`] ||
+      rawProduct.metadata?.payment_zh ||
+      "";
+    const localizedShipping =
+      rawProduct.metadata?.[`shipping_${metaLang}`] ||
+      rawProduct.metadata?.shipping_zh ||
+      "";
+    const localizedFaq =
+      rawProduct.metadata?.[`faq_${metaLang}`] ||
+      rawProduct.metadata?.faq_zh ||
+      "";
 
     const product = {
       id: rawProduct.id || "",
       slug: rawProduct.handle || slug,
       title: localizedTitle || "",
+      subtitle: localizedSubtitle,
       price: `${symbol}${Math.round(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
       rawPrice: amount,
       variantId: rawProduct.variants?.[0]?.id || null,
       brand: rawProduct.collection?.title || "KÉSH de¹ Select",
+
       description: localizedDesc || "",
-      productCondition: localizedCondition || "",
+      condition: localizedCondition,
+      paymentInfo: localizedPayment,
+      shippingInfo: localizedShipping,
+      faqInfo: localizedFaq,
+
       images:
         rawProduct.images?.map((img) => img.url) ||
         [rawProduct.thumbnail].filter(Boolean),

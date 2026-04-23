@@ -5,6 +5,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Marquee from "react-fast-marquee";
+import Slider from "../../components/Slider.jsx";
+
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -196,7 +198,8 @@ export default function CategoryPage({ products, brands, categories, initialFilt
         <title>{pageTitle}</title>
       </Head>
 
-      <main className="py-20 bg-white text-black font-sans min-h-screen">
+      <main className="pb-20 bg-white text-black font-sans min-h-screen">
+        <Slider/>
         <section>
           <div className="title">
             <div className="py-6 px-6 md:px-10">

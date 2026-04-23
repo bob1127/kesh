@@ -8,7 +8,8 @@ import Marquee from "react-fast-marquee";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-
+import Slider from "../../components/Slider.jsx";
+import Carousel from "../../components/EmblaCarousel06/index.jsx";
 // --- 🛍️ 商品卡片組件 ---
 const ProductCard = ({ product, locale }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -339,7 +340,9 @@ export default function CategoryOverview({ products, brands, categories }) {
         <title>{pageTitle}</title>
       </Head>
 
-      <main className="py-20 bg-white text-black font-sans min-h-screen">
+      <main className=" pb-20 bg-white text-black font-sans min-h-screen">
+        <Slider></Slider>
+        <Carousel />
         <section>
           <div className="title">
             <div className="py-6 px-6 md:px-10">

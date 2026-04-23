@@ -71,7 +71,7 @@ export default function Footer() {
           {/* 1. 左側：品牌資訊 + Slogan */}
           <div className="lg:col-span-4 flex flex-col items-start">
             <Image
-              src="/images/logo/KESH-Logo-white.png"
+              src="/images/company-logo/KESH-Logo-white.png"
               alt="KÉSH de¹ Logo"
               width={140}
               height={50}

@@ -8,6 +8,7 @@ import https from "https";
 import useEmblaCarousel from "embla-carousel-react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 // 其他原本首頁的元件
+import CollectionShowcase from "@/components/CollectionShowcase";
 import { useTranslation } from "next-i18next";
 import HeroSlider from "../components/Slider/Slider";
 import ParallaxImage from "../components/ParallaxImage";
@@ -118,7 +119,7 @@ export default function Home({ featuredProducts }) {
       </Head>
 
       <HeroCarousel />
-
+      <CollectionShowcase />
       <ParallaxProvider>
         <section className="flex relative gap-4 my-[100px]">
           <div className="text absolute left-1/2 -translate-x-1/2 top-[40%] -translate-y-1/2 z-50">
