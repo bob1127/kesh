@@ -17,7 +17,7 @@ const EmblaCarousel = (props) => {
       ref={emblaRef}
     >
       <div
-        className="flex max-w-[550px] touch-pan-y touch-pinch-zoom"
+        className="flex max-w-[550px] touch-pan-y pb-8 touch-pinch-zoom"
         style={{ marginLeft: "-1rem" }}
       >
         {slides.map((slide, index) => (

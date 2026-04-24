@@ -117,7 +117,6 @@ export default function Home({ featuredProducts }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </Head>
-
       <HeroCarousel />
       <CollectionShowcase />
       <ParallaxProvider>

@@ -14,6 +14,12 @@ const PickleballAnimation = () => {
   const textTitleRef = useRef(null);
   const textCategoryRef = useRef(null);
 
+  const [slides, setSlides] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const isFetched = useRef(false);
+  const isGsapInitialized = useRef(false);
+
   const stateRef = useRef({
     currentIndex: 0,
     isAnimating: false,
@@ -21,35 +27,80 @@ const PickleballAnimation = () => {
     autoPlayTimer: null,
   });
 
-  const carouselSlides = [
-    {
-      type: "video",
-      src: "/images/index/shutterstock_3459837419.mp4",
-      title: "",
-      category: "",
-    },
-    {
-      type: "image",
-      src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
-      title: "Luxury Boutique",
-      category: "KÉSH de¹",
-    },
-  ];
+  // ==========================================
+  // 1. API 抓取邏輯
+  // ==========================================
+  useEffect(() => {
+    if (typeof window === "undefined" || isFetched.current) return;
+    isFetched.current = true;
 
-  // Helper: 建立媒體元件 (影片或圖片)
+    const fetchSlides = async () => {
+      const BACKEND_URL =
+        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+      const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+      const targetUrl = `${BACKEND_URL}/store/custom/hero-slides`;
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (API_KEY) headers["x-publishable-api-key"] = API_KEY;
+
+        const res = await fetch(targetUrl, { headers });
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+        const data = await res.json();
+
+        if (data.slides && data.slides.length > 0) {
+          setSlides(data.slides);
+        } else {
+          setSlides([
+            {
+              type: "image",
+              src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
+              title: "LUXURY BOUTIQUE",
+              category: "KÉSH DE¹",
+              alt: "KÉSH de¹ Luxury Boutique",
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("無法連線到 Medusa API，載入預設圖片:", error);
+        setSlides([
+          {
+            type: "image",
+            src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
+            title: "LUXURY BOUTIQUE",
+            category: "KÉSH DE¹",
+            alt: "KÉSH de¹ Luxury Boutique",
+          },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSlides();
+  }, []);
+
+  // ==========================================
+  // Helper: 建立媒體元件
+  // ==========================================
   const createMediaElement = (slideData) => {
     const mediaEl =
       slideData.type === "video"
         ? document.createElement("video")
         : document.createElement("img");
+    mediaEl.src = slideData.mediaUrl || slideData.src;
 
-    mediaEl.src = slideData.src;
+    if (slideData.type === "image") {
+      mediaEl.alt = slideData.alt || "KÉSH de¹ Luxury Boutique";
+    }
 
     if (slideData.type === "video") {
       mediaEl.muted = true;
       mediaEl.loop = true;
       mediaEl.autoplay = true;
       mediaEl.setAttribute("playsinline", "");
+      mediaEl.setAttribute("aria-label", slideData.alt || "KÉSH de¹ Video");
       mediaEl.onloadeddata = () => {
         mediaEl.play().catch((e) => console.warn("Autoplay blocked", e));
       };
@@ -64,39 +115,54 @@ const PickleballAnimation = () => {
     return mediaEl;
   };
 
-  // 核心：切換動畫函式 (合併自動播放與手動點擊)
+  // ==========================================
+  // 核心：切換動畫函式
+  // ==========================================
   const performTransition = (direction) => {
-    if (stateRef.current.isAnimating || !carouselImagesRef.current) return;
+    if (
+      stateRef.current.isAnimating ||
+      !carouselImagesRef.current ||
+      slides.length === 0
+    )
+      return;
     stateRef.current.isAnimating = true;
 
-    // 1. 文字動畫
     const nextIndex = stateRef.current.currentIndex;
-    const nextData = carouselSlides[nextIndex];
+    const nextData = slides[nextIndex];
 
+    // 🔥 智慧防呆：如果後台沒填文字，自動補上品牌預設字
+    const nextTitle = nextData.title || "LUXURY BOUTIQUE";
+    const nextCategory = nextData.category || "KÉSH DE¹";
+
+    // 1. 執行文字滑出與滑入動畫
     if (textTitleRef.current && textCategoryRef.current) {
-      gsap.to([textTitleRef.current, textCategoryRef.current], {
-        y: -50,
+      gsap.to([textCategoryRef.current, textTitleRef.current], {
+        y: -30,
         opacity: 0,
-        duration: 0.5,
+        duration: 0.4,
         ease: "power2.in",
+        stagger: 0.1, // 讓分類與標題錯開消失
         onComplete: () => {
-          textTitleRef.current.innerText = nextData.title || "";
-          textCategoryRef.current.innerText = nextData.category || "";
-          gsap.set([textTitleRef.current, textCategoryRef.current], { y: 50 });
-          if (nextData.title || nextData.category) {
-            gsap.to([textTitleRef.current, textCategoryRef.current], {
-              y: 0,
-              opacity: 1,
-              duration: 0.8,
-              ease: "power2.out",
-              stagger: 0.1,
-            });
-          }
+          // 更新文字內容
+          textTitleRef.current.innerText = nextTitle;
+          textCategoryRef.current.innerText = nextCategory;
+
+          // 準備從下方滑入
+          gsap.set([textCategoryRef.current, textTitleRef.current], { y: 30 });
+
+          // 滑入動畫
+          gsap.to([textCategoryRef.current, textTitleRef.current], {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: "power2.out",
+            stagger: 0.1,
+          });
         },
       });
     }
 
-    // 2. 媒體切換動畫
+    // 2. 執行圖片切換動畫
     const slideOffset = window.innerWidth < 1000 ? 100 : 500;
     const currentSlide =
       carouselImagesRef.current.querySelector(".img:last-child");
@@ -120,7 +186,6 @@ const PickleballAnimation = () => {
     newSlideContainer.appendChild(newMediaEl);
     carouselImagesRef.current.appendChild(newSlideContainer);
 
-    // 舊媒體視差退場
     if (currentMedia) {
       gsap.to(currentMedia, {
         x: direction === "right" ? -slideOffset : slideOffset,
@@ -129,7 +194,6 @@ const PickleballAnimation = () => {
       });
     }
 
-    // 新 Slide 進入動畫 (Clip Path)
     gsap.fromTo(
       newSlideContainer,
       {
@@ -143,7 +207,6 @@ const PickleballAnimation = () => {
         duration: 1.5,
         ease: "hop",
         onComplete: () => {
-          // 清理舊節點
           const allSlides =
             carouselImagesRef.current?.querySelectorAll(".img") || [];
           if (allSlides.length > 1) {
@@ -154,17 +217,18 @@ const PickleballAnimation = () => {
         },
       },
     );
-    // 新媒體視差歸位
     gsap.to(newMediaEl, { x: 0, duration: 1.5, ease: "hop" });
   };
 
   const startAutoPlay = () => {
     stopAutoPlay();
-    stateRef.current.autoPlayTimer = setInterval(() => {
-      stateRef.current.currentIndex =
-        (stateRef.current.currentIndex + 1) % carouselSlides.length;
-      performTransition("right");
-    }, 5000);
+    if (slides.length > 1) {
+      stateRef.current.autoPlayTimer = setInterval(() => {
+        stateRef.current.currentIndex =
+          (stateRef.current.currentIndex + 1) % slides.length;
+        performTransition("right");
+      }, 5000);
+    }
   };
 
   const stopAutoPlay = () => {
@@ -173,24 +237,34 @@ const PickleballAnimation = () => {
   };
 
   const clickSlide = (direction) => {
-    if (stateRef.current.isAnimating) return;
-    stopAutoPlay(); // 點擊時先停止，動畫完再重啟
+    if (stateRef.current.isAnimating || slides.length <= 1) return;
+    stopAutoPlay();
 
     if (direction === "next") {
       stateRef.current.currentIndex =
-        (stateRef.current.currentIndex + 1) % carouselSlides.length;
+        (stateRef.current.currentIndex + 1) % slides.length;
       performTransition("right");
     } else {
       stateRef.current.currentIndex =
-        (stateRef.current.currentIndex - 1 + carouselSlides.length) %
-        carouselSlides.length;
+        (stateRef.current.currentIndex - 1 + slides.length) % slides.length;
       performTransition("left");
     }
     startAutoPlay();
   };
 
+  // ==========================================
+  // 3. GSAP 動畫初始化
+  // ==========================================
   useEffect(() => {
-    if (typeof window === "undefined" || !wrapperRef.current) return;
+    if (
+      typeof window === "undefined" ||
+      !wrapperRef.current ||
+      isLoading ||
+      slides.length === 0
+    )
+      return;
+    if (isGsapInitialized.current) return;
+    isGsapInitialized.current = true;
 
     if (!CustomEase.get("hop")) {
       CustomEase.create(
@@ -199,7 +273,6 @@ const PickleballAnimation = () => {
       );
     }
 
-    // 初始化第一張
     if (carouselImagesRef.current) {
       carouselImagesRef.current.innerHTML = "";
       const initContainer = document.createElement("div");
@@ -209,13 +282,36 @@ const PickleballAnimation = () => {
         width: "100%",
         height: "100%",
       });
-      initContainer.appendChild(createMediaElement(carouselSlides[0]));
+      initContainer.appendChild(createMediaElement(slides[0]));
       carouselImagesRef.current.appendChild(initContainer);
+
+      // 🔥 初始化時注入文字，並加上優雅的進場動畫
+      if (textTitleRef.current && textCategoryRef.current) {
+        textTitleRef.current.innerText = slides[0].title || "LUXURY BOUTIQUE";
+        textCategoryRef.current.innerText = slides[0].category || "KÉSH DE¹";
+
+        gsap.fromTo(
+          [textCategoryRef.current, textTitleRef.current],
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, ease: "power2.out", stagger: 0.2 },
+        );
+      }
     }
 
     startAutoPlay();
+
     return () => stopAutoPlay();
-  }, []);
+  }, [isLoading, slides]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen bg-black flex items-center justify-center">
+        <span className="text-white text-xs tracking-widest uppercase">
+          KÉSH de¹ Loading...
+        </span>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -252,7 +348,7 @@ const PickleballAnimation = () => {
           font-size: 1rem;
           letter-spacing: 0.2rem;
           text-transform: uppercase;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.9);
           margin-bottom: 1rem;
         }
         .slide-info h1 {
@@ -319,18 +415,28 @@ const PickleballAnimation = () => {
             <p ref={textCategoryRef}></p>
             <h1 ref={textTitleRef}></h1>
           </div>
-          <div className="slider-controls">
-            <button className="control-btn" onClick={() => clickSlide("prev")}>
-              <svg width="24" height="24" viewBox="0 0 24 24">
-                <path d="m3.3 12 8.7 8.7 1.5-1.5L6.3 12l7.2-7.2-1.5-1.5L3.3 12Z" />
-              </svg>
-            </button>
-            <button className="control-btn" onClick={() => clickSlide("next")}>
-              <svg width="24" height="24" viewBox="0 0 24 24">
-                <path d="M20.7 12l-8.7-8.7-1.5 1.5 7.2 7.2-7.2 7.2 1.5 1.5 8.7-8.7Z" />
-              </svg>
-            </button>
-          </div>
+
+          {slides.length > 1 && (
+            <div className="slider-controls">
+              <button
+                className="control-btn"
+                onClick={() => clickSlide("prev")}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path d="m3.3 12 8.7 8.7 1.5-1.5L6.3 12l7.2-7.2-1.5-1.5L3.3 12Z" />
+                </svg>
+              </button>
+              <button
+                className="control-btn"
+                onClick={() => clickSlide("next")}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <path d="M20.7 12l-8.7-8.7-1.5 1.5 7.2 7.2-7.2 7.2 1.5 1.5 8.7-8.7Z" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           <footer>
             <p>KESH LUXURY CO., LTD</p>
             <p>Brand Philosophy</p>

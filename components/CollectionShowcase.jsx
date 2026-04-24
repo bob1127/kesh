@@ -16,7 +16,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ==========================================
 // 1. 精品風格多語系備用字典 (Fallback)
-// 如果 common.json 裡還沒設定好，會自動吃這裡的文案
 // ==========================================
 const fallbackData = {
   "zh-TW": {
@@ -134,8 +133,6 @@ export default function CollectionShowcase({ initialProducts = [] }) {
   // 取得當前語系，預設繁中
   const locale = router.locale || "zh-TW";
 
-  // 優先嘗試從 common.json 讀取 (假設 key 叫 collection_showcase)
-  // 若未設定，則使用剛才寫好的 fallbackData 備用字典
   const tData = t("collection_showcase", { returnObjects: true });
   const content =
     typeof tData === "object" && Object.keys(tData).length > 0
@@ -146,30 +143,70 @@ export default function CollectionShowcase({ initialProducts = [] }) {
   const [isLoading, setIsLoading] = useState(!initialProducts.length);
   const containerRef = useRef(null);
 
+  // 🔥 安全鎖：確保 fetch 只會執行一次
+  const isFetched = useRef(false);
+
   // ==========================================
-  // 自動抓取 Medusa 後台商品
+  // 自動抓取 Medusa 後台商品 (附帶超級除錯模式與環境判斷)
   // ==========================================
   useEffect(() => {
-    if (initialProducts.length > 0) {
-      setProducts(initialProducts);
+    if (isFetched.current || (initialProducts && initialProducts.length > 0)) {
+      if (initialProducts && initialProducts.length > 0) {
+        setProducts(initialProducts);
+      }
       return;
     }
 
+    isFetched.current = true;
+
     const fetchMedusaProducts = async () => {
+      // 🔥 智慧判斷：如果是本地開發就用 9000，如果是正式上線 (Vercel) 就用 Railway
+      const defaultBackendUrl =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:9000"
+          : "https://kesh-backend-production.up.railway.app";
+
       const BACKEND_URL =
-        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || defaultBackendUrl;
       const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-      if (!API_KEY) return setIsLoading(false);
+
+      // 🕵️‍♂️ 超級除錯追蹤器開始
+      console.log("🔍 [Medusa API 測試] 開始抓取商品資料...");
+      console.log(
+        "🔗 [Medusa API 測試] 當前環境 NODE_ENV:",
+        process.env.NODE_ENV,
+      );
+      console.log("🔗 [Medusa API 測試] 實際使用的 BACKEND_URL:", BACKEND_URL);
+      console.log("🔑 [Medusa API 測試] 是否有帶 API Key:", !!API_KEY);
+
+      if (!API_KEY) {
+        console.error(
+          "❌ [Medusa API 測試] 缺少 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY！請檢查 .env 檔案",
+        );
+        return setIsLoading(false);
+      }
 
       try {
-        const res = await fetch(`${BACKEND_URL}/store/products?limit=8`, {
+        const targetUrl = `${BACKEND_URL}/store/products?limit=8`;
+        console.log("📡 [Medusa API 測試] 準備發送請求至:", targetUrl);
+
+        const res = await fetch(targetUrl, {
           headers: {
             "x-publishable-api-key": API_KEY,
             "Content-Type": "application/json",
           },
         });
+
+        console.log("📥 [Medusa API 測試] 收到回應，狀態碼:", res.status);
+
+        if (!res.ok) {
+          throw new Error(`HTTP 錯誤! 狀態碼: ${res.status}`);
+        }
+
         const data = await res.json();
-        if (data.products) {
+        console.log("📦 [Medusa API 測試] 成功解析後端資料:", data);
+
+        if (data.products && data.products.length > 0) {
           const formattedProducts = data.products.map((p) => {
             const priceObj = p.variants?.[0]?.prices?.[0];
             let amount = priceObj
@@ -185,16 +222,25 @@ export default function CollectionShowcase({ initialProducts = [] }) {
               image: p.thumbnail || "/images/placeholder.jpg",
             };
           });
+          console.log(
+            "✨ [Medusa API 測試] 轉換後的輪播圖商品陣列:",
+            formattedProducts,
+          );
           setProducts(formattedProducts);
+        } else {
+          console.warn(
+            "⚠️ [Medusa API 測試] 後端有回應，但 products 陣列是空的！請確定你的 Medusa 後台有上架商品並且為 Published。",
+          );
         }
       } catch (error) {
-        console.error("無法取得 Medusa 商品:", error);
+        console.error("❌ [Medusa API 測試] 發生致命連線錯誤:", error);
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchMedusaProducts();
-  }, [initialProducts]);
+  }, []);
 
   // ==========================================
   // GSAP 視覺差滾動動畫
@@ -224,7 +270,7 @@ export default function CollectionShowcase({ initialProducts = [] }) {
       className="w-full bg-white text-black font-sans"
     >
       {/* 標題區塊 */}
-      <div className="w-full pt-28 pb-20 px-6 flex flex-col items-center justify-center text-center">
+      <div className="w-full pt-28 pb-5 md:pb-20 px-6 flex flex-col items-center justify-center text-center">
         <div className="mb-8">
           <h2 className="text-4xl md:text-5xl lg:text-[54px] font-extrabold tracking-widest flex items-start justify-center gap-1 mb-2">
             {content.headerTitle}
@@ -246,15 +292,14 @@ export default function CollectionShowcase({ initialProducts = [] }) {
         const isEven = index % 2 !== 0;
 
         return (
-          // 🔥 鎖死視窗高度，保留原本全部的排版結構與 Class
           <div
             key={item.id}
-            className={`flex flex-col lg:flex-row w-full  h-auto lg:h-[100svh] ${isEven ? "lg:flex-row-reverse" : ""}`}
+            className={`flex flex-col lg:flex-row w-full h-auto lg:h-[100svh] ${isEven ? "lg:flex-row-reverse" : ""}`}
           >
             {/* 左側：商品展示區 */}
-            <div className="w-full lg:w-[50%]   h-full overflow-hidden flex flex-col items-center justify-center bg-white z-10 relative">
+            <div className="w-full lg:w-[50%] h-full overflow-hidden flex flex-col items-center justify-center bg-white z-10 relative">
               <div className="text-center mb-8 max-w-lg">
-                <h3 className="text-[16px] lg:text-[18px] font-bold leading-[1.8] mb-4 whitespace-pre-line text-gray-900 tracking-wider">
+                <h3 className="text-[20px] lg:text-[24px] mt-8 font-bold leading-[1.8] mb-4 whitespace-pre-line text-gray-900 tracking-wider">
                   {item.blockTitle}
                 </h3>
                 <p className="text-[11px] lg:text-[12px] leading-[2.2] text-gray-500 whitespace-pre-line tracking-[0.1em]">
@@ -286,7 +331,7 @@ export default function CollectionShowcase({ initialProducts = [] }) {
                   src={item.image}
                   alt={item.name}
                   fill
-                  className="object-cover transition-transform duration-[10s] ease-out  "
+                  className="object-cover transition-transform duration-[10s] ease-out"
                   unoptimized
                 />
               </div>
@@ -306,7 +351,6 @@ export default function CollectionShowcase({ initialProducts = [] }) {
                 <p className="text-[12px] tracking-widest mb-8 opacity-90">
                   {item.description}
                 </p>
-                {/* 替換為低調質感的黑白按鈕以搭配精品網 */}
                 <Link
                   href="/category"
                   className="bg-[#fd4e27] text-white border border-white text-[10px] font-bold tracking-[0.2em] uppercase px-12 py-4 hover:bg-white hover:text-black transition-colors duration-300"

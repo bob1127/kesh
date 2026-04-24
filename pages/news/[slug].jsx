@@ -37,7 +37,7 @@ const RecentJournalCard = ({ post }) => (
 // --- 🔥 主頁面: News 內頁 ---
 export default function NewsDetail({ post, recentPosts }) {
   const router = useRouter();
-  const { t } = useTranslation("common"); // 引入翻譯 Hook
+  const { t } = useTranslation("common");
   const [headings, setHeadings] = useState([]);
   const contentRef = useRef(null);
 
@@ -72,41 +72,20 @@ export default function NewsDetail({ post, recentPosts }) {
 
   const siteUrl =
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
-  const postUrl = `${siteUrl}/news/${post.slug}`;
+  const postUrl = `${siteUrl}/${router.locale === "zh-TW" ? "" : router.locale + "/"}news/${post.slug}`;
   const metaDesc =
     post.seo_description || post.excerpt?.replace(/<[^>]+>/g, "");
 
-  // 🔥 SEO 結構化資料 1：文章標記 (BlogPosting)
-  const schemaArticle = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
-    headline: post.seo_title || post.title,
-    description: metaDesc,
-    image: post.image !== "/images/placeholder.jpg" ? [post.image] : [],
-    datePublished: post.raw_created_at,
-    dateModified: post.raw_updated_at || post.raw_created_at,
-    author: { "@type": "Organization", name: "KÉSH de¹ 編輯部", url: siteUrl },
-    publisher: {
-      "@type": "Organization",
-      name: "KÉSH de¹ 凱仕國際精品",
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteUrl}/images/company-logo/KESH%20Logo.png`,
-      },
-    },
-  };
-
-  // 🔥 SEO 結構化資料 2：麵包屑導覽 (BreadcrumbList)
+  // SEO 結構化資料：麵包屑導覽 (BreadcrumbList) - 這個可以保留通用邏輯
   const schemaBreadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "首頁", item: siteUrl },
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
       {
         "@type": "ListItem",
         position: 2,
-        name: "最新消息",
+        name: "Journal",
         item: `${siteUrl}/news`,
       },
       { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
@@ -128,10 +107,14 @@ export default function NewsDetail({ post, recentPosts }) {
         <meta property="og:url" content={postUrl} />
         <meta property="og:type" content="article" />
 
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaArticle) }}
-        />
+        {/* 🔥 動態載入後台 Rank Math 產生的 Schema (如果有設定的話) */}
+        {post.structured_data && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: post.structured_data }}
+          />
+        )}
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb) }}
@@ -181,11 +164,11 @@ export default function NewsDetail({ post, recentPosts }) {
                 </a>
               </div>
               <div className="space-y-1 border-l-2 border-gray-100 pl-4">
-                <p className="font-bold text-gray-900">發佈單位</p>
-                <p>KÉSH de¹ 編輯部</p>
+                <p className="font-bold text-gray-900">Editor</p>
+                <p>KÉSH de¹</p>
               </div>
               <div className="space-y-1 border-l-2 border-gray-100 pl-4">
-                <p className="font-bold text-gray-900">分類</p>
+                <p className="font-bold text-gray-900">Category</p>
                 <p>Fashion / Events</p>
               </div>
             </div>
@@ -298,24 +281,6 @@ export default function NewsDetail({ post, recentPosts }) {
               <RecentJournalCard key={item.id} post={item} />
             ))}
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            {[
-              "Feature",
-              "Information",
-              "Interview",
-              "Life Style",
-              "News",
-              "Season Visual",
-              "Styling",
-            ].map((tag) => (
-              <span
-                key={tag}
-                className="bg-[#1c1c1c] text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider cursor-pointer hover:bg-[#ef4628] transition-colors"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
       </main>
     </>
@@ -332,11 +297,12 @@ export async function getStaticPaths() {
       headers: { "x-publishable-api-key": PUB_KEY },
     });
     const data = await res.json();
+
+    // 🔥 如果你有多語系，你可能需要讓每一個 slug 對應到所有 locale (這裡假設 next.config.js 會幫忙處理)
     const paths = (data.posts || [])
       .filter((p) => p.is_active)
-      .map((post) => ({
-        params: { slug: post.slug },
-      }));
+      .map((post) => ({ params: { slug: post.slug } }));
+
     return { paths, fallback: "blocking" };
   } catch (err) {
     return { paths: [], fallback: "blocking" };
@@ -345,7 +311,7 @@ export async function getStaticPaths() {
 
 export async function getStaticProps({ params, locale }) {
   const slug = params.slug;
-  const currentLang = locale || "zh-TW"; // 確保拿到當前語系
+  const currentLang = locale || "zh-TW";
 
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
@@ -360,14 +326,28 @@ export async function getStaticProps({ params, locale }) {
     const currentPostRaw = allPosts.find((p) => p.slug === slug);
     if (!currentPostRaw) return { notFound: true };
 
+    // 🔥 核心魔法：根據當前語系，動態抓取資料庫對應欄位
+    const isEn = currentLang === "en";
+    const isKo = currentLang === "ko";
+
+    const getLocalizedField = (post, baseField) => {
+      if (isEn && post[`${baseField}_en`]) return post[`${baseField}_en`];
+      if (isKo && post[`${baseField}_ko`]) return post[`${baseField}_ko`];
+      return post[baseField] || ""; // 預設拿繁中 (zh) 欄位
+    };
+
     const formattedPost = {
       id: currentPostRaw.id,
-      title: currentPostRaw.title,
-      content: currentPostRaw.content,
-      excerpt: currentPostRaw.excerpt || "",
-      seo_title: currentPostRaw.seo_title || null,
-      seo_description: currentPostRaw.seo_description || null,
-      seo_keywords: currentPostRaw.seo_keywords || null,
+      slug: currentPostRaw.slug,
+      // 使用輔助函式自動抽換語言
+      title: getLocalizedField(currentPostRaw, "title"),
+      content: getLocalizedField(currentPostRaw, "content"),
+      excerpt: getLocalizedField(currentPostRaw, "excerpt"),
+      seo_title: getLocalizedField(currentPostRaw, "seo_title"),
+      seo_description: getLocalizedField(currentPostRaw, "seo_description"),
+      seo_keywords: getLocalizedField(currentPostRaw, "seo_keywords"),
+      structured_data: getLocalizedField(currentPostRaw, "structured_data"),
+
       date: new Date(currentPostRaw.created_at)
         .toLocaleDateString("en-CA")
         .replace(/-/g, "."),
@@ -376,14 +356,15 @@ export async function getStaticProps({ params, locale }) {
       image: currentPostRaw.thumbnail || "/images/placeholder.jpg",
     };
 
+    // Recent Posts 也套用多語系過濾
     const recentPostsRaw = allPosts
       .filter((p) => p.id !== currentPostRaw.id)
       .slice(0, 3);
     const formattedRecent = recentPostsRaw.map((rp) => ({
       id: rp.id,
       slug: rp.slug,
-      title: rp.title,
-      excerpt: rp.excerpt || "",
+      title: getLocalizedField(rp, "title"),
+      excerpt: getLocalizedField(rp, "excerpt"),
       date: new Date(rp.created_at)
         .toLocaleDateString("en-CA")
         .replace(/-/g, "."),
@@ -394,7 +375,6 @@ export async function getStaticProps({ params, locale }) {
       props: {
         post: formattedPost,
         recentPosts: formattedRecent,
-        // 🔥 關鍵修復：補回多語系載入檔案 (加入 navbar, footer 等等)
         ...(await serverSideTranslations(currentLang, ["common"])),
       },
       revalidate: 60,
