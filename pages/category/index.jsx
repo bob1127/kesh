@@ -5,44 +5,36 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Marquee from "react-fast-marquee";
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Slider from "../../components/Slider.jsx";
 import Carousel from "../../components/EmblaCarousel06/index.jsx";
-// --- 🛍️ 商品卡片組件 ---
-const ProductCard = ({ product, locale }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
+import { ChevronDown, Search, X, Filter } from "lucide-react";
 
+// --- 🛍️ 商品卡片組件 ---
+const ProductCard = ({ product, locale, index }) => {
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const displayTitle = product.metadata?.[`title_${metaLang}`] || product.title;
 
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } =
-      e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setCursorPos({ x, y });
-  };
-
   return (
-    <Link
-      href={`/product/${product.slug}`}
-      className="group border-b border-gray-400 md:border-r border-gray-400 last:border-r-0 relative flex flex-col bg-white"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: (index % 12) * 0.05 }}
     >
-      <div
-        className="relative w-full aspect-[4/5] bg-[#f4f4f4] overflow-hidden cursor-crosshair"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setCursorPos({ x: 50, y: 50 });
-        }}
-        onMouseMove={handleMouseMove}
+      <Link
+        href={`/product/${product.slug}`}
+        className="group border-b border-gray-400 md:border-r border-gray-400 last:border-r-0 relative flex flex-col bg-white h-full"
       >
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20 pointer-events-none">
-          {product.tags &&
-            product.tags.map((tag) => (
+        <div className="relative w-full aspect-[4/5] bg-[#f4f4f4] overflow-hidden">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20 pointer-events-none">
+            {product.tags?.map((tag) => (
               <span
                 key={tag}
                 className="bg-black/80 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-sm font-medium tracking-wide"
@@ -50,501 +42,461 @@ const ProductCard = ({ product, locale }) => {
                 {tag}
               </span>
             ))}
+          </div>
+          <div className="absolute top-3 right-3 z-20 pointer-events-none">
+            <span className="text-[10px] font-bold text-gray-500 border border-gray-400 px-1.5 py-0.5 rounded bg-white/80">
+              {product.status}
+            </span>
+          </div>
+          <div
+            className="w-full h-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
+            style={{
+              backgroundImage: `url('${product.image || "/images/placeholder.jpg"}')`,
+            }}
+          ></div>
         </div>
-        <div className="absolute top-3 right-3 z-20 pointer-events-none">
-          <span className="text-[10px] font-bold text-gray-500 border border-gray-400 px-1.5 py-0.5 rounded bg-white/80">
-            {product.status}
-          </span>
+        <div className="p-5 bg-white mt-auto flex flex-col gap-1">
+          <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">
+            {product.brand}
+          </div>
+          <h2 className="text-[14px] font-medium text-gray-900 leading-snug tracking-wide group-hover:text-[#ef4628] transition-colors line-clamp-2">
+            {displayTitle}
+          </h2>
+          <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+            <p className="text-[15px] font-bold text-black tracking-wide">
+              {product.displayPrice}
+            </p>
+            <span className="text-[10px] text-gray-400 underline decoration-gray-300 underline-offset-2">
+              View Detail
+            </span>
+          </div>
         </div>
-        <div
-          className="w-full h-full bg-cover bg-center transition-transform duration-500 ease-out"
-          style={{
-            backgroundImage: `url('${product.image || "/images/placeholder.jpg"}')`,
-            transform: isHovered ? "scale(2)" : "scale(1)",
-            transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`,
-          }}
-        ></div>
-      </div>
-      <div className="p-5 bg-white mt-auto flex flex-col gap-1">
-        <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">
-          {product.brand}
-        </div>
-        <h2 className="text-[14px] font-medium text-gray-900 leading-snug tracking-wide group-hover:text-[#ef4628] transition-colors line-clamp-2">
-          {displayTitle}
-        </h2>
-        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
-          <p className="text-[15px] font-bold text-black tracking-wide">
-            {product.price}
-          </p>
-          <span className="text-[10px] text-gray-400 underline decoration-gray-300 underline-offset-2">
-            View Detail
-          </span>
-        </div>
-      </div>
-    </Link>
+      </Link>
+    </motion.div>
   );
 };
 
-// --- 🏷️ FilterSidebar ---
+// --- 🏷️ 強化版 FilterSidebar (Shopify Style) ---
 const FilterSidebar = ({
   activeFilter,
-  onFilterChange,
-  isMobile = false,
-  onCloseMobile,
-  dynamicBrands = [],
-  dynamicCategories = [],
+  setActiveFilter,
+  dynamicBrands,
+  dynamicCategories,
   locale,
+  priceRange,
+  setPriceRange,
+  sortBy,
+  setSortBy,
 }) => {
-  const isActive = (type, value) =>
-    activeFilter.type === type && activeFilter.value === value
-      ? "text-[#ef4628] font-extrabold"
-      : "text-gray-600 hover:text-black";
-  const linkClass =
-    "text-[13px] transition-colors block leading-tight cursor-pointer py-1";
   const metaLang = locale === "zh-TW" ? "zh" : locale;
-  const tAllProducts =
-    locale === "en"
-      ? "All Products"
-      : locale === "ko"
-        ? "전체 상품"
-        : "全部商品";
+  const t = (zh, en, ko) => (locale === "en" ? en : locale === "ko" ? ko : zh);
+
+  const sectionClass = "mb-10";
+  const titleClass =
+    "text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4 flex items-center justify-between";
 
   return (
-    <div
-      className={`flex ${isMobile ? "flex-col p-6 space-y-8" : "flex-row gap-6 p-6 md:p-8"}`}
-    >
-      <div className={isMobile ? "" : "flex-1"}>
-        {isMobile && <div className="border-t border-gray-200 mb-8"></div>}
-        <div>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-            Categories
-          </h3>
-          {dynamicCategories.length > 0 ? (
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => {
-                    onFilterChange("all", null);
-                    if (isMobile) onCloseMobile();
-                  }}
-                  className={`flex justify-between w-full text-left ${linkClass} ${isActive("all", null)}`}
-                >
-                  <span>{tAllProducts}</span>
-                </button>
-              </li>
-              {dynamicCategories.map((cat) => {
-                const displayName =
-                  cat.metadata?.[`name_${metaLang}`] || cat.name;
-                return (
-                  <li key={cat.id}>
-                    <button
-                      onClick={() => {
-                        onFilterChange("category", cat.slug);
-                        if (isMobile) onCloseMobile();
-                      }}
-                      className={`flex justify-between w-full text-left ${linkClass} ${isActive("category", cat.slug)}`}
-                    >
-                      <span>{displayName}</span>
-                      <span className="text-[10px] opacity-60">
-                        ({cat.count})
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-[12px] text-gray-400">Loading Categories...</p>
-          )}
+    <div className="p-6 md:p-8">
+      {/* 排序 Sort By */}
+      <div className={sectionClass}>
+        <h3 className={titleClass}>{t("排序方式", "Sort By", "정렬 기준")}</h3>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="w-full border border-gray-200 p-2 text-xs font-medium outline-none focus:border-black transition-colors"
+        >
+          <option value="newest">{t("最新發布", "Newest", "최신순")}</option>
+          <option value="oldest">
+            {t("發布時間：由舊到新", "Oldest", "오래된순")}
+          </option>
+          <option value="price-high">
+            {t("價格：由高到低", "Price: High to Low", "가격: 높은순")}
+          </option>
+          <option value="price-low">
+            {t("價格：由低到高", "Price: Low to High", "가격: 낮은순")}
+          </option>
+        </select>
+      </div>
+
+      {/* 價格區間 Price Range */}
+      <div className={sectionClass}>
+        <h3 className={titleClass}>
+          {t("價格區間", "Price Range", "가격 범위")}
+        </h3>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            placeholder={t("最低", "Min", "최소")}
+            value={priceRange.min}
+            onChange={(e) =>
+              setPriceRange((prev) => ({ ...prev, min: e.target.value }))
+            }
+            className="w-full border border-gray-200 p-2 text-xs outline-none focus:border-black"
+          />
+          <span className="text-gray-400">-</span>
+          <input
+            type="number"
+            placeholder={t("最高", "Max", "최대")}
+            value={priceRange.max}
+            onChange={(e) =>
+              setPriceRange((prev) => ({ ...prev, max: e.target.value }))
+            }
+            className="w-full border border-gray-200 p-2 text-xs outline-none focus:border-black"
+          />
         </div>
       </div>
 
-      {isMobile && <div className="border-t border-gray-200"></div>}
-
-      <div className={isMobile ? "" : "flex-1"}>
-        <h3 className="text-lg font-bold mb-4 text-gray-400 md:text-black md:text-lg text-xs md:font-bold uppercase tracking-widest md:tracking-normal md:normal-case">
-          Brands
+      {/* 分類 Categories */}
+      <div className={sectionClass}>
+        <h3 className={titleClass}>
+          {t("產品類別", "Categories", "카테고리")}
         </h3>
-        {dynamicBrands.length > 0 ? (
-          <ul
-            className={`${isMobile ? "grid grid-cols-2 gap-x-4 gap-y-3" : "space-y-2"}`}
-          >
-            {dynamicBrands.map((brand) => {
-              const brandName =
-                brand.metadata?.[`name_${metaLang}`] || brand.name;
-              return (
-                <li key={brand.id}>
-                  <button
-                    onClick={() => {
-                      onFilterChange("brand", brand.slug);
-                      if (isMobile) onCloseMobile();
-                    }}
-                    className={`flex justify-between items-center w-full text-left ${linkClass} ${isActive("brand", brand.slug)}`}
-                  >
-                    <span className="truncate mr-1 md:underline md:decoration-gray-300 md:underline-offset-4 decoration-1">
-                      {brandName}
-                    </span>
-                    <span className="text-[10px] opacity-60">
-                      ({brand.count})
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-[12px] text-gray-400">Loading Brands...</p>
-        )}
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <input
+              type="radio"
+              checked={activeFilter.type === "all"}
+              onChange={() => setActiveFilter({ type: "all", value: null })}
+              className="w-3 h-3 accent-black"
+            />
+            <span
+              className={`text-xs ${activeFilter.type === "all" ? "font-bold" : "text-gray-500"} group-hover:text-black transition-colors`}
+            >
+              {t("全部商品", "All Products", "전체 상품")}
+            </span>
+          </label>
+          {dynamicCategories.map((cat) => (
+            <label
+              key={cat.id}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
+              <input
+                type="radio"
+                checked={
+                  activeFilter.type === "category" &&
+                  activeFilter.value === cat.slug
+                }
+                onChange={() =>
+                  setActiveFilter({ type: "category", value: cat.slug })
+                }
+                className="w-3 h-3 accent-black"
+              />
+              <span
+                className={`text-xs ${activeFilter.type === "category" && activeFilter.value === cat.slug ? "font-bold" : "text-gray-500"} group-hover:text-black transition-colors`}
+              >
+                {cat.metadata?.[`name_${metaLang}`] || cat.name} ({cat.count})
+              </span>
+            </label>
+          ))}
+        </div>
       </div>
+
+      {/* 品牌 Brands */}
+      <div className={sectionClass}>
+        <h3 className={titleClass}>{t("精選品牌", "Brands", "브랜드")}</h3>
+        <div className="grid grid-cols-1 gap-2">
+          {dynamicBrands.map((brand) => (
+            <label
+              key={brand.id}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
+              <input
+                type="radio"
+                checked={
+                  activeFilter.type === "brand" &&
+                  activeFilter.value === brand.slug
+                }
+                onChange={() =>
+                  setActiveFilter({ type: "brand", value: brand.slug })
+                }
+                className="w-3 h-3 accent-black"
+              />
+              <span
+                className={`text-xs ${activeFilter.type === "brand" && activeFilter.value === brand.slug ? "font-bold" : "text-gray-500"} group-hover:text-black transition-colors`}
+              >
+                {brand.metadata?.[`name_${metaLang}`] || brand.name} (
+                {brand.count})
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* 重置按鈕 */}
+      <button
+        onClick={() => {
+          setActiveFilter({ type: "all", value: null });
+          setPriceRange({ min: "", max: "" });
+          setSortBy("newest");
+        }}
+        className="w-full py-3 text-[10px] font-bold tracking-widest border border-gray-200 hover:bg-black hover:text-white transition-all uppercase"
+      >
+        {t("清除所有篩選", "Clear Filters", "필터 초기화")}
+      </button>
     </div>
   );
 };
 
-const CompanyLocation = () => {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
-  const overlayOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [0, 0.4, 0],
-  );
-  const imageScale = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [1.15, 1, 1.15],
-  );
-
-  return (
-    <section
-      ref={ref}
-      className="company-location relative border-t border-gray-400"
-    >
-      <div className="flex flex-col md:flex-row min-h-[600px]">
-        <div className="w-full md:w-1/2 relative overflow-hidden min-h-[400px] md:min-h-full">
-          <motion.div
-            className="absolute inset-0 bg-black z-10 pointer-events-none"
-            style={{ opacity: overlayOpacity }}
-          ></motion.div>
-          <motion.div
-            className="absolute inset-0 w-full h-full bg-cover bg-center"
-            style={{
-              backgroundImage:
-                "url('/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251124_6.jpg')",
-              scale: imageScale,
-            }}
-          ></motion.div>
-        </div>
-        <div className="w-full md:w-1/2 bg-white p-10 md:p-20 flex flex-col justify-center">
-          <h2 className="text-[32px] font-normal uppercase tracking-wide mb-10">
-            STORE INFO
-          </h2>
-          <div className="space-y-8">
-            <div>
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                Address
-              </h4>
-              <p className="text-[15px] font-medium leading-relaxed">
-                台灣省台中市北區中清路一段 428 號
-              </p>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                Open Hours
-              </h4>
-              <p className="text-[15px] font-medium leading-relaxed">
-                13:00 – 20:00 (週一至週六)
-                <br />
-                <span className="text-gray-500 text-[13px]">
-                  [定休日: 週日]
-                </span>
-              </p>
-            </div>
-          </div>
-          <div className="mt-12">
-            <Link
-              href="/contact"
-              className="group relative inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-stone-400 px-8 py-3 font-bold text-black transition-all duration-300 hover:text-white"
-            >
-              <span className="absolute inset-0 h-full w-full translate-y-full bg-[#eb4820] transition-all duration-300 group-hover:translate-y-0"></span>
-              <span className="relative">到店前請提前預約</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// --- 🔥 主頁面: 總覽列表頁 (index.jsx) ---
+// --- 🔥 主頁面 ---
 export default function CategoryOverview({ products, brands, categories }) {
   const router = useRouter();
   const { locale } = router;
-  const metaLang = locale === "zh-TW" ? "zh" : locale;
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // 篩選與排序 State
   const [activeFilter, setActiveFilter] = useState({
     type: "all",
     value: null,
   });
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [sortBy, setSortBy] = useState("newest");
 
-  const handleFilterChange = (type, value) => {
-    setActiveFilter({ type, value });
-    if (typeof window !== "undefined" && window.innerWidth >= 768) {
-      const productSection = document.querySelector(".products-content");
-      if (productSection) productSection.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  // 分頁 State
+  const [visibleCount, setVisibleCount] = useState(12);
 
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    if (activeFilter.type === "all") return products;
+  // 1. 核心篩選邏輯
+  const finalProducts = useMemo(() => {
+    let list = [...products];
+
+    // 分類與品牌篩選
     if (activeFilter.type === "brand")
-      return products.filter((p) => p.brandSlug === activeFilter.value);
+      list = list.filter((p) => p.brandSlug === activeFilter.value);
     if (activeFilter.type === "category")
-      return products.filter((p) => p.categorySlug === activeFilter.value);
-    return products;
-  }, [activeFilter, products]);
+      list = list.filter((p) => p.categorySlug === activeFilter.value);
 
-  const tAllProducts =
-    locale === "en"
-      ? "All Products"
-      : locale === "ko"
-        ? "전체 상품"
-        : "Online Store";
+    // 價格區間篩選
+    if (priceRange.min)
+      list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
+    if (priceRange.max)
+      list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
 
-  const getFilterDisplayName = () => {
-    if (activeFilter.type === "all" || !activeFilter.value) return tAllProducts;
-    if (activeFilter.type === "brand") {
-      const b = brands.find((x) => x.slug === activeFilter.value);
-      return b
-        ? b.metadata?.[`name_${metaLang}`] || b.name
-        : activeFilter.value;
-    }
-    if (activeFilter.type === "category") {
-      const c = categories.find((x) => x.slug === activeFilter.value);
-      return c
-        ? c.metadata?.[`name_${metaLang}`] || c.name
-        : activeFilter.value;
-    }
-    return activeFilter.value;
-  };
+    // 排序邏輯
+    list.sort((a, b) => {
+      if (sortBy === "price-high") return b.rawPrice - a.rawPrice;
+      if (sortBy === "price-low") return a.rawPrice - b.rawPrice;
+      if (sortBy === "oldest")
+        return (
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // newest
+    });
 
-  const displayTitle = getFilterDisplayName();
-  const pageTitle = `${displayTitle} | KÉSH de¹`;
+    return list;
+  }, [products, activeFilter, priceRange, sortBy]);
+
+  // 當篩選條件變動時，重置分頁
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [activeFilter, priceRange, sortBy]);
+
+  const displayedProducts = finalProducts.slice(0, visibleCount);
 
   return (
     <>
       <Head>
-        <title>{pageTitle}</title>
+        <title>Shop | KÉSH de¹</title>
       </Head>
 
-      <main className=" pb-20 bg-white text-black font-sans min-h-screen">
-        <Slider></Slider>
+      <main className="pb-20 bg-white text-black font-sans min-h-screen">
+        <Slider />
         <Carousel />
-        <section>
-          <div className="title">
-            <div className="py-6 px-6 md:px-10">
-              <h1 className="text-[32px] md:text-[36px] font-normal tracking-wide uppercase">
-                {displayTitle}
-              </h1>
-            </div>
-            <div className="border-t border-gray-400 py-3 bg-stone-50">
-              <Marquee gradient={false} speed={40}>
-                <div className="flex items-center">
-                  {[1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="px-10 md:px-20 flex flex-row items-center gap-4"
-                    >
-                      <span className="bg-[#1c1c1c] text-white text-[10px] rounded-full py-1 px-3 font-bold tracking-widest">
-                        NEWS
-                      </span>
-                      <p className="text-[13px] font-medium text-gray-800 tracking-wide">
-                        凱仕國際精品保證所有商品皆經專業鑑定，僅販售 100% 正品。
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </Marquee>
-            </div>
-          </div>
+
+        {/* 頁面標題 */}
+        <section className="py-12 px-6 md:px-10 border-b border-gray-400">
+          <h1 className="text-4xl md:text-5xl font-light tracking-tight uppercase">
+            {activeFilter.type === "all" ? "Online Store" : activeFilter.value}
+          </h1>
+          <p className="mt-4 text-xs text-gray-500 uppercase tracking-widest">
+            {finalProducts.length} Results Found
+          </p>
         </section>
 
-        <div className="md:hidden sticky top-[60px] z-40 bg-white border-t border-b border-gray-400 shadow-sm">
+        {/* 手機版篩選按鈕 */}
+        <div className="md:hidden sticky top-[60px] z-40 bg-white border-b border-gray-400 shadow-sm">
           <button
             onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-            className="w-full flex justify-between items-center py-4 px-6 bg-white"
+            className="w-full flex justify-between items-center py-5 px-6"
           >
-            <span className="text-sm font-bold tracking-widest uppercase flex items-center gap-2">
-              FILTER & CATEGORIES
+            <span className="text-xs font-bold tracking-widest uppercase flex items-center gap-2">
+              <Filter size={14} /> Filters
             </span>
-            <span
-              className={`transform transition-transform duration-300 ${isMobileFilterOpen ? "rotate-180" : ""}`}
-            >
-              ↓
-            </span>
-          </button>
-          <div
-            className={`overflow-hidden transition-all duration-500 ease-in-out bg-[#fdfdfd] ${isMobileFilterOpen ? "max-h-[85vh] border-t border-gray-200" : "max-h-0"}`}
-          >
-            <FilterSidebar
-              activeFilter={activeFilter}
-              onFilterChange={handleFilterChange}
-              isMobile={true}
-              onCloseMobile={() => setIsMobileFilterOpen(false)}
-              dynamicBrands={brands}
-              dynamicCategories={categories}
-              locale={locale}
+            <ChevronDown
+              size={14}
+              className={`transform transition-transform ${isMobileFilterOpen ? "rotate-180" : ""}`}
             />
-          </div>
+          </button>
+          <AnimatePresence>
+            {isMobileFilterOpen && (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: "auto" }}
+                exit={{ height: 0 }}
+                className="overflow-hidden bg-[#fdfdfd]"
+              >
+                <FilterSidebar
+                  activeFilter={activeFilter}
+                  setActiveFilter={setActiveFilter}
+                  dynamicBrands={brands}
+                  dynamicCategories={categories}
+                  locale={locale}
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <section className="products-content border-t border-b border-gray-400 flex flex-col md:flex-row">
-          <div className="filter hidden md:flex w-full md:w-[25%] border-b md:border-b-0 md:border-r border-gray-400 relative bg-white">
-            <div className="sticky top-20 h-auto w-full p-0">
+        <section className="products-content flex flex-col md:flex-row">
+          {/* 左側 Sticky 篩選欄 */}
+          <aside className="hidden md:block w-[280px] lg:w-[320px] border-r border-gray-400 bg-white">
+            <div className="sticky top-20 max-h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar">
               <FilterSidebar
                 activeFilter={activeFilter}
-                onFilterChange={handleFilterChange}
-                isMobile={false}
+                setActiveFilter={setActiveFilter}
                 dynamicBrands={brands}
                 dynamicCategories={categories}
                 locale={locale}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
               />
             </div>
-          </div>
+          </aside>
 
-          <div className="products w-full md:w-[75%] min-h-[50vh]">
-            {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    locale={locale}
-                  />
-                ))}
-              </div>
+          {/* 右側產品網格 */}
+          <div className="flex-1 min-h-[50vh]">
+            {displayedProducts.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {displayedProducts.map((product, idx) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      locale={locale}
+                      index={idx}
+                    />
+                  ))}
+                </div>
+
+                {/* 加載更多按鈕 */}
+                {visibleCount < finalProducts.length && (
+                  <div className="py-20 flex justify-center border-t border-gray-100">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      className="px-12 py-4 border border-black text-[11px] font-bold tracking-[0.3em] uppercase hover:bg-black hover:text-white transition-all duration-500"
+                    >
+                      Show More Results
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                <p className="text-lg">該分類下沒有產品</p>
+              <div className="flex flex-col items-center justify-center py-40 text-gray-400">
+                <p className="text-sm tracking-widest uppercase">
+                  No matching products
+                </p>
                 <button
-                  onClick={() => handleFilterChange("all", null)}
-                  className="mt-4 text-sm underline hover:text-[#ef4628]"
+                  onClick={() => {
+                    setActiveFilter({ type: "all", value: null });
+                    setPriceRange({ min: "", max: "" });
+                  }}
+                  className="mt-4 text-[10px] font-bold border-b border-gray-400 pb-1 hover:text-black"
                 >
-                  看全部商品
+                  Reset Filters
                 </button>
               </div>
             )}
           </div>
         </section>
-        <CompanyLocation />
       </main>
     </>
   );
 }
 
-// 🚀 只有 getStaticProps，絕對不能有 getStaticPaths！
 export async function getStaticProps({ locale }) {
   const currentLang = locale || "zh-TW";
+  const targetCurrency =
+    currentLang === "en" ? "usd" : currentLang === "ko" ? "krw" : "twd";
+  const symbol =
+    targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
+
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-
-  if (!BACKEND_URL || !API_KEY)
-    return {
-      props: { products: [], brands: [], categories: [] },
-      revalidate: 60,
-    };
 
   try {
     const headers = {
       "x-publishable-api-key": API_KEY,
       "Content-Type": "application/json",
     };
-
-    // 🔥 使用 fetchOptions 繞過快取
     const fetchOptions = { headers, cache: "no-store" };
 
-    const [catRes, colRes] = await Promise.all([
+    const [catRes, colRes, pRes] = await Promise.all([
       fetch(`${BACKEND_URL}/store/product-categories?limit=100`, fetchOptions),
       fetch(`${BACKEND_URL}/store/collections?limit=100`, fetchOptions),
+      fetch(
+        `${BACKEND_URL}/store/products?limit=100&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection`,
+        fetchOptions,
+      ),
     ]);
 
     const catData = await catRes.json();
     const colData = await colRes.json();
-    const rawCategories = catData.product_categories || [];
-    const rawCollections = colData.collections || [];
-
-    const categoryMap = {};
-    await Promise.all(
-      rawCategories.map(async (cat) => {
-        try {
-          const res = await fetch(
-            `${BACKEND_URL}/store/products?category_id[]=${cat.id}&limit=100`,
-            fetchOptions,
-          );
-          const data = await res.json();
-          if (data.products)
-            data.products.forEach((p) => {
-              categoryMap[p.id] = cat;
-            });
-        } catch (e) {
-          console.error(e);
-        }
-      }),
-    );
-
-    const pRes = await fetch(
-      `${BACKEND_URL}/store/products?limit=100`,
-      fetchOptions,
-    );
     const pData = await pRes.json();
-    const rawProducts = pData.products || [];
 
-    const formattedProducts = rawProducts.map((p) => {
-      const rawPrice = p.variants?.[0]?.prices?.[0]
-        ? p.variants[0].prices[0].amount / 100
+    const formattedProducts = (pData.products || []).map((p) => {
+      const variantPrices = p.variants?.[0]?.prices || [];
+      let priceObj =
+        variantPrices.find(
+          (pr) => pr.currency_code?.toLowerCase() === targetCurrency,
+        ) || variantPrices[0];
+      let amount = priceObj
+        ? priceObj.amount > 1000000
+          ? priceObj.amount / 100
+          : priceObj.amount
         : 0;
-      const mappedCat = categoryMap[p.id];
-      const catHandle = mappedCat?.handle || "others";
-      const colHandle = p.collection?.handle || "select";
 
       return {
         id: p.id,
-        slug: p.handle ? p.handle.replace(/^\/+/, "") : "",
-        title: p.title ? p.title.toUpperCase() : "未命名",
+        slug: p.handle || "",
+        title: p.title || "",
         brand: p.collection?.title || "KÉSH de¹ Select",
-        brandSlug: colHandle.replace(/^\/+/, ""),
-        category: mappedCat?.name || "Accessories",
-        categorySlug: catHandle.replace(/^\/+/, ""),
-        price: `NT$ ${rawPrice.toLocaleString()}`,
-        status: "RANK S",
-        image: p.thumbnail || null,
+        brandSlug: p.collection?.handle || "select",
+        categorySlug: p.categories?.[0]?.handle || "others",
+        displayPrice: `${symbol}${Math.round(amount).toLocaleString()}`,
+        rawPrice: amount,
+        createdAt: p.created_at,
+        image: p.thumbnail,
         metadata: p.metadata || {},
+        status: p.metadata?.rank || "RANK S",
+        tags: p.tags?.map((t) => t.value) || [],
       };
     });
 
-    const categoriesList = rawCategories.map((c) => ({
-      id: c.id,
-      name: c.name,
-      metadata: c.metadata || {},
-      slug: c.handle.replace(/^\/+/, ""),
-      count: formattedProducts.filter(
-        (p) => p.categorySlug === c.handle.replace(/^\/+/, ""),
-      ).length,
-    }));
+    const categoriesList = (catData.product_categories || [])
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        metadata: c.metadata || {},
+        slug: c.handle,
+        count: formattedProducts.filter((p) => p.categorySlug === c.handle)
+          .length,
+      }))
+      .filter((c) => c.count > 0);
 
-    const brandsList = rawCollections.map((c) => ({
-      id: c.id,
-      name: c.title,
-      metadata: c.metadata || {},
-      slug: c.handle.replace(/^\/+/, ""),
-      count: formattedProducts.filter(
-        (p) => p.brandSlug === c.handle.replace(/^\/+/, ""),
-      ).length,
-    }));
+    const brandsList = (colData.collections || [])
+      .map((c) => ({
+        id: c.id,
+        name: c.title,
+        metadata: c.metadata || {},
+        slug: c.handle,
+        count: formattedProducts.filter((p) => p.brandSlug === c.handle).length,
+      }))
+      .filter((b) => b.count > 0);
 
     return {
       props: {
@@ -556,14 +508,6 @@ export async function getStaticProps({ locale }) {
       revalidate: 60,
     };
   } catch (error) {
-    return {
-      props: {
-        ...(await serverSideTranslations(currentLang, ["common"])),
-        products: [],
-        brands: [],
-        categories: [],
-      },
-      revalidate: 60,
-    };
+    return { props: { products: [], brands: [], categories: [] } };
   }
 }

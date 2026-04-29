@@ -28,6 +28,8 @@ import {
   CreditCard,
   Truck,
   HelpCircle,
+  ZoomIn, // 🔥 新增放大鏡 Icon
+  ZoomOut, // 🔥 新增縮小鏡 Icon
 } from "lucide-react";
 
 import HeroSlider from "../../components/HeroSlider";
@@ -41,7 +43,6 @@ const GenericAccordion = ({
 }) => {
   const [isOpen, setIsOpen] = useState(isOpenDefault);
 
-  // 防呆：如果沒有內容就不顯示這個 Accordion
   if (!children) return null;
 
   return (
@@ -66,7 +67,6 @@ const GenericAccordion = ({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            {/* 將內容強制換行保留排版 */}
             <div className="pt-4 text-[14.5px] text-stone-700 tracking-wide leading-[25px] font-medium whitespace-pre-wrap">
               {children}
             </div>
@@ -85,8 +85,30 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeTab, setActiveTab] = useState("features");
 
+  // 🔥 放大鏡專屬 State
+  const [isZoomEnabled, setIsZoomEnabled] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  // 滑鼠移動時追蹤座標，只有在開啟放大鏡時才運作
+  const handleMouseMove = (e) => {
+    if (!isZoomEnabled) return;
+    const { left, top, width, height } =
+      e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setCursorPos({ x, y });
+  };
+
   const pdT = t("product_detail", { returnObjects: true }) || {};
   const ui = pdT.ui || {};
+
+  useEffect(() => {
+    if (product) {
+      console.log("=== 🐞 [除錯] 當前頁面商品資料 ===", product);
+      console.log("👉 提取到的重量為:", product.weight, "g");
+    }
+  }, [product]);
 
   if (router.isFallback || !product) {
     return (
@@ -96,10 +118,8 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     );
   }
 
-  // 💡 多語系標題定義
   const isEn = router.locale === "en";
   const isKo = router.locale === "ko";
-
   const tCondition = isEn ? "Condition" : isKo ? "상태" : "商品狀況";
   const tPayment = isEn ? "Payment Methods" : isKo ? "결제 수단" : "付款方式";
   const tShipping = isEn ? "Shipping Info" : isKo ? "배송 안내" : "配送說明";
@@ -117,7 +137,24 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         <div className="max-w-[1440px] mx-auto px-6 md:px-10">
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
             {/* ================= 左側：圖片區 ================= */}
-            <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10">
+            <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10 relative">
+              {/* 🔥 右上角：放大鏡開關按鈕 */}
+              <button
+                onClick={() => setIsZoomEnabled(!isZoomEnabled)}
+                className={`absolute top-4 right-4 z-20 p-2.5 rounded-full shadow-md transition-all duration-300 ${
+                  isZoomEnabled
+                    ? "bg-[#ef4628] text-white hover:bg-red-700"
+                    : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-black hover:scale-105"
+                }`}
+                title={isZoomEnabled ? "關閉放大鏡" : "開啟放大鏡"}
+              >
+                {isZoomEnabled ? (
+                  <ZoomOut size={20} strokeWidth={2.5} />
+                ) : (
+                  <ZoomIn size={20} strokeWidth={2.5} />
+                )}
+              </button>
+
               <Swiper
                 spaceBetween={10}
                 navigation={true}
@@ -132,12 +169,28 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
               >
                 {product.images?.map((img, idx) => (
                   <SwiperSlide key={idx}>
-                    <div className="relative w-full h-full">
+                    {/* 🔥 圖片外框，加入滑鼠事件與動態 cursor */}
+                    <div
+                      className={`relative w-full h-full overflow-hidden ${isZoomEnabled ? "cursor-crosshair" : "cursor-default"}`}
+                      onMouseEnter={() => isZoomEnabled && setIsHovered(true)}
+                      onMouseLeave={() => {
+                        setIsHovered(false);
+                        setCursorPos({ x: 50, y: 50 });
+                      }}
+                      onMouseMove={handleMouseMove}
+                    >
                       <Image
                         src={img}
                         alt={product.title}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-200 ease-out"
+                        style={{
+                          transform:
+                            isHovered && isZoomEnabled
+                              ? "scale(2.5)"
+                              : "scale(1)",
+                          transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`,
+                        }}
                         priority={idx === 0}
                         unoptimized
                       />
@@ -145,6 +198,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   </SwiperSlide>
                 ))}
               </Swiper>
+
               <Swiper
                 onSwiper={setThumbsSwiper}
                 spaceBetween={10}
@@ -188,7 +242,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   {product.title}
                 </h1>
 
-                {/* 顯示副標題 */}
                 {product.subtitle && (
                   <p className="text-[13px] text-gray-500 mb-4">
                     {product.subtitle}
@@ -198,11 +251,13 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                 <p className="text-2xl font-bold tracking-tight text-black">
                   {product.price}
                 </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Weight: {product.weight}g
+                </p>
               </div>
 
-              {/* ⭐ 單行資訊：商品狀況 */}
               {product.condition && (
-                <div className="flex sm:flex-row flex-col  items-start sm:items-center justify-between py-4 border-b border-gray-100 mb-6">
+                <div className="flex sm:flex-row flex-col items-start sm:items-center justify-between py-4 border-b border-gray-100 mb-6">
                   <span className="text-[13px] font-bold uppercase tracking-widest flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-[#ef4628]" />
                     {tCondition}
@@ -240,9 +295,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                 </div>
               </div>
 
-              {/* ⭐ Accordion 區塊：把後台資料拉出來 */}
               <div className="border-t border-gray-200">
-                {/* 商品詳情 (原 Description) */}
                 <GenericAccordion
                   title={tDetails}
                   icon={Info}
@@ -250,18 +303,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                 >
                   {product.description}
                 </GenericAccordion>
-
-                {/* 付款方式 */}
                 <GenericAccordion title={tPayment} icon={CreditCard}>
                   {product.paymentInfo}
                 </GenericAccordion>
-
-                {/* 配送說明 */}
                 <GenericAccordion title={tShipping} icon={Truck}>
                   {product.shippingInfo}
                 </GenericAccordion>
-
-                {/* 常見問題 */}
                 <GenericAccordion title={tFAQ} icon={HelpCircle}>
                   {product.faqInfo}
                 </GenericAccordion>
@@ -271,7 +318,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         </div>
 
         {/* 下方 Tabs */}
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-10    ">
+        <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-10">
           <div className="flex justify-center gap-8 md:gap-16 border-b border-gray-200 mb-10">
             <button
               onClick={() => setActiveTab("features")}
@@ -314,7 +361,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                         image:
                           "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251124_7.jpg",
                       },
-                      // 🔥 加上第二張圖片，輪播就會動了！
                       {
                         title: "支援專業真品鑑定",
                         image:
@@ -351,14 +397,13 @@ export async function getStaticPaths({ locales }) {
   if (!BACKEND_URL || !API_KEY) return { paths: [], fallback: "blocking" };
 
   try {
-    // 這裡的請求不會出錯，因為沒有 &t 參數
     const res = await fetch(`${BACKEND_URL}/store/products?limit=100`, {
       headers: { "x-publishable-api-key": API_KEY },
     });
     const data = await res.json();
     const paths = [];
     (data.products || []).forEach((p) => {
-      (locales || ["zh-TW"]).forEach((l) =>
+      (locales || ["zh-TW", "en", "ko"]).forEach((l) =>
         paths.push({ params: { slug: p.handle }, locale: l }),
       );
     });
@@ -372,7 +417,6 @@ export async function getStaticProps({ params, locale }) {
   const { slug } = params;
   const currentLang = locale || "zh-TW";
 
-  // 決定幣值
   const targetCurrency =
     currentLang === "en" ? "usd" : currentLang === "ko" ? "krw" : "twd";
   const symbol =
@@ -387,24 +431,18 @@ export async function getStaticProps({ params, locale }) {
       "x-publishable-api-key": API_KEY,
       "Content-Type": "application/json",
     };
-
-    // 🔥 修正：使用 fetchOptions 的 cache: "no-store" 取代網址裡的 &t
     const fetchOptions = { headers, cache: "no-store" };
 
-    const apiUrl = `${BACKEND_URL}/store/products?handle=${slug}&fields=id,handle,title,description,thumbnail,metadata,*images,*collection,*variants,*variants.prices`;
+    const apiUrl = `${BACKEND_URL}/store/products?handle=${slug}&fields=id,handle,title,description,thumbnail,weight,metadata,*images,*collection,*variants,*variants.prices`;
 
     const res = await fetch(apiUrl, fetchOptions);
     const data = await res.json();
 
-    if (!res.ok) {
-      console.error("Medusa API 錯誤:", data);
-    }
+    if (!res.ok) console.error("Medusa API 錯誤:", data);
 
     const rawProduct = data.products?.[0];
-
     if (!rawProduct) return { notFound: true };
 
-    // 💰 價格邏輯
     const variantPrices = rawProduct.variants?.[0]?.prices || [];
     let priceObj =
       variantPrices.find(
@@ -416,10 +454,10 @@ export async function getStaticProps({ params, locale }) {
         : priceObj.amount
       : 0;
 
-    // 🌍 多語系內容切換邏輯
+    const productWeight =
+      rawProduct.variants?.[0]?.weight || rawProduct.weight || 0;
     const metaLang = currentLang === "zh-TW" ? "zh" : currentLang;
 
-    // 標題、副標、描述
     const localizedTitle =
       rawProduct.metadata?.[`title_${metaLang}`] || rawProduct.title;
     const localizedSubtitle =
@@ -428,24 +466,6 @@ export async function getStaticProps({ params, locale }) {
       "";
     const localizedDesc =
       rawProduct.metadata?.[`desc_${metaLang}`] || rawProduct.description;
-
-    // 擴充 Widget 欄位
-    const localizedCondition =
-      rawProduct.metadata?.[`condition_${metaLang}`] ||
-      rawProduct.metadata?.condition_zh ||
-      "";
-    const localizedPayment =
-      rawProduct.metadata?.[`payment_${metaLang}`] ||
-      rawProduct.metadata?.payment_zh ||
-      "";
-    const localizedShipping =
-      rawProduct.metadata?.[`shipping_${metaLang}`] ||
-      rawProduct.metadata?.shipping_zh ||
-      "";
-    const localizedFaq =
-      rawProduct.metadata?.[`faq_${metaLang}`] ||
-      rawProduct.metadata?.faq_zh ||
-      "";
 
     const product = {
       id: rawProduct.id || "",
@@ -456,13 +476,24 @@ export async function getStaticProps({ params, locale }) {
       rawPrice: amount,
       variantId: rawProduct.variants?.[0]?.id || null,
       brand: rawProduct.collection?.title || "KÉSH de¹ Select",
-
+      weight: productWeight,
       description: localizedDesc || "",
-      condition: localizedCondition,
-      paymentInfo: localizedPayment,
-      shippingInfo: localizedShipping,
-      faqInfo: localizedFaq,
-
+      condition:
+        rawProduct.metadata?.[`condition_${metaLang}`] ||
+        rawProduct.metadata?.condition_zh ||
+        "",
+      paymentInfo:
+        rawProduct.metadata?.[`payment_${metaLang}`] ||
+        rawProduct.metadata?.payment_zh ||
+        "",
+      shippingInfo:
+        rawProduct.metadata?.[`shipping_${metaLang}`] ||
+        rawProduct.metadata?.shipping_zh ||
+        "",
+      faqInfo:
+        rawProduct.metadata?.[`faq_${metaLang}`] ||
+        rawProduct.metadata?.faq_zh ||
+        "",
       images:
         rawProduct.images?.map((img) => img.url) ||
         [rawProduct.thumbnail].filter(Boolean),

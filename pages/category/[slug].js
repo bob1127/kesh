@@ -11,24 +11,15 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-// --- 🛍️ 商品卡片組件 (支援多語系) ---
+// --- 🛍️ 商品卡片組件 (支援多語系，已移除游標放大鏡效果) ---
 const ProductCard = ({ product, locale }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
-
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const displayTitle = product.metadata?.[`title_${metaLang}`] || product.title;
 
-  const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - left) / width) * 100;
-    const y = ((e.clientY - top) / height) * 100;
-    setCursorPos({ x, y });
-  };
-
   return (
     <Link href={`/product/${product.slug}`} className="group border-b border-gray-400 md:border-r border-gray-400 last:border-r-0 relative flex flex-col bg-white">
-      <div className="relative w-full aspect-[4/5] bg-[#f4f4f4] overflow-hidden cursor-crosshair" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => { setIsHovered(false); setCursorPos({ x: 50, y: 50 }); }} onMouseMove={handleMouseMove}>
+      {/* 拔除了 isHovered 和 cursorPos 的追蹤邏輯，回歸乾淨圖片 */}
+      <div className="relative w-full aspect-[4/5] bg-[#f4f4f4] overflow-hidden">
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20 pointer-events-none">
           {product.tags && product.tags.map((tag) => (
             <span key={tag} className="bg-black/80 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-sm font-medium tracking-wide">{tag}</span>
@@ -37,7 +28,7 @@ const ProductCard = ({ product, locale }) => {
         <div className="absolute top-3 right-3 z-20 pointer-events-none">
           <span className="text-[10px] font-bold text-gray-500 border border-gray-400 px-1.5 py-0.5 rounded bg-white/80">{product.status}</span>
         </div>
-        <div className="w-full h-full bg-cover bg-center transition-transform duration-500 ease-out" style={{ backgroundImage: `url('${product.image || "/images/placeholder.jpg"}')`, transform: isHovered ? "scale(2)" : "scale(1)", transformOrigin: `${cursorPos.x}% ${cursorPos.y}%` }}></div>
+        <div className="w-full h-full bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105" style={{ backgroundImage: `url('${product.image || "/images/placeholder.jpg"}')` }}></div>
       </div>
       <div className="p-5 bg-white mt-auto flex flex-col gap-1">
         <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">{product.brand}</div>
@@ -247,7 +238,6 @@ export default function CategoryPage({ products, brands, categories, initialFilt
   );
 }
 
-// 🚀 SSG: 生成靜態路徑 (解決 404 問題)
 export async function getStaticPaths() {
   const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
@@ -276,10 +266,13 @@ export async function getStaticPaths() {
   }
 }
 
-// 🚀 SSG: 抓取分類資料與商品
 export async function getStaticProps({ params, locale }) {
   const { slug } = params;
   const currentLang = locale || 'zh-TW';
+
+  // 🌍 智慧幣別判斷引擎
+  const targetCurrency = currentLang === "en" ? "usd" : currentLang === "ko" ? "krw" : "twd";
+  const symbol = targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
@@ -315,12 +308,17 @@ export async function getStaticProps({ params, locale }) {
       })
     );
 
-    const pRes = await fetch(`${BACKEND_URL}/store/products?limit=100`, { headers });
+    // 🔥 加上 fields 強制抓出 *variants.prices，讓系統不再吃鱉顯示 0
+    const pRes = await fetch(`${BACKEND_URL}/store/products?limit=100&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices,*collection`, { headers });
     const pData = await pRes.json();
     const rawProducts = pData.products || [];
 
     const formattedProducts = rawProducts.map((p) => {
-      const rawPrice = p.variants?.[0]?.prices?.[0] ? p.variants[0].prices[0].amount / 100 : 0;
+      // 💰 金額智慧配對：尋找對應幣別，抓不到才退回第一種幣別
+      const variantPrices = p.variants?.[0]?.prices || [];
+      let priceObj = variantPrices.find((pr) => pr.currency_code?.toLowerCase() === targetCurrency) || variantPrices[0];
+      let amount = priceObj ? (priceObj.amount > 1000000 ? priceObj.amount / 100 : priceObj.amount) : 0;
+
       const mappedCat = categoryMap[p.id];
       const catHandle = mappedCat?.handle || "others";
       const colHandle = p.collection?.handle || "select";
@@ -333,17 +331,17 @@ export async function getStaticProps({ params, locale }) {
         brandSlug: colHandle.replace(/^\/+/, ''),
         category: mappedCat?.name || "Accessories",
         categorySlug: catHandle.replace(/^\/+/, ''),
-        price: `NT$ ${rawPrice.toLocaleString()}`,
+        price: `${symbol}${Math.round(amount).toLocaleString()}`, // 正確顯示多國價格
         status: "RANK S",
         image: p.thumbnail || null,
-        metadata: p.metadata || {}, // 🔥 讓商品卡片讀取翻譯
+        metadata: p.metadata || {},
       };
     });
 
     const categoriesList = rawCategories.map((c) => ({
       id: c.id,
       name: c.name,
-      metadata: c.metadata || {}, // 🔥 讓選單讀取翻譯
+      metadata: c.metadata || {},
       slug: c.handle.replace(/^\/+/, ''),
       count: formattedProducts.filter(p => p.categorySlug === c.handle.replace(/^\/+/, '')).length
     }));
@@ -351,7 +349,7 @@ export async function getStaticProps({ params, locale }) {
     const brandsList = rawCollections.map((c) => ({
       id: c.id,
       name: c.title,
-      metadata: c.metadata || {}, // 🔥 讓選單讀取翻譯
+      metadata: c.metadata || {},
       slug: c.handle.replace(/^\/+/, ''),
       count: formattedProducts.filter(p => p.brandSlug === c.handle.replace(/^\/+/, '')).length
     }));

@@ -202,7 +202,7 @@ export default function NewsDetail({ post, recentPosts }) {
           <div className="flex-1 w-full max-w-[700px]">
             <article
               ref={contentRef}
-              className="prose prose-stone max-w-none prose-p:text-[15px] prose-p:leading-[1.8] prose-p:tracking-[0.03em] prose-p:text-gray-700 prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-16 prose-h2:mb-8 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-4 prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide prose-img:w-full prose-img:aspect-[4/3] prose-img:object-cover prose-img:my-12 prose-img:bg-gray-50 prose-img:rounded-md prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
+              className="prose prose-stone max-w-none prose-p:text-[15px] prose-p:leading-[1] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-3 prose-h2:tracking-wider prose-h2:text-gray-900   prose-h2:pb-4 prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide prose-img:w-full prose-img:aspect-[4/3] prose-img:object-cover prose-img:my-12 prose-img:bg-gray-50 prose-img:rounded-md prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             <div className="flex justify-end mt-16">

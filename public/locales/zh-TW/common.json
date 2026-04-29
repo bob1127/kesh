@@ -1011,6 +1011,17 @@
       "canceled": "已取消",
       "unknown": "狀態未明"
     }
+  },
+  "showcase": {
+    "title": "CURATION",
+    "sub_title": "(STYLE)",
+    "tag": "for MODERN ELEGANCE",
+    "desc": "探索 KÉSH de¹ 為您精心挑選的頂級精品。\n從經典雋永的傳世之作到現代俐落的都會風格，展現獨一無二的奢華品味。",
+    "buy_now": "BUY NOW",
+    "loading": "LOADING...",
+    "discover_more": "DISCOVER MORE",
+    "view_all": "全部商品",
+    "no_products": "該分類下目前沒有產品"
   }
   
 }

@@ -1034,6 +1034,17 @@
       "canceled": "Canceled",
       "unknown": "Unknown"
     }
+  },
+  "showcase": {
+    "title": "CURATION",
+    "sub_title": "(STYLE)",
+    "tag": "for MODERN ELEGANCE",
+    "desc": "Discover the finest luxury pieces curated by KÉSH de¹.\nFrom timeless classics to modern urban styles, showcase your unique taste in luxury.",
+    "buy_now": "BUY NOW",
+    "loading": "LOADING...",
+    "discover_more": "DISCOVER MORE",
+    "view_all": "ALL",
+    "no_products": "No products in this category"
   }
 
 

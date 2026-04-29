@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Loader2,
   X,
+  FileText, // 用於文章的 Icon
 } from "lucide-react";
 
 import { useCart } from "../../components/context/CartContext";
@@ -34,7 +35,7 @@ export const SlideTabsExample = () => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState({
     products: [],
-    pages: [],
+    pages: [], // 預留給文章/頁面的搜尋結果
   });
   const searchContainerRef = useRef(null);
 
@@ -49,6 +50,7 @@ export const SlideTabsExample = () => {
   const router = useRouter();
   const { t } = useTranslation("common");
 
+  // 滾動監聽
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -56,6 +58,21 @@ export const SlideTabsExample = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 點擊外部關閉搜尋下拉選單
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // 抓取 Mega Menu 資料
   useEffect(() => {
     async function fetchMenuData() {
       try {
@@ -103,18 +120,23 @@ export const SlideTabsExample = () => {
     if (mounted) fetchMenuData();
   }, [mounted]);
 
+  // 搜尋防抖與 API 呼叫
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
         setIsSearching(true);
         setShowSearchDropdown(true);
         try {
+          // 抓取商品
           const { products } = await medusa.products.list({
             q: searchQuery,
-            limit: 5,
+            limit: 4, // 限制預覽數量，避免選單過長
           });
-          setSearchResults((prev) => ({
-            ...prev,
+
+          // 如果你有客製化的文章 API，可以在這裡發送 Promise.all 同時抓取
+          // const pagesResponse = await fetch('/api/articles?q=' + searchQuery).then(res => res.json());
+
+          setSearchResults({
             products: products.map((p) => ({
               id: p.id,
               title: p.title,
@@ -124,7 +146,9 @@ export const SlideTabsExample = () => {
                 ? `${(p.variants[0].prices[0].amount / 100).toLocaleString()} TWD`
                 : "TBA",
             })),
-          }));
+            // 若有文章資料，替換成 pagesResponse.data
+            pages: [],
+          });
         } catch (err) {
           console.error(err);
         } finally {
@@ -137,6 +161,7 @@ export const SlideTabsExample = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
+  // 提交搜尋 (按下 Enter 或是點擊放大鏡)
   const handleSearchSubmit = (e) => {
     if ((e.key === "Enter" || e.type === "click") && searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -189,7 +214,7 @@ export const SlideTabsExample = () => {
         onMouseLeave={() => setOpenMega("none")}
         className={`font-sans text-gray-800 z-[1000] w-full transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 shadow-md" : "relative"}`}
       >
-        {/* Top Bar */}
+        {/* Top Bar (保持不變) */}
         <div className="bg-[#ef4628] text-white text-[11px] md:text-xs font-medium py-2 px-4">
           <div className="max-w-[1920px] mx-auto flex justify-between items-center px-4">
             <div className="flex gap-4">
@@ -246,7 +271,6 @@ export const SlideTabsExample = () => {
               <div className="hidden md:flex pl-4 gap-3 min-w-[120px] justify-end items-center">
                 {mounted && !userLoading ? (
                   userInfo ? (
-                    /* 🔥 修正：已登入時顯示會員姓名與頭像 */
                     <Link
                       href="/member"
                       className="hover:opacity-80 flex items-center gap-2 group"
@@ -267,7 +291,6 @@ export const SlideTabsExample = () => {
                       Hi, <span className="font-bold">{userInfo.name}</span>
                     </Link>
                   ) : (
-                    /* 🔥 修正：未登入時明確顯示 Login / Register */
                     <Link
                       href="/login"
                       className="hover:opacity-80 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest"
@@ -290,7 +313,6 @@ export const SlideTabsExample = () => {
           className={`bg-white border-b border-gray-100 w-full transition-all duration-300 ${isScrolled ? "py-2" : "py-4"}`}
         >
           <div className="max-w-[1920px] mx-auto px-6 md:px-10 flex justify-between items-center relative">
-            {/* 🔥 漢堡按鈕 (開啟 Mobile Menu) */}
             <button
               onClick={() => setIsMenuOpen(true)}
               className="md:hidden p-2 -ml-2 text-gray-800 hover:text-[#ef4628] transition-colors"
@@ -328,7 +350,7 @@ export const SlideTabsExample = () => {
             </nav>
 
             <div className="flex items-center gap-4">
-              {/* 🔥 去除黑框的搜尋欄 */}
+              {/* 🔍 搜尋欄區塊 */}
               <div
                 className="hidden lg:block relative"
                 ref={searchContainerRef}
@@ -339,6 +361,12 @@ export const SlideTabsExample = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleSearchSubmit}
+                    // 當輸入框重新獲得焦點且有值時，再次展開下拉選單
+                    onFocus={() => {
+                      if (searchQuery.trim().length > 1) {
+                        setShowSearchDropdown(true);
+                      }
+                    }}
                     placeholder={t("navbar.search") || "搜尋..."}
                     className="bg-transparent text-sm w-40 outline-none border-none ring-0 p-0 focus:ring-0"
                   />
@@ -348,7 +376,107 @@ export const SlideTabsExample = () => {
                     onClick={handleSearchSubmit}
                   />
                 </div>
+
+                {/* 🔥 搜尋下拉選單介面 */}
+                <AnimatePresence>
+                  {showSearchDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-3 w-80 bg-white border border-gray-100 shadow-2xl rounded-md overflow-hidden z-[1100]"
+                    >
+                      {isSearching ? (
+                        <div className="flex items-center justify-center p-8 text-gray-400">
+                          <Loader2 size={24} className="animate-spin" />
+                        </div>
+                      ) : searchResults.products.length === 0 &&
+                        searchResults.pages.length === 0 ? (
+                        <div className="p-6 text-center text-sm text-gray-500">
+                          找不到與 "{searchQuery}" 相關的結果
+                        </div>
+                      ) : (
+                        <div className="max-h-[70vh] overflow-y-auto overscroll-contain">
+                          {/* 商品搜尋結果 */}
+                          {searchResults.products.length > 0 && (
+                            <div className="p-2">
+                              <h4 className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-3 py-2">
+                                Products
+                              </h4>
+                              {searchResults.products.map((product) => (
+                                <Link
+                                  href={`/product/${product.slug}`}
+                                  key={product.id}
+                                  onClick={() => setShowSearchDropdown(false)}
+                                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-md transition-colors group"
+                                >
+                                  <div className="w-12 h-12 bg-gray-100 rounded-sm overflow-hidden relative flex-shrink-0">
+                                    {product.image ? (
+                                      <Image
+                                        src={product.image}
+                                        alt={product.title}
+                                        fill
+                                        className="object-cover group-hover:scale-105 transition-transform"
+                                      />
+                                    ) : (
+                                      <span className="flex items-center justify-center w-full h-full text-[8px] text-gray-400">
+                                        No Img
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-gray-800 truncate group-hover:text-[#ef4628] transition-colors">
+                                      {product.title}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-0.5">
+                                      {product.price}
+                                    </p>
+                                  </div>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 文章/頁面搜尋結果 */}
+                          {searchResults.pages.length > 0 && (
+                            <div className="p-2 border-t border-gray-50">
+                              <h4 className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-3 py-2">
+                                Articles
+                              </h4>
+                              {searchResults.pages.map((page) => (
+                                <Link
+                                  href={`/news/${page.slug}`}
+                                  key={page.id}
+                                  onClick={() => setShowSearchDropdown(false)}
+                                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-md transition-colors group"
+                                >
+                                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 group-hover:text-[#ef4628] transition-colors">
+                                    <FileText size={14} />
+                                  </div>
+                                  <p className="text-sm text-gray-700 truncate group-hover:text-[#ef4628] transition-colors">
+                                    {page.title}
+                                  </p>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 查看全部結果 */}
+                          <div className="p-2 bg-gray-50 border-t border-gray-100">
+                            <button
+                              onClick={handleSearchSubmit}
+                              className="w-full text-center py-2 text-xs font-bold tracking-widest text-[#ef4628] hover:text-black transition-colors uppercase"
+                            >
+                              View all results
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
+
               <button
                 onClick={() => setIsCartOpen(true)}
                 className="relative p-2 group"
@@ -367,7 +495,7 @@ export const SlideTabsExample = () => {
           </div>
         </div>
 
-        {/* Mega Menu */}
+        {/* Mega Menu (保持不變) */}
         <AnimatePresence>
           {openMega !== "none" && (
             <motion.div
@@ -376,7 +504,6 @@ export const SlideTabsExample = () => {
               exit={{ opacity: 0, y: 10 }}
               className="absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl z-50 hidden md:block"
             >
-              {/* ... (Mega Menu 內容保持不變) ... */}
               <div className="max-w-[1920px] mx-auto px-6 md:px-10 py-10">
                 {loadingCats ? (
                   <div className="flex justify-center items-center py-10">
@@ -410,7 +537,7 @@ export const SlideTabsExample = () => {
                                       src={cat.image}
                                       alt={cat.name}
                                       fill
-                                      className="object-cover group-hover:scale-110   transition-transform duration-500"
+                                      className="object-cover group-hover:scale-110 transition-transform duration-500"
                                       unoptimized
                                     />
                                   ) : (
@@ -480,7 +607,7 @@ export const SlideTabsExample = () => {
         </AnimatePresence>
       </div>
 
-      {/* 🔥 手機版側邊滑出選單 (Mobile Sidebar) */}
+      {/* 手機版側邊滑出選單 (Mobile Sidebar - 保持不變) */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -519,8 +646,10 @@ export const SlideTabsExample = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSearchSubmit(e);
+                      if (e.key === "Enter" && searchQuery.trim()) {
+                        router.push(
+                          `/search?q=${encodeURIComponent(searchQuery.trim())}`,
+                        );
                         setIsMenuOpen(false);
                       }
                     }}
@@ -530,7 +659,6 @@ export const SlideTabsExample = () => {
                 </div>
               </div>
 
-              {/* 導覽連結 */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {navLinks.map((link) => (
                   <div key={link.key}>
@@ -545,9 +673,7 @@ export const SlideTabsExample = () => {
                 ))}
               </div>
 
-              {/* 手機版會員與語系底欄 */}
               <div className="p-6 bg-gray-50 mt-auto space-y-4">
-                {/* 🔥 修正：手機版的登入狀態判斷 */}
                 <Link
                   href={userInfo ? "/member" : "/login"}
                   onClick={() => setIsMenuOpen(false)}

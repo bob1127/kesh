@@ -63,16 +63,18 @@ export default function SearchResults({ products, keyword }) {
             // 找不到商品時的畫面
             <div className="text-center py-32">
               <h2 className="text-xl text-gray-500 mb-4">
-                {t("search_page.no_results")} "{keyword}"
+                {t("search_page.no_results") || "找不到符合的商品："} "{keyword}
+                "
               </h2>
               <p className="text-sm text-gray-400 mb-8">
-                {t("search_page.try_again")}
+                {t("search_page.try_again") ||
+                  "請嘗試使用其他關鍵字或英文品牌名稱進行搜尋。"}
               </p>
               <Link
                 href="/category"
                 className="inline-block border border-black text-black px-8 py-3 text-sm font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors"
               >
-                {t("mega.view_all")}
+                {t("mega.view_all") || "查看全部"}
               </Link>
             </div>
           )}
@@ -82,9 +84,11 @@ export default function SearchResults({ products, keyword }) {
   );
 }
 
-// 🔥 伺服器端搜尋 WooCommerce 商品
+// 🔥 伺服器端搜尋：已更新為向 Medusa 獲取資料
 export async function getServerSideProps({ query, locale }) {
-  const keyword = query.q || "";
+  // 取得關鍵字，並處理 1+1 這種特殊符號被編碼的問題
+  const rawKeyword = query.q || "";
+  const keyword = decodeURIComponent(rawKeyword);
   const currentLang = locale || "zh-TW";
 
   // 如果沒有關鍵字，直接回傳空陣列
@@ -98,54 +102,43 @@ export async function getServerSideProps({ query, locale }) {
     };
   }
 
-  const WC_URL = process.env.WC_SITE_URL;
-  const CK = process.env.WC_CONSUMER_KEY;
-  const CS = process.env.WC_CONSUMER_SECRET;
+  // 取得 Medusa 環境變數
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+    "https://kesh-backend-production.up.railway.app";
+  const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
-  if (!WC_URL || !CK || !CS) {
-    return {
-      props: {
-        products: [],
-        keyword,
-        ...(await serverSideTranslations(currentLang, ["common"])),
-      },
-    };
-  }
-
-  const https = require("https");
-  const agent = new https.Agent({ rejectUnauthorized: false });
-  const auth = Buffer.from(`${CK}:${CS}`).toString("base64");
-  const headers = {
-    "User-Agent": "Mozilla/5.0 (Next.js)",
-    Authorization: `Basic ${auth}`,
-  };
+  const headers = { "Content-Type": "application/json" };
+  if (API_KEY) headers["x-publishable-api-key"] = API_KEY;
 
   try {
-    // 💡 提示：使用 WooCommerce API 的 `search` 參數來抓取商品。
-    // 如果你的多語系外掛支援 lang 參數，可以在網址後方加上 &lang=${currentLang}
-    const wpLang = currentLang === "zh-TW" ? "zh" : currentLang;
-    const res = await fetch(
-      `${WC_URL}/wp-json/wc/v3/products?search=${encodeURIComponent(keyword)}&status=publish&lang=${wpLang}`,
-      { agent, headers },
-    );
+    // 💡 呼叫 Medusa API 進行搜尋 (加上 encodeURIComponent 確保特輸符號正確傳遞)
+    const targetUrl = `${BACKEND_URL}/store/products?q=${encodeURIComponent(keyword)}&limit=20`;
+    console.log("[Search SSR] Fetching from:", targetUrl);
 
-    if (!res.ok) throw new Error("Search fetch failed");
+    const res = await fetch(targetUrl, { headers });
+
+    if (!res.ok) {
+      throw new Error(`Medusa Search fetch failed with status: ${res.status}`);
+    }
 
     const data = await res.json();
 
-    const formattedProducts = data.map((p) => {
-      let imageUrl = "/images/placeholder.jpg";
-      if (p.images && p.images.length > 0) {
-        let src = p.images[0].src;
-        if (src.startsWith("http://")) src = src.replace("http://", "https://");
-        imageUrl = src;
-      }
+    // 將 Medusa 回傳的資料格式化成前端 UI 需要的格式
+    const formattedProducts = (data.products || []).map((p) => {
+      const priceObj = p.variants?.[0]?.prices?.[0];
+      let amount = priceObj
+        ? priceObj.amount > 1000000
+          ? priceObj.amount / 100
+          : priceObj.amount
+        : 0;
+
       return {
         id: p.id,
-        slug: p.slug,
-        title: p.name,
-        price: `NT$ ${parseInt(p.price || 0).toLocaleString()}`,
-        image: imageUrl,
+        slug: p.handle, // Medusa 的 slug 是 handle
+        title: p.title,
+        price: `NT$ ${amount.toLocaleString()}`,
+        image: p.thumbnail || "/images/placeholder.jpg",
       };
     });
 

@@ -8,7 +8,7 @@ import https from "https";
 import useEmblaCarousel from "embla-carousel-react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 // 其他原本首頁的元件
-import CollectionShowcase from "@/components/CollectionShowcase";
+import CollectionShowcase from "@/components/ProductGridShowcase";
 import { useTranslation } from "next-i18next";
 import HeroSlider from "../components/Slider/Slider";
 import ParallaxImage from "../components/ParallaxImage";

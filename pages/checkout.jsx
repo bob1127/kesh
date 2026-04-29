@@ -12,14 +12,16 @@ import {
   Truck,
   Landmark,
   X,
-  Smartphone,
   Globe,
 } from "lucide-react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
+// ==========================================
 // 內建台灣縣市區域資料庫
+// ==========================================
 const TAIWAN_CITIES = {
   臺北市: [
     "中正區",
@@ -408,7 +410,6 @@ const TAIWAN_CITIES = {
   連江縣: ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"],
 };
 
-// 精品級 ATM 彈窗組件
 const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -433,16 +434,11 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             <h2 className="text-xl font-bold tracking-widest uppercase text-black mb-3">
               {t("checkout.popup.title", "ATM 轉帳資訊")}
             </h2>
-            <p className="text-xs text-gray-500 tracking-wide leading-relaxed">
-              {t("checkout.popup.desc1", "請於繳費期限內完成轉帳")}
-              <br />
-              {t("checkout.popup.desc2", "系統將自動對帳並安排出貨")}
-            </p>
           </div>
           <div className="bg-[#fafafa] border border-gray-100 p-6 space-y-5 mb-8">
             <div className="flex justify-between items-center border-b border-gray-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {t("checkout.popup.bankCode", "銀行代碼")}
+                銀行代碼
               </p>
               <p className="text-sm font-bold tracking-widest text-black">
                 {bankCode}
@@ -450,7 +446,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             </div>
             <div className="flex justify-between items-center border-b border-gray-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {t("checkout.popup.account", "轉帳帳號")}
+                轉帳帳號
               </p>
               <p className="text-lg font-bold tracking-widest text-[#ef4628]">
                 {vAccount}
@@ -458,7 +454,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             </div>
             <div className="flex justify-between items-center pt-1">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {t("checkout.popup.deadline", "繳費期限")}
+                繳費期限
               </p>
               <p className="text-xs font-medium tracking-widest text-gray-600">
                 {expireDate}
@@ -469,7 +465,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             onClick={onClose}
             className="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors shadow-lg"
           >
-            {t("checkout.popup.viewOrder", "查看訂單")}
+            查看訂單
           </button>
         </div>
       </motion.div>
@@ -483,10 +479,8 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { t } = useTranslation("common");
 
-  // 根據 Next.js 語系自動判斷初始國家
   const defaultCountry =
     router.locale === "en" ? "US" : router.locale === "ko" ? "KR" : "TW";
-
   const [loading, setLoading] = useState(false);
   const isProcessing = useRef(false);
   const isTapPaySetup = useRef(false);
@@ -505,10 +499,18 @@ export default function CheckoutPage() {
     city: "",
     district: "",
     street: "",
-    paymentMethod: "CREDIT_CARD",
+    paymentMethod: defaultCountry === "TW" ? "CREDIT_CARD" : "PAYPAL",
   });
 
-  const subtotal = useMemo(
+  // ⚖️ 重量計算引擎
+  const totalWeight = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      const weight = item.variant?.weight || item.weight || 0;
+      return acc + weight * item.quantity;
+    }, 0);
+  }, [cartItems]);
+
+  const total = useMemo(
     () =>
       cartItems.reduce(
         (acc, item) =>
@@ -521,33 +523,96 @@ export default function CheckoutPage() {
       ),
     [cartItems],
   );
-  const total = subtotal;
+
+  // 🚚 運費引擎
+  const shippingInfo = useMemo(() => {
+    if (formData.country === "TW")
+      return {
+        cost: 0,
+        name: "宅配到府 (順豐速運)",
+        currency: "TWD",
+        sign: "NT$",
+      };
+
+    if (formData.country === "US") {
+      if (totalWeight <= 500)
+        return {
+          cost: 45,
+          name: "DHL Express (0-0.5kg)",
+          currency: "USD",
+          sign: "$",
+        };
+      if (totalWeight <= 1500)
+        return {
+          cost: 65,
+          name: "DHL Express (0.5-1.5kg)",
+          currency: "USD",
+          sign: "$",
+        };
+      return {
+        cost: 90,
+        name: "DHL Express (1.5-3kg)",
+        currency: "USD",
+        sign: "$",
+      };
+    }
+
+    if (formData.country === "KR") {
+      if (totalWeight <= 500)
+        return {
+          cost: 35000,
+          name: "DHL Express (0-0.5kg)",
+          currency: "KRW",
+          sign: "₩",
+        };
+      if (totalWeight <= 1500)
+        return {
+          cost: 48000,
+          name: "DHL Express (0.5-1.5kg)",
+          currency: "KRW",
+          sign: "₩",
+        };
+      return {
+        cost: 65000,
+        name: "DHL Express (1.5-3kg)",
+        currency: "KRW",
+        sign: "₩",
+      };
+    }
+
+    return {
+      cost: 45,
+      name: "DHL Express (0-0.5kg)",
+      currency: "USD",
+      sign: "$",
+    };
+  }, [formData.country, totalWeight]);
 
   useEffect(() => {
-    if (userInfo)
+    if (defaultCountry !== "TW") {
       setFormData((prev) => ({
         ...prev,
-        name:
-          userInfo.name && userInfo.name !== "KÉSH VIP"
-            ? userInfo.name
-            : prev.name,
-        email: userInfo.email || prev.email,
-        phone: userInfo.phone || prev.phone,
+        name: "Test Foreign User",
+        email: "buyer-foreign@example.com",
+        phone: "1234567890",
+        country: defaultCountry,
+        city: defaultCountry === "US" ? "CA" : "Seoul",
+        district: defaultCountry === "US" ? "Beverly Hills" : "Gangnam",
+        street: "123 Test Street",
+        paymentMethod: "PAYPAL",
       }));
-  }, [userInfo]);
+    }
+  }, [defaultCountry]);
 
-  // TapPay SDK 載入
   useEffect(() => {
     if (typeof window !== "undefined" && !window.TPDirect) {
       const script = document.createElement("script");
       script.src = "https://js.tappaysdk.com/sdk/tpdirect/v5.19.2";
       script.async = true;
-      script.crossOrigin = "anonymous";
       document.body.appendChild(script);
     }
   }, []);
 
-  // 綁定 TapPay 信用卡欄位
   useEffect(() => {
     const initTapPay = setInterval(() => {
       if (window.TPDirect) {
@@ -559,7 +624,10 @@ export default function CheckoutPage() {
           );
           isTapPaySetup.current = true;
         }
-        if (formData.paymentMethod === "CREDIT_CARD") {
+        if (
+          formData.paymentMethod === "CREDIT_CARD" &&
+          formData.country === "TW"
+        ) {
           if (document.getElementById("card-number")) {
             window.TPDirect.card.setup({
               fields: {
@@ -581,25 +649,13 @@ export default function CheckoutPage() {
       }
     }, 500);
     return () => clearInterval(initTapPay);
-  }, [formData.paymentMethod]);
+  }, [formData.paymentMethod, formData.country]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => {
       if (name === "country") {
-        const isForeign = value !== "TW";
-        let resetPayment = prev.paymentMethod;
-
-        // 防呆邏輯
-        if (isForeign && prev.paymentMethod === "ATM")
-          resetPayment = "CREDIT_CARD";
-        if (
-          !isForeign &&
-          (prev.paymentMethod === "PAYPAL" ||
-            prev.paymentMethod === "APPLE_PAY")
-        )
-          resetPayment = "CREDIT_CARD";
-
+        let resetPayment = value === "TW" ? "CREDIT_CARD" : "PAYPAL";
         return {
           ...prev,
           country: value,
@@ -614,7 +670,7 @@ export default function CheckoutPage() {
     });
   };
 
-  const executeCheckout = async () => {
+  const executeCheckout = async (paypalOrderId = null) => {
     if (isProcessing.current) return;
     isProcessing.current = true;
 
@@ -631,48 +687,32 @@ export default function CheckoutPage() {
     }
 
     try {
+      setLoading(true);
       let prime = "";
       const TPDirect = window.TPDirect;
 
       if (formData.paymentMethod === "CREDIT_CARD") {
-        if (TPDirect.card.getTappayFieldsStatus().canGetPrime === false) {
-          isProcessing.current = false;
-          return alert(t("checkout.alert.cardError", "信用卡資訊有誤"));
-        }
-        prime = await new Promise((resolve, reject) => {
-          TPDirect.card.getPrime((result) => {
-            if (result.status === 0) resolve(result.card.prime);
-            else reject(new Error(`Error: ${result.msg}`));
-          });
-        });
+        if (TPDirect.card.getTappayFieldsStatus().canGetPrime === false)
+          throw new Error("信用卡資訊有誤，請重新輸入");
+        prime = await new Promise((resolve, reject) =>
+          TPDirect.card.getPrime((res) =>
+            res.status === 0
+              ? resolve(res.card.prime)
+              : reject(new Error(res.msg)),
+          ),
+        );
       } else if (formData.paymentMethod === "ATM") {
-        prime = await new Promise((resolve, reject) => {
-          TPDirect.virtualAccount.getPrime((error, result) => {
-            if (error)
-              reject(
-                new Error(
-                  error.msg ||
-                    t("checkout.alert.atmError", "取得 ATM 帳號失敗"),
-                ),
-              );
-            else if (result && result.status === 0) resolve(result.prime);
-            else
-              reject(
-                new Error(t("checkout.alert.atmError", "取得 ATM 帳號失敗")),
-              );
-          });
-        });
-      } else if (
-        formData.paymentMethod === "APPLE_PAY" ||
-        formData.paymentMethod === "PAYPAL"
-      ) {
-        console.log(`Processing ${formData.paymentMethod}...`);
+        prime = await new Promise((resolve, reject) =>
+          TPDirect.virtualAccount.getPrime((err, res) =>
+            err ? reject(new Error(err.msg)) : resolve(res.prime),
+          ),
+        );
+      } else if (formData.paymentMethod === "PAYPAL") {
+        prime = paypalOrderId;
       }
 
-      setLoading(true);
       const PUBLISHABLE_API_KEY =
         process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-      const TEST_VARIANT_ID = "variant_01KNEMZ3TQNWZHM40W4JCH874D";
       const token = localStorage.getItem("medusa_auth_token");
       const headers = {
         "Content-Type": "application/json",
@@ -682,8 +722,14 @@ export default function CheckoutPage() {
 
       const backendUrl =
         process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+
       const regionRes = await fetch(`${backendUrl}/store/regions`, { headers });
-      const activeRegionId = (await regionRes.json()).regions[0].id;
+      const regions = (await regionRes.json()).regions;
+      const targetRegion =
+        regions.find((r) =>
+          r.countries.some((c) => c.iso_2 === formData.country.toLowerCase()),
+        ) || regions[0];
+      const activeRegionId = targetRegion.id;
 
       const cartRes = await fetch(`${backendUrl}/store/carts`, {
         method: "POST",
@@ -696,32 +742,67 @@ export default function CheckoutPage() {
             first_name: formData.name,
             phone: formData.phone,
             province: formData.city,
-            city: formData.country === "TW" ? formData.district : formData.city,
+            city:
+              formData.country === "TW" ? formData.district : formData.district,
             address_1: formData.street,
             country_code: formData.country.toLowerCase(),
           },
         }),
       });
-      const cartId = (await cartRes.json()).cart.id;
 
-      await fetch(`${backendUrl}/store/carts/${cartId}/line-items`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ variant_id: TEST_VARIANT_ID, quantity: 1 }),
-      });
+      const cartData = await cartRes.json();
+      const cartId = cartData.cart.id;
+
+      // 🔥 終極除錯版加入購物車迴圈
+      for (const item of cartItems) {
+        // 確保精準抓到變體 ID
+        const currentVariantId = item.variantId || item.variant_id;
+
+        if (!currentVariantId) {
+          throw new Error(`商品「${item.title}」資料異常，找不到變體 ID。`);
+        }
+
+        const lineItemRes = await fetch(
+          `${backendUrl}/store/carts/${cartId}/line-items`,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              variant_id: currentVariantId,
+              quantity: item.quantity,
+            }),
+          },
+        );
+
+        if (!lineItemRes.ok) {
+          const errData = await lineItemRes.json();
+          console.error("❌ Medusa 拒絕加入商品，詳細原因:", errData);
+          throw new Error(
+            `商品「${item.title}」加入失敗。\n可能原因：商品後台未設定該國家的專屬幣別價格 (如 ${shippingInfo.currency})。\n系統回報：${errData.message || "未知錯誤"}`,
+          );
+        }
+      }
+
       const shipOptRes = await fetch(
         `${backendUrl}/store/shipping-options?cart_id=${cartId}`,
         { headers },
       );
       const shipOptData = await shipOptRes.json();
-      if (shipOptData.shipping_options?.length > 0)
+
+      if (shipOptData.shipping_options?.length > 0) {
+        const matchedOption = shipOptData.shipping_options.find(
+          (opt) => opt.name === shippingInfo.name,
+        );
+        const selectedOptionId = matchedOption
+          ? matchedOption.id
+          : shipOptData.shipping_options[0].id;
+
         await fetch(`${backendUrl}/store/carts/${cartId}/shipping-methods`, {
           method: "POST",
           headers,
-          body: JSON.stringify({
-            option_id: shipOptData.shipping_options[0].id,
-          }),
+          body: JSON.stringify({ option_id: selectedOptionId }),
         });
+      }
 
       const customCheckoutRes = await fetch(
         `${backendUrl}/store/tappay-checkout`,
@@ -743,17 +824,7 @@ export default function CheckoutPage() {
 
       const completeData = await customCheckoutRes.json();
       if (!customCheckoutRes.ok)
-        throw new Error(
-          completeData?.message || completeData?.error || "Error",
-        );
-
-      const paymentUrl =
-        completeData.order?.payments?.[0]?.data?.payment_url ||
-        completeData.payment_url;
-      if (paymentUrl) {
-        window.location.href = paymentUrl;
-        return;
-      }
+        throw new Error(completeData?.message || "結帳 API 處理失敗");
 
       if (completeData.bank_code && completeData.vaccount) {
         setAtmData({
@@ -765,19 +836,19 @@ export default function CheckoutPage() {
         return;
       }
 
-      router.push("/member");
+      const paymentUrl =
+        completeData.order?.payments?.[0]?.data?.payment_url ||
+        completeData.payment_url;
+      if (paymentUrl) return (window.location.href = paymentUrl);
+
+      router.push("/");
     } catch (err) {
-      console.error("❌ Checkout Error:", err);
-      alert(err.message || "Error occurred");
+      console.error("❌ Checkout 致命錯誤:", err);
+      alert(`錯誤：\n${err.message}`);
     } finally {
       isProcessing.current = false;
       setLoading(false);
     }
-  };
-
-  const closeAtmPopup = () => {
-    setShowAtmPopup(false);
-    router.push("/member");
   };
 
   if (cartItems.length === 0)
@@ -788,18 +859,25 @@ export default function CheckoutPage() {
     );
 
   return (
-    // 🔥 替換成正式環境變數並設定 intent="capture"
     <PayPalScriptProvider
       options={{
         clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb",
-        currency: "TWD",
+        currency: shippingInfo.currency,
         intent: "capture",
+        components: "buttons,applepay,googlepay",
       }}
     >
-      <div className="min-h-screen bg-white text-black">
+      <div className="min-h-screen bg-white text-black pt-16">
         <AnimatePresence>
           {showAtmPopup && (
-            <AtmPopup {...atmData} onClose={closeAtmPopup} t={t} />
+            <AtmPopup
+              {...atmData}
+              onClose={() => {
+                setShowAtmPopup(false);
+                router.push("/");
+              }}
+              t={t}
+            />
           )}
         </AnimatePresence>
 
@@ -826,10 +904,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       name="name"
-                      placeholder={t(
-                        "checkout.fullNamePlaceholder",
-                        "Full Name",
-                      )}
+                      placeholder="Full Name"
                       value={formData.name}
                       onChange={handleChange}
                       className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
@@ -837,10 +912,7 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       name="email"
-                      placeholder={t(
-                        "checkout.emailPlaceholder",
-                        "Email Address",
-                      )}
+                      placeholder="Email Address"
                       value={formData.email}
                       onChange={handleChange}
                       className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
@@ -848,10 +920,7 @@ export default function CheckoutPage() {
                     <input
                       type="tel"
                       name="phone"
-                      placeholder={t(
-                        "checkout.phonePlaceholder",
-                        "Phone Number",
-                      )}
+                      placeholder="Phone Number"
                       className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
                       value={formData.phone}
                       onChange={handleChange}
@@ -861,7 +930,7 @@ export default function CheckoutPage() {
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
-                      className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black appearance-none bg-white text-black"
+                      className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black bg-white text-black"
                     >
                       <option value="TW">Taiwan (台灣)</option>
                       <option value="US">United States (美國)</option>
@@ -874,17 +943,13 @@ export default function CheckoutPage() {
                           name="city"
                           value={formData.city}
                           onChange={handleChange}
-                          className={`border border-gray-200 p-4 text-sm outline-none focus:border-black appearance-none bg-white ${!formData.city ? "text-gray-400" : "text-black"}`}
+                          className="border border-gray-200 p-4 text-sm outline-none focus:border-black bg-white"
                         >
                           <option value="" disabled>
-                            {t("checkout.selectCity", "選擇縣市")}
+                            選擇縣市
                           </option>
                           {Object.keys(TAIWAN_CITIES).map((city) => (
-                            <option
-                              key={city}
-                              value={city}
-                              className="text-black"
-                            >
+                            <option key={city} value={city}>
                               {city}
                             </option>
                           ))}
@@ -894,18 +959,14 @@ export default function CheckoutPage() {
                           value={formData.district}
                           onChange={handleChange}
                           disabled={!formData.city}
-                          className={`border border-gray-200 p-4 text-sm outline-none focus:border-black appearance-none ${!formData.city ? "bg-gray-50 cursor-not-allowed text-gray-400" : "bg-white"} ${!formData.district ? "text-gray-400" : "text-black"}`}
+                          className={`border border-gray-200 p-4 text-sm outline-none focus:border-black ${!formData.city ? "bg-gray-50 text-gray-400" : "bg-white"}`}
                         >
                           <option value="" disabled>
-                            {t("checkout.selectDistrict", "選擇區域")}
+                            選擇區域
                           </option>
                           {formData.city &&
                             TAIWAN_CITIES[formData.city].map((district) => (
-                              <option
-                                key={district}
-                                value={district}
-                                className="text-black"
-                              >
+                              <option key={district} value={district}>
                                 {district}
                               </option>
                             ))}
@@ -935,10 +996,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       name="street"
-                      placeholder={t(
-                        "checkout.streetPlaceholder",
-                        "Street Address",
-                      )}
+                      placeholder="Street Address"
                       className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
                       value={formData.street}
                       onChange={handleChange}
@@ -961,11 +1019,8 @@ export default function CheckoutPage() {
                         />
                         <p className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
                           <Truck size={14} />
-                          {formData.country === "TW"
-                            ? t("checkout.shippingDelivery", "宅配到府")
-                            : formData.country === "US"
-                              ? "International Shipping (SF Express)"
-                              : "국제 배송 (SF Express)"}
+                          {shippingInfo.name} (+{shippingInfo.sign}{" "}
+                          {shippingInfo.cost.toLocaleString()})
                         </p>
                       </div>
                     </label>
@@ -977,62 +1032,54 @@ export default function CheckoutPage() {
                     {t("checkout.payment")}
                   </h2>
                   <div className="border border-gray-200 divide-y divide-gray-100">
-                    {/* 所有國家都有：信用卡 */}
-                    <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="CREDIT_CARD"
-                        checked={formData.paymentMethod === "CREDIT_CARD"}
-                        onChange={handleChange}
-                        className="accent-black"
-                      />
-                      <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                        <CreditCard size={16} />
-                        {formData.country === "TW"
-                          ? t("checkout.creditCard", "信用卡付款")
-                          : "Credit Card (Visa / Master / JCB / AMEX)"}
-                      </span>
-                    </label>
-                    {formData.paymentMethod === "CREDIT_CARD" && (
-                      <div className="p-5 bg-gray-50 space-y-4">
-                        <div
-                          className="bg-white border border-gray-200 p-3 h-12 rounded-sm"
-                          id="card-number"
-                        ></div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div
-                            className="bg-white border border-gray-200 p-3 h-12 rounded-sm"
-                            id="card-expiration-date"
-                          ></div>
-                          <div
-                            className="bg-white border border-gray-200 p-3 h-12 rounded-sm"
-                            id="card-ccv"
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 台灣專屬：ATM 轉帳 */}
-                    {formData.country === "TW" && (
-                      <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="ATM"
-                          checked={formData.paymentMethod === "ATM"}
-                          onChange={handleChange}
-                          className="accent-black"
-                        />
-                        <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                          <Landmark size={16} />{" "}
-                          {t("checkout.atmTransfer", "ATM 虛擬帳號轉帳")}
-                        </span>
-                      </label>
-                    )}
-
-                    {/* 國外專屬：Apple Pay / Google Pay */}
-                    {formData.country !== "TW" && (
+                    {formData.country === "TW" ? (
+                      <>
+                        <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="CREDIT_CARD"
+                            checked={formData.paymentMethod === "CREDIT_CARD"}
+                            onChange={handleChange}
+                            className="accent-black"
+                          />
+                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
+                            <CreditCard size={16} /> 信用卡付款
+                          </span>
+                        </label>
+                        {formData.paymentMethod === "CREDIT_CARD" && (
+                          <div className="p-5 bg-gray-50 space-y-4">
+                            <div
+                              className="bg-white border border-gray-200 p-3 h-12 rounded-sm"
+                              id="card-number"
+                            ></div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div
+                                className="bg-white border border-gray-200 p-3 h-12 rounded-sm"
+                                id="card-expiration-date"
+                              ></div>
+                              <div
+                                className="bg-white border border-gray-200 p-3 h-12 rounded-sm"
+                                id="card-ccv"
+                              ></div>
+                            </div>
+                          </div>
+                        )}
+                        <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="ATM"
+                            checked={formData.paymentMethod === "ATM"}
+                            onChange={handleChange}
+                            className="accent-black"
+                          />
+                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
+                            <Landmark size={16} /> ATM 虛擬帳號轉帳
+                          </span>
+                        </label>
+                      </>
+                    ) : (
                       <>
                         <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
                           <input
@@ -1044,173 +1091,54 @@ export default function CheckoutPage() {
                             className="accent-black"
                           />
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <Globe size={16} /> PayPal
+                            <Globe size={16} /> PayPal / Apple Pay
                           </span>
                         </label>
 
-                        {/* 當選中 PayPal 時，顯示 PayPal 官方按鈕 */}
                         {formData.paymentMethod === "PAYPAL" && (
                           <div className="p-5 bg-gray-50 text-center">
                             <div className="max-w-[300px] mx-auto mt-2 relative z-0">
                               <PayPalButtons
                                 style={{ layout: "horizontal", height: 40 }}
-                                // 🔥 1. 點擊前的「防呆驗證」
                                 onClick={(data, actions) => {
-                                  // 檢查是否所有必填欄位都有值
-                                  const isFormIncomplete =
+                                  if (
                                     !formData.name ||
                                     !formData.email ||
                                     !formData.phone ||
                                     !formData.city ||
-                                    !formData.street ||
-                                    (formData.country === "TW" &&
-                                      !formData.district);
-
-                                  if (isFormIncomplete) {
-                                    alert(
-                                      t(
-                                        "checkout.alert.fillInfo",
-                                        "請先填寫上方完整的收件資訊！",
-                                      ),
-                                    );
-                                    return actions.reject(); // ❌ 阻止 PayPal 視窗彈出
+                                    !formData.street
+                                  ) {
+                                    alert("請先填寫上方完整的收件資訊！");
+                                    return actions.reject();
                                   }
-                                  return actions.resolve(); // ✅ 允許彈出
+                                  return actions.resolve();
                                 }}
-                                // 🔥 2. 告訴 PayPal 這筆訂單要付多少錢
                                 createOrder={(data, actions) => {
-                                  // 確保金額大於 0 且絕對不能有小數點 (Math.round)
                                   const finalAmount = Math.max(
                                     1,
-                                    Math.round(total),
+                                    Math.round(total + shippingInfo.cost),
                                   ).toString();
-
                                   return actions.order.create({
                                     purchase_units: [
                                       {
                                         amount: {
-                                          currency_code: "TWD",
+                                          currency_code: shippingInfo.currency,
                                           value: finalAmount,
                                         },
                                       },
                                     ],
                                   });
                                 }}
-                                // 🔥 3. 客人授權付款成功後的動作
                                 onApprove={async (data, actions) => {
                                   try {
-                                    // 執行扣款
-                                    const details =
-                                      await actions.order.capture();
-                                    console.log("✅ PayPal 交易成功:", details);
-
-                                    alert(
-                                      t(
-                                        "checkout.alert.paymentSuccess",
-                                        `付款成功！感謝您，${details.payer.name.given_name}`,
-                                      ),
-                                    );
-
-                                    // TODO: 這裡你可以呼叫你的 executeCheckout，並把 details.id 傳給後端建立 Medusa 訂單
-                                    // executeCheckout(details.id);
+                                    await executeCheckout(data.orderID);
                                   } catch (error) {
-                                    console.error("❌ PayPal 扣款失敗:", error);
-                                    alert(
-                                      t(
-                                        "checkout.alert.paymentFailed",
-                                        "付款失敗，請重新嘗試",
-                                      ),
-                                    );
+                                    console.error("PayPal 錯誤:", error);
+                                    alert("付款失敗，請重新嘗試");
                                   }
-                                }}
-                                // 4. 錯誤捕捉
-                                onError={(err) => {
-                                  console.error("❌ PayPal 發生錯誤:", err);
                                 }}
                               />
                             </div>
-                            <p className="text-xs text-gray-400 mt-4 tracking-widest">
-                              Powered by PayPal Express Checkout
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {/* 國外專屬：PayPal */}
-                    {formData.country !== "TW" && (
-                      <>
-                        <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="PAYPAL"
-                            checked={formData.paymentMethod === "PAYPAL"}
-                            onChange={handleChange}
-                            className="accent-black"
-                          />
-                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <Globe size={16} /> PayPal
-                          </span>
-                        </label>
-                        {formData.paymentMethod === "PAYPAL" && (
-                          <div className="p-5 bg-gray-50 text-center">
-                            <div className="max-w-[300px] mx-auto mt-2 relative z-0">
-                              <PayPalButtons
-                                style={{ layout: "horizontal", height: 40 }}
-                                // 1. 告訴 PayPal 這筆訂單要付多少錢
-                                createOrder={(data, actions) => {
-                                  return actions.order.create({
-                                    purchase_units: [
-                                      {
-                                        amount: {
-                                          currency_code: "TWD",
-                                          // 🔥 絕對不能有小數點！用 Math.round 確保是整數轉字串
-                                          value: Math.round(total).toString(),
-                                        },
-                                      },
-                                    ],
-                                  });
-                                }}
-                                // 2. 客人授權付款成功後的動作
-                                onApprove={async (data, actions) => {
-                                  try {
-                                    // 執行扣款
-                                    const details =
-                                      await actions.order.capture();
-                                    console.log("✅ PayPal 交易成功:", details);
-
-                                    // 將 PayPal 的交易 ID 當作憑證 (Prime) 丟給你的結帳邏輯
-                                    // 如果你的 executeCheckout 有針對 PayPal 調整，這一步就能完成訂單
-                                    // executeCheckout(details.id);
-
-                                    alert(
-                                      t(
-                                        "checkout.alert.paymentSuccess",
-                                        `付款成功！感謝您，${details.payer.name.given_name}`,
-                                      ),
-                                    );
-
-                                    // 成功後可跳轉
-                                    // router.push("/member");
-                                  } catch (error) {
-                                    console.error("❌ PayPal 扣款失敗:", error);
-                                    alert(
-                                      t(
-                                        "checkout.alert.paymentFailed",
-                                        "付款失敗，請重新嘗試",
-                                      ),
-                                    );
-                                  }
-                                }}
-                                // 3. 錯誤捕捉
-                                onError={(err) => {
-                                  console.error("❌ PayPal 按鈕錯誤:", err);
-                                }}
-                              />
-                            </div>
-                            <p className="text-xs text-gray-400 mt-4 tracking-widest">
-                              Powered by PayPal Express Checkout
-                            </p>
                           </div>
                         )}
                       </>
@@ -1220,13 +1148,13 @@ export default function CheckoutPage() {
                   {formData.paymentMethod !== "PAYPAL" && (
                     <button
                       type="button"
-                      onClick={executeCheckout}
+                      onClick={() => executeCheckout(null)}
                       disabled={loading || isProcessing.current}
                       className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.4em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       {loading || isProcessing.current
-                        ? t("checkout.processing", "PROCESSING...")
-                        : t("checkout.completePurchase", "COMPLETE PURCHASE")}
+                        ? "PROCESSING..."
+                        : "COMPLETE PURCHASE"}
                     </button>
                   )}
                 </section>
@@ -1237,13 +1165,77 @@ export default function CheckoutPage() {
           <div className="w-full lg:w-[45%] bg-[#fafafa] px-6 py-10 lg:px-14 lg:py-20 border-l border-gray-100 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
             <div className="max-w-[400px] mx-auto lg:mx-0">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-8 border-b border-gray-200 pb-2">
-                {t("checkout.orderSummary", "ORDER SUMMARY")}
+                ORDER SUMMARY
               </h2>
-              <div className="flex justify-between font-bold text-lg pt-4 border-t border-gray-200">
-                <span className="text-sm uppercase tracking-widest mt-1">
-                  {t("checkout.total", "TOTAL")}
-                </span>
-                <span>NT$ {total.toLocaleString()}</span>
+
+              <div className="flex flex-col gap-5 mb-6">
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-white border border-gray-200 rounded-lg relative overflow-hidden flex-shrink-0">
+                          {item.image && (
+                            <Image
+                              src={item.image}
+                              alt={item.title}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          )}
+                        </div>
+                        <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[11px] font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                          {item.quantity}
+                        </span>
+                      </div>
+                      <div className="flex flex-col pr-4">
+                        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Weight: {item.variant?.weight || item.weight || 0}g
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
+                      {(
+                        item.rawPrice ||
+                        parseInt(
+                          String(item.price).replace(/[^\d]/g, ""),
+                          10,
+                        ) ||
+                        0
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-gray-200 pt-4 space-y-3">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Subtotal</span>
+                  <span>
+                    {shippingInfo.sign} {total.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Shipping (Total Weight: {totalWeight}g)</span>
+                  <span>
+                    {shippingInfo.sign} {shippingInfo.cost.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-lg pt-3 border-t border-gray-100">
+                  <span className="text-sm uppercase tracking-widest mt-1">
+                    TOTAL
+                  </span>
+                  <span>
+                    {shippingInfo.currency} {shippingInfo.sign}{" "}
+                    {(total + shippingInfo.cost).toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

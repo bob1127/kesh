@@ -1036,5 +1036,16 @@
       "canceled": "취소됨",
       "unknown": "알 수 없음"
     }
+  },
+  "showcase": {
+    "title": "CURATION",
+    "sub_title": "(STYLE)",
+    "tag": "for MODERN ELEGANCE",
+    "desc": "KÉSH de¹가 엄선한 최고급 럭셔리 아이템을 만나보세요.\n시대를 초월한 클래식부터 현대적인 어반 스타일까지, 당신만의 특별한 취향을 보여주세요.",
+    "buy_now": "BUY NOW",
+    "loading": "LOADING...",
+    "discover_more": "DISCOVER MORE",
+    "view_all": "전체 상품",
+    "no_products": "해당 카테고리에 상품이 없습니다"
   }
 }
