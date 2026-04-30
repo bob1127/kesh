@@ -3,14 +3,23 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useCart } from "../components/context/CartContext";
 import { Trash2, Plus, Minus, ArrowRight } from "lucide-react";
 
 export default function CartPage() {
+  const router = useRouter();
+  const { locale } = router;
   const { t } = useTranslation("common");
   const { cartItems, removeFromCart, updateQuantity } = useCart();
+
+  // 🌍 智慧幣別判斷引擎
+  const targetCurrency =
+    locale === "en" ? "usd" : locale === "ko" ? "krw" : "twd";
+  const symbol =
+    targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
 
   // 1. 所有的 State 和 Hook 必須放在最前面！
   const [mounted, setMounted] = useState(false);
@@ -19,7 +28,7 @@ export default function CartPage() {
     setMounted(true);
   }, []);
 
-  // 💰 智慧金額計算 (改成一般函數，不依賴 Hook，避免錯誤)
+  // 💰 智慧金額計算
   const subtotal = cartItems.reduce((acc, item) => {
     const priceVal =
       item.rawPrice ||
@@ -54,12 +63,11 @@ export default function CartPage() {
                 {t("cart.title") || "SHOPPING BAG"}
               </h1>
               <p className="text-xs text-gray-400 mt-2 tracking-widest uppercase">
-                {cartItems.length}{" "}
-                {t("cart.items_count") || "ITEMS IN YOUR BAG"}
+                {cartItems.length} {t("cart.product") || "ITEMS"}
               </p>
             </div>
             <Link
-              href="/category"
+              href="/category/all"
               className="text-[11px] font-bold uppercase tracking-[0.2em] border-b border-black pb-1 hover:text-[#ef4628] hover:border-[#ef4628] transition-all"
             >
               {t("cart.continue_shopping") || "CONTINUE SHOPPING"}
@@ -72,7 +80,7 @@ export default function CartPage() {
                 {t("cart.empty_message") || "YOUR BAG IS CURRENTLY EMPTY."}
               </p>
               <Link
-                href="/category"
+                href="/category/all"
                 className="bg-black text-white px-12 py-4 text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-[#ef4628] transition-colors"
               >
                 {t("cart.start_shopping") || "EXPLORE COLLECTIONS"}
@@ -112,22 +120,24 @@ export default function CartPage() {
                           <div className="flex justify-between items-start">
                             <div>
                               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
-                                {item.brand || "KESH"}
+                                {item.brand || "KÉSH de¹ Select"}
                               </p>
-                              <h3 className="text-sm md:text-base font-medium uppercase tracking-wide mb-2">
+                              <h3 className="text-sm md:text-base font-medium uppercase tracking-wide mb-2 line-clamp-2 pr-4">
                                 {item.title}
                               </h3>
                             </div>
                             <button
                               onClick={() => removeFromCart(item.id)}
                               className="text-gray-300 hover:text-red-500 transition-colors"
+                              title={t("cart.remove_item") || "Remove Item"}
                             >
                               <Trash2 size={18} strokeWidth={1.5} />
                             </button>
                           </div>
 
                           <p className="text-sm font-bold mb-6">
-                            NT$ {priceVal.toLocaleString()}
+                            {symbol}
+                            {priceVal.toLocaleString()}
                           </p>
 
                           {/* Qty Switcher */}
@@ -153,10 +163,11 @@ export default function CartPage() {
                         {/* Subtotal per item (Desktop) */}
                         <div className="hidden md:flex flex-col justify-end items-end min-w-[120px]">
                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
-                            Total
+                            {t("cart.total") || "Total"}
                           </p>
                           <p className="text-sm font-bold tracking-tighter">
-                            NT$ {(priceVal * item.quantity).toLocaleString()}
+                            {symbol}
+                            {(priceVal * item.quantity).toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -169,20 +180,24 @@ export default function CartPage() {
               <div className="lg:col-span-4">
                 <div className="bg-[#f9f9f9] p-8 md:p-10 sticky top-32">
                   <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] mb-8 border-b border-gray-200 pb-4">
-                    Order Summary
+                    {t("cart.order_summary") || "Order Summary"}
                   </h2>
 
                   <div className="space-y-4 mb-8">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Subtotal</span>
+                      <span className="text-gray-500">
+                        {t("cart.subtotal") || "Subtotal"}
+                      </span>
                       <span className="font-bold">
-                        NT$ {subtotal.toLocaleString()}
+                        {symbol}
+                        {subtotal.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Shipping</span>
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400">
-                        Calculated at checkout
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-gray-400 text-right w-1/2 leading-tight">
+                        {t("cart.tax_shipping_note") ||
+                          "Calculated at checkout"}
                       </span>
                     </div>
                   </div>
@@ -190,10 +205,11 @@ export default function CartPage() {
                   <div className="border-t border-gray-200 pt-6 mb-10">
                     <div className="flex justify-between items-end">
                       <span className="text-xs font-bold uppercase tracking-widest">
-                        Estimated Total
+                        {t("cart.estimated_total") || "Estimated Total"}
                       </span>
                       <span className="text-2xl font-bold tracking-tighter">
-                        NT$ {subtotal.toLocaleString()}
+                        {symbol}
+                        {subtotal.toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -209,8 +225,11 @@ export default function CartPage() {
                     />
                   </Link>
 
-                  <div className="mt-6 flex justify-center gap-4 opacity-30 grayscale">
-                    {/* Placeholder for payment icons */}
+                  <div className="mt-4 text-center">
+                    <p className="text-[10px] text-gray-400 tracking-widest">
+                      {t("cart.secure_checkout_note") ||
+                        "SECURE CHECKOUT BY KÉSH de¹"}
+                    </p>
                   </div>
                 </div>
               </div>

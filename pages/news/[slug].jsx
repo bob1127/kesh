@@ -9,7 +9,7 @@ import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 // --- 1. 推薦閱讀組件 ---
-const RecentJournalCard = ({ post }) => (
+const RecentJournalCard = ({ post, t }) => (
   <Link href={`/news/${post.slug}`} className="block group">
     <div className="relative w-full aspect-[4/3] bg-gray-100 mb-4 overflow-hidden">
       <Image
@@ -21,7 +21,9 @@ const RecentJournalCard = ({ post }) => (
       />
     </div>
     <div className="flex justify-between items-center text-[10px] text-gray-500 mb-2 uppercase tracking-wider">
-      <span className="border-b border-gray-300 pb-0.5">News</span>
+      <span className="border-b border-gray-300 pb-0.5">
+        {t("news.category", "News")}
+      </span>
       <span>{post.date}</span>
     </div>
     <h3 className="text-sm font-bold uppercase leading-snug mb-2 group-hover:text-[#ef4628] transition-colors line-clamp-2">
@@ -64,7 +66,7 @@ export default function NewsDetail({ post, recentPosts }) {
 
   if (router.isFallback)
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center tracking-widest uppercase text-gray-500">
         Loading...
       </div>
     );
@@ -76,16 +78,20 @@ export default function NewsDetail({ post, recentPosts }) {
   const metaDesc =
     post.seo_description || post.excerpt?.replace(/<[^>]+>/g, "");
 
-  // SEO 結構化資料：麵包屑導覽 (BreadcrumbList) - 這個可以保留通用邏輯
   const schemaBreadcrumb = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: t("nav.home", "Home"),
+        item: siteUrl,
+      },
       {
         "@type": "ListItem",
         position: 2,
-        name: "Journal",
+        name: t("nav.news", "Journal"),
         item: `${siteUrl}/news`,
       },
       { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
@@ -107,7 +113,6 @@ export default function NewsDetail({ post, recentPosts }) {
         <meta property="og:url" content={postUrl} />
         <meta property="og:type" content="article" />
 
-        {/* 🔥 動態載入後台 Rank Math 產生的 Schema (如果有設定的話) */}
         {post.structured_data && (
           <script
             type="application/ld+json"
@@ -139,7 +144,7 @@ export default function NewsDetail({ post, recentPosts }) {
           <div className="flex flex-col md:flex-row justify-between items-start gap-8">
             <div className="flex-1">
               <span className="inline-block border-b border-black text-xs font-bold uppercase tracking-widest mb-4">
-                News
+                {t("news.category", "News")}
               </span>
               <h1 className="text-3xl md:text-4xl font-bold uppercase leading-tight mb-2 tracking-wide">
                 {post.title}
@@ -154,7 +159,7 @@ export default function NewsDetail({ post, recentPosts }) {
             <div className="w-full md:w-[280px] text-xs text-gray-500 space-y-4 pt-2">
               <div className="flex justify-end gap-4 mb-6">
                 <span className="uppercase tracking-widest text-[10px]">
-                  Share :
+                  {t("news.share", "Share :")}
                 </span>
                 <a href="#" className="hover:text-black">
                   FB
@@ -164,12 +169,16 @@ export default function NewsDetail({ post, recentPosts }) {
                 </a>
               </div>
               <div className="space-y-1 border-l-2 border-gray-100 pl-4">
-                <p className="font-bold text-gray-900">Editor</p>
+                <p className="font-bold text-gray-900">
+                  {t("news.editor", "Editor")}
+                </p>
                 <p>KÉSH de¹</p>
               </div>
               <div className="space-y-1 border-l-2 border-gray-100 pl-4">
-                <p className="font-bold text-gray-900">Category</p>
-                <p>Fashion / Events</p>
+                <p className="font-bold text-gray-900">
+                  {t("news.category_label", "Category")}
+                </p>
+                <p>{t("news.category_value", "Fashion / Events")}</p>
               </div>
             </div>
           </div>
@@ -178,7 +187,7 @@ export default function NewsDetail({ post, recentPosts }) {
         <div className="max-w-[1000px] mx-auto px-6 mb-24 flex flex-col lg:flex-row gap-16 items-start">
           <aside className="hidden lg:block w-48 sticky top-32 shrink-0">
             <h3 className="text-xs font-bold uppercase tracking-widest mb-6 border-b border-gray-200 pb-3">
-              Table of Contents
+              {t("news.toc", "Table of Contents")}
             </h3>
             {headings.length > 0 ? (
               <ul className="space-y-4 border-l-2 border-gray-100 pl-4">
@@ -195,18 +204,23 @@ export default function NewsDetail({ post, recentPosts }) {
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-400">No outlines available.</p>
+              <p className="text-xs text-gray-400">
+                {t("news.no_outline", "No outlines available.")}
+              </p>
             )}
           </aside>
 
           <div className="flex-1 w-full max-w-[700px]">
             <article
               ref={contentRef}
-              className="prose prose-stone max-w-none prose-p:text-[15px] prose-p:leading-[1] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-3 prose-h2:tracking-wider prose-h2:text-gray-900   prose-h2:pb-4 prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide prose-img:w-full prose-img:aspect-[4/3] prose-img:object-cover prose-img:my-12 prose-img:bg-gray-50 prose-img:rounded-md prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
+              className="prose prose-stone max-w-none prose-p:text-[15px] prose-p:leading-[1] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-3 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:pb-4 prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide prose-img:w-full prose-img:aspect-[4/3] prose-img:object-cover prose-img:my-12 prose-img:bg-gray-50 prose-img:rounded-md prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             <div className="flex justify-end mt-16">
-              <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-[#ef4628] transition-colors">
+              <div
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-[#ef4628] transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -239,7 +253,10 @@ export default function NewsDetail({ post, recentPosts }) {
                 KÉSH de¹ 凱仕國際精品
               </h3>
               <p className="text-xs text-gray-500 leading-relaxed mb-4 max-w-lg">
-                我們致力於打造最優質的二手精品交易平台，提供透明的報價與專業的鑑定服務。每一件商品都經過嚴格把關，讓您買得安心，賣得放心。
+                {t(
+                  "news.about_desc",
+                  "我們致力於打造最優質的二手精品交易平台，提供透明的報價與專業的鑑定服務。每一件商品都經過嚴格把關，讓您買得安心，賣得放心。",
+                )}
               </p>
               <div className="text-[10px] text-gray-400 space-y-1">
                 <p>
@@ -265,20 +282,20 @@ export default function NewsDetail({ post, recentPosts }) {
               href="/news"
               className="px-8 py-3 border border-gray-300 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all"
             >
-              Back to Journal
+              {t("news.back_btn", "Back to Journal")}
             </Link>
           </div>
           <div className="flex items-center gap-4 mb-10">
             <h2 className="text-2xl font-normal uppercase tracking-wide">
-              Recent Journal
+              {t("news.recent", "Recent Journal")}
             </h2>
             <span className="bg-[#1c1c1c] text-white text-[10px] rounded-full px-3 py-1 font-bold">
-              News
+              {t("news.category", "News")}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             {recentPosts.map((item) => (
-              <RecentJournalCard key={item.id} post={item} />
+              <RecentJournalCard key={item.id} post={item} t={t} />
             ))}
           </div>
         </div>
@@ -298,7 +315,6 @@ export async function getStaticPaths() {
     });
     const data = await res.json();
 
-    // 🔥 如果你有多語系，你可能需要讓每一個 slug 對應到所有 locale (這裡假設 next.config.js 會幫忙處理)
     const paths = (data.posts || [])
       .filter((p) => p.is_active)
       .map((post) => ({ params: { slug: post.slug } }));
@@ -319,27 +335,45 @@ export async function getStaticProps({ params, locale }) {
   const headers = { "x-publishable-api-key": PUB_KEY };
 
   try {
-    const res = await fetch(`${BACKEND_URL}/store/custom/posts`, { headers });
+    const res = await fetch(
+      `${BACKEND_URL}/store/custom/posts?t=${Date.now()}`,
+      { headers },
+    );
     const data = await res.json();
     const allPosts = (data.posts || []).filter((p) => p.is_active);
 
     const currentPostRaw = allPosts.find((p) => p.slug === slug);
     if (!currentPostRaw) return { notFound: true };
 
-    // 🔥 核心魔法：根據當前語系，動態抓取資料庫對應欄位
+    // 🚨 終極監視器 1 號：印出後端吐出來的「完整」資料
+    console.log(`\n===========================================`);
+    console.log(
+      `📍 [前台 Storefront 監視器] 正在編譯文章: ${slug} | 語系: ${currentLang}`,
+    );
+    console.log(
+      `📦 後端傳來的完整文章資料:`,
+      JSON.stringify(currentPostRaw, null, 2),
+    );
+    console.log(`===========================================\n`);
+
     const isEn = currentLang === "en";
     const isKo = currentLang === "ko";
 
     const getLocalizedField = (post, baseField) => {
-      if (isEn && post[`${baseField}_en`]) return post[`${baseField}_en`];
-      if (isKo && post[`${baseField}_ko`]) return post[`${baseField}_ko`];
-      return post[baseField] || ""; // 預設拿繁中 (zh) 欄位
+      const valEn = post[`${baseField}_en`];
+      const valKo = post[`${baseField}_ko`];
+      const valZh = post[baseField];
+
+      if (isEn && valEn !== null && valEn !== undefined && valEn.trim() !== "")
+        return valEn;
+      if (isKo && valKo !== null && valKo !== undefined && valKo.trim() !== "")
+        return valKo;
+      return valZh || "";
     };
 
     const formattedPost = {
       id: currentPostRaw.id,
       slug: currentPostRaw.slug,
-      // 使用輔助函式自動抽換語言
       title: getLocalizedField(currentPostRaw, "title"),
       content: getLocalizedField(currentPostRaw, "content"),
       excerpt: getLocalizedField(currentPostRaw, "excerpt"),
@@ -356,7 +390,14 @@ export async function getStaticProps({ params, locale }) {
       image: currentPostRaw.thumbnail || "/images/placeholder.jpg",
     };
 
-    // Recent Posts 也套用多語系過濾
+    // 🚨 終極監視器 2 號：印出經過判斷後，準備丟給畫面的資料
+    if (isKo) {
+      console.log(
+        `🔎 [前台判斷結果] 韓文標題是否成功替換？ ->`,
+        formattedPost.title,
+      );
+    }
+
     const recentPostsRaw = allPosts
       .filter((p) => p.id !== currentPostRaw.id)
       .slice(0, 3);
@@ -377,7 +418,7 @@ export async function getStaticProps({ params, locale }) {
         recentPosts: formattedRecent,
         ...(await serverSideTranslations(currentLang, ["common"])),
       },
-      revalidate: 60,
+      revalidate: 1,
     };
   } catch (error) {
     console.error("Post detail error:", error);

@@ -174,7 +174,7 @@ export default function ProductGridShowcase() {
   return (
     <section
       ref={containerRef}
-      className="w-full bg-white py-20 px-6 md:px-10 font-sans"
+      className="w-full bg-white py-10 px-6 md:px-10 font-sans"
     >
       <div className="max-w-[1200px] mx-auto">
         {/* 標題區塊 */}

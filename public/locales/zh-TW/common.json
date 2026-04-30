@@ -362,20 +362,18 @@
       }
     }
   },
-  "news": {
-    "seo_title": "最新消息 | KÉSH de¹ 凱仕國際精品",
-    "seo_desc": "KÉSH de¹ 最新消息、時尚趨勢與品牌公告。",
-    "page_title": "Journal",
-    "page_subtitle": "最新消息與活動 / 時尚趨勢",
-    "updated": "更新時間 :",
-    "no_posts": "目前沒有最新消息。",
-    "footer_official": "KÉSH de¹ Official",
-    "footer_store": "前往線上商店",
-    "badge_latest": "最新消息",
-    "badge_news": "新聞",
-    "read_more": "閱讀更多",
-    "view_details": "查看詳情"
-  },
+ "news": {
+  "category": "最新消息",
+  "share": "分享 :",
+  "editor": "編輯",
+  "category_label": "分類",
+  "category_value": "時尚 / 活動",
+  "toc": "文章目錄",
+  "no_outline": "沒有大綱可顯示。",
+  "about_desc": "我們致力於打造最優質的二手精品交易平台，提供透明的報價與專業的鑑定服務。每一件商品都經過嚴格把關，讓您買得安心，賣得放心。",
+  "back_btn": "返回列表",
+  "recent": "推薦閱讀"
+},
   "faq": {
     "seo": {
       "title": "FAQ 常見問題｜KÉSH de¹ 凱仕國際精品 - 正品鑑定與服務",
@@ -587,42 +585,45 @@
     ]
   },
 "checkout": {
-    "backToBag": "返回購物車 (Back to bag)",
-    "emptyBag": "您的購物車是空的 (BAG IS EMPTY)",
-    "title": "結帳 (Checkout)",
-    "customerInfo": "聯絡人資訊 (Customer Information)",
-    "fullNamePlaceholder": "Full Name (收件人姓名)",
-    "emailPlaceholder": "Email Address (電子信箱)",
-    "phonePlaceholder": "Phone Number (手機號碼)",
-    "selectCity": "請選擇縣市 (City)",
-    "selectDistrict": "請選擇區域 (District)",
-    "streetPlaceholder": "Street Address (詳細地址 例: 中山路一段1號)",
-    "shippingMethod": "運送方式 (Shipping Method)",
-    "shippingDelivery": "宅配 (一律使用順豐速運)",
-    "freeShipping": "NT$ 0 (全站免運)",
-    "payment": "付款方式 (Payment)",
-    "creditCard": "Credit Card (線上刷卡)",
-    "atmTransfer": "ATM 轉帳繳費",
-    "processing": "處理中 (PROCESSING...)",
-    "completePurchase": "確認結帳 (COMPLETE PURCHASE)",
-    "orderSummary": "訂單摘要 (Order Summary)",
-    "total": "總計 (Total)",
-    "alert": {
-      "fillInfo": "請填寫完整的聯絡人與收貨地址資訊！",
-      "cardError": "信用卡資訊填寫有誤！",
-      "atmError": "產生虛擬帳號失敗: 系統忙線中",
-      "success": "🎉 結帳大成功！"
-    },
-    "popup": {
-      "title": "訂單已建立 (Order Confirmed)",
-      "desc1": "您的訂單已成功建立。",
-      "desc2": "請透過實體 ATM 或網路銀行，於期限內完成轉帳。",
-      "bankCode": "銀行代碼 (Bank Code)",
-      "account": "繳費帳號 (Account)",
-      "deadline": "繳費期限 (Deadline)",
-      "viewOrder": "查看訂單明細"
-    }
+  "backToBag": "返回購物車",
+  "emptyBag": "您的購物車是空的",
+  "title": "結帳 (CHECKOUT)",
+  "customerInfo": "聯絡人資訊 (Customer Information)",
+  "fullNamePlaceholder": "Full Name (收件人姓名)",
+  "emailPlaceholder": "Email Address (電子信箱)",
+  "phonePlaceholder": "Phone Number (手機號碼)",
+  "selectCity": "請選擇縣市",
+  "selectDistrict": "請選擇區域",
+  "streetPlaceholder": "Street Address (詳細地址 例: 中山路一段1號)",
+  "shippingMethod": "運送方式 (Shipping Method)",
+  "shippingDelivery": "宅配到府 (順豐速運)",
+  "freeShipping": "NT$ 0 (全站免運)",
+  "payment": "付款方式 (Payment)",
+  "creditCard": "Credit Card (線上刷卡)",
+  "atmTransfer": "ATM 轉帳繳費",
+  "paypal": "PayPal / Apple Pay",
+  "processing": "處理中...",
+  "completePurchase": "確認結帳",
+  "orderSummary": "訂單摘要 (Order Summary)",
+  "subtotal": "小計",
+  "shipping": "運費",
+  "total": "總計",
+  "alert": {
+    "fillInfo": "請填寫完整的聯絡人與收貨地址資訊！",
+    "cardError": "信用卡資訊填寫有誤！",
+    "atmError": "產生虛擬帳號失敗: 系統忙線中",
+    "success": "結帳大成功！"
   },
+  "popup": {
+    "title": "訂單已建立",
+    "desc1": "您的訂單已成功建立。",
+    "desc2": "請透過實體 ATM 或網路銀行，於期限內完成轉帳。",
+    "bankCode": "銀行代碼",
+    "account": "轉帳帳號",
+    "deadline": "繳費期限",
+    "viewOrder": "查看訂單"
+  }
+},
   "login": {
     "title": "會員登入",
     "subtitle": "歡迎回到 KÉSH de¹",
@@ -840,19 +841,21 @@
       "btn_understand": "I Understand"
     }
   },"cart": {
-    "title": "購物車",
-    "continue_shopping": "繼續購物",
-    "empty_message": "您的購物車目前是空的",
-    "start_shopping": "開始購物",
-    "product": "商品",
-    "quantity": "數量",
-    "total": "總計",
-    "remove_item": "移除商品",
-    "subtotal": "小計",
-    "tax_shipping_note": "含稅。運費將於結帳步驟計算。",
-    "secure_checkout_note": "安全結帳由 KÉSH de¹ 提供支援",
-    "go_to_checkout": "前往結帳"
-  },
+  "title": "購物車",
+  "product": "件商品",
+  "continue_shopping": "繼續購物",
+  "empty_message": "您的購物車目前是空的",
+  "start_shopping": "開始購物",
+  "quantity": "數量",
+  "total": "總計",
+  "remove_item": "移除商品",
+  "order_summary": "訂單摘要",
+  "subtotal": "小計",
+  "tax_shipping_note": "含稅。運費將於結帳步驟計算。",
+  "estimated_total": "預估總計",
+  "go_to_checkout": "前往結帳",
+  "secure_checkout_note": "安全結帳由 KÉSH de¹ 提供支援"
+},
   "terms": {
     "seo_title": "服務條款與政策 | KÉSH de¹ 凱仕國際精品",
     "seo_desc": "感謝您選擇 KÉSH de¹。我們致力於提供透明、專業且值得信賴的精品購物體驗。為確保您擁有順暢且安心的交易流程，請於購物前詳閱以下服務條款。",
@@ -970,48 +973,54 @@
       }
     ]
   },
-  "member": {
-    "title": "會員中心",
-    "subtitle": "管理您的訂單與個人資料",
-    "welcome": "歡迎回來",
-    "tabs": {
-      "dashboard": "帳戶總覽",
-      "orders": "我的訂單",
-      "addresses": "收件地址",
-      "settings": "帳號設定",
-      "logout": "登出帳號"
-    },
-    "dashboard": {
-      "total_spent": "累積消費",
-      "completed_orders": "已完成訂單",
-      "pending_orders": "待處理訂單"
-    },
-    "orders": {
-      "empty": "目前沒有訂單",
-      "shop_now": "去逛逛",
-      "order_amount": "訂單金額",
-      "items": "件商品",
-      "view_details": "查看詳情",
-      "pay_now": "立即付款"
-    },
-    "addresses": {
-      "empty": "尚未設定收件地址",
-      "add_new": "新增地址"
-    },
-    "settings": {
-      "title": "個人資料",
-      "name": "姓名",
-      "email": "電子郵件",
-      "save": "儲存修改"
-    },
-    "status": {
-      "pending": "待付款",
-      "processing": "處理中",
-      "completed": "已完成",
-      "canceled": "已取消",
-      "unknown": "狀態未明"
-    }
+ "member": {
+  "title": "MY ACCOUNT (會員中心)",
+  "subtitle": "管理您的訂單與個人資料",
+  "welcome": "Hi,",
+  "tabs": {
+    "dashboard": "帳戶總覽",
+    "orders": "我的訂單",
+    "addresses": "收件地址",
+    "settings": "帳號設定",
+    "logout": "登出帳號"
   },
+  "orders": {
+    "title": "ORDER HISTORY (歷史訂單)",
+    "count": "筆訂單",
+    "empty": "您目前沒有任何訂單紀錄",
+    "shop_now": "開始購物",
+    "order_no": "Order No.",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "view": "View",
+    "close": "Close",
+    "purchased_items": "Purchased Items",
+    "qty": "Qty",
+    "shipping_details": "Shipping Details",
+    "recipient": "Recipient (收件人)",
+    "payment_method": "Payment Method",
+    "shipping_address": "Shipping Address (配送地址)",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "free": "免運費",
+    "credit_card": "線上刷卡 (Credit Card)",
+    "atm_transfer": "ATM 轉帳繳費"
+  },
+  "atm": {
+    "pending": "Pending Payment (待付款)",
+    "bank_code": "Bank Code (銀行代碼)",
+    "account": "Account (繳費帳號)",
+    "deadline": "Deadline (繳費期限)"
+  },
+  "status": {
+    "pending": "待付款",
+    "processing": "處理中",
+    "completed": "已完成",
+    "canceled": "已取消"
+  }
+},
   "showcase": {
     "title": "CURATION",
     "sub_title": "(STYLE)",

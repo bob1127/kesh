@@ -164,7 +164,7 @@ const TAIWAN_CITIES = {
     "三民區",
     "楠梓區",
     "小港區",
-    "左營區",
+    "左营區",
     "仁武區",
     "大社區",
     "岡山區",
@@ -438,7 +438,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
           <div className="bg-[#fafafa] border border-gray-100 p-6 space-y-5 mb-8">
             <div className="flex justify-between items-center border-b border-gray-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                銀行代碼
+                {t("checkout.popup.bankCode", "銀行代碼")}
               </p>
               <p className="text-sm font-bold tracking-widest text-black">
                 {bankCode}
@@ -446,7 +446,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             </div>
             <div className="flex justify-between items-center border-b border-gray-200 pb-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                轉帳帳號
+                {t("checkout.popup.account", "轉帳帳號")}
               </p>
               <p className="text-lg font-bold tracking-widest text-[#ef4628]">
                 {vAccount}
@@ -454,7 +454,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             </div>
             <div className="flex justify-between items-center pt-1">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                繳費期限
+                {t("checkout.popup.deadline", "繳費期限")}
               </p>
               <p className="text-xs font-medium tracking-widest text-gray-600">
                 {expireDate}
@@ -465,7 +465,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
             onClick={onClose}
             className="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors shadow-lg"
           >
-            查看訂單
+            {t("checkout.popup.viewOrder", "查看訂單")}
           </button>
         </div>
       </motion.div>
@@ -490,6 +490,9 @@ export default function CheckoutPage() {
     vAccount: "",
     expireDate: "",
   });
+
+  // 🔥 動態匯率 State
+  const [exchangeRate, setExchangeRate] = useState(1350);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -529,7 +532,7 @@ export default function CheckoutPage() {
     if (formData.country === "TW")
       return {
         cost: 0,
-        name: "宅配到府 (順豐速運)",
+        name: t("checkout.shippingDelivery", "宅配到府 (順豐速運)"),
         currency: "TWD",
         sign: "NT$",
       };
@@ -586,7 +589,26 @@ export default function CheckoutPage() {
       currency: "USD",
       sign: "$",
     };
-  }, [formData.country, totalWeight]);
+  }, [formData.country, totalWeight, t]);
+
+  // 🔥 獲取即時韓元轉美金匯率
+  useEffect(() => {
+    if (shippingInfo.currency === "KRW") {
+      const fetchRate = async () => {
+        try {
+          const res = await fetch("https://open.er-api.com/v6/latest/USD");
+          const data = await res.json();
+          if (data.rates && data.rates.KRW) {
+            setExchangeRate(data.rates.KRW);
+            console.log("✅ 成功獲取即時 USD/KRW 匯率:", data.rates.KRW);
+          }
+        } catch (error) {
+          console.warn("⚠️ 匯率 API 抓取失敗，使用備用匯率 1350", error);
+        }
+      };
+      fetchRate();
+    }
+  }, [shippingInfo.currency]);
 
   useEffect(() => {
     if (defaultCountry !== "TW") {
@@ -693,7 +715,7 @@ export default function CheckoutPage() {
 
       if (formData.paymentMethod === "CREDIT_CARD") {
         if (TPDirect.card.getTappayFieldsStatus().canGetPrime === false)
-          throw new Error("信用卡資訊有誤，請重新輸入");
+          throw new Error(t("checkout.alert.cardError", "信用卡資訊有誤"));
         prime = await new Promise((resolve, reject) =>
           TPDirect.card.getPrime((res) =>
             res.status === 0
@@ -753,9 +775,7 @@ export default function CheckoutPage() {
       const cartData = await cartRes.json();
       const cartId = cartData.cart.id;
 
-      // 🔥 終極除錯版加入購物車迴圈
       for (const item of cartItems) {
-        // 確保精準抓到變體 ID
         const currentVariantId = item.variantId || item.variant_id;
 
         if (!currentVariantId) {
@@ -778,7 +798,7 @@ export default function CheckoutPage() {
           const errData = await lineItemRes.json();
           console.error("❌ Medusa 拒絕加入商品，詳細原因:", errData);
           throw new Error(
-            `商品「${item.title}」加入失敗。\n可能原因：商品後台未設定該國家的專屬幣別價格 (如 ${shippingInfo.currency})。\n系統回報：${errData.message || "未知錯誤"}`,
+            `商品「${item.title}」加入失敗。\n系統回報：${errData.message || "未知錯誤"}`,
           );
         }
       }
@@ -854,15 +874,21 @@ export default function CheckoutPage() {
   if (cartItems.length === 0)
     return (
       <div className="p-32 text-center text-gray-400">
-        {t("checkout.emptyBag")}
+        {t("checkout.emptyBag", "BAG IS EMPTY")}
       </div>
     );
+
+  // ==========================================
+  // 🔥 PayPal 專屬處理引擎 (解決 KRW 閃退問題)
+  // ==========================================
+  const isKRW = shippingInfo.currency === "KRW";
+  const paypalCurrency = isKRW ? "USD" : shippingInfo.currency;
 
   return (
     <PayPalScriptProvider
       options={{
         clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb",
-        currency: shippingInfo.currency,
+        currency: paypalCurrency, // 🔥 這裡傳入處理過後的幣別 (如果是 KRW 就會變成 USD)
         intent: "capture",
         components: "buttons,applepay,googlepay",
       }}
@@ -889,22 +915,25 @@ export default function CheckoutPage() {
                 className="inline-flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-10 hover:text-black transition-colors"
               >
                 <ChevronLeft size={14} className="mr-1" />{" "}
-                {t("checkout.backToBag")}
+                {t("checkout.backToBag", "Back to bag")}
               </Link>
               <h1 className="text-3xl font-light tracking-tight uppercase mb-12">
-                {t("checkout.title")}
+                {t("checkout.title", "CHECKOUT")}
               </h1>
 
               <div className="space-y-14">
                 <section>
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
-                    {t("checkout.customerInfo")}
+                    {t("checkout.customerInfo", "Customer Information")}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
                       name="name"
-                      placeholder="Full Name"
+                      placeholder={t(
+                        "checkout.fullNamePlaceholder",
+                        "Full Name",
+                      )}
                       value={formData.name}
                       onChange={handleChange}
                       className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
@@ -912,7 +941,10 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       name="email"
-                      placeholder="Email Address"
+                      placeholder={t(
+                        "checkout.emailPlaceholder",
+                        "Email Address",
+                      )}
                       value={formData.email}
                       onChange={handleChange}
                       className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
@@ -920,7 +952,10 @@ export default function CheckoutPage() {
                     <input
                       type="tel"
                       name="phone"
-                      placeholder="Phone Number"
+                      placeholder={t(
+                        "checkout.phonePlaceholder",
+                        "Phone Number",
+                      )}
                       className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
                       value={formData.phone}
                       onChange={handleChange}
@@ -946,7 +981,7 @@ export default function CheckoutPage() {
                           className="border border-gray-200 p-4 text-sm outline-none focus:border-black bg-white"
                         >
                           <option value="" disabled>
-                            選擇縣市
+                            {t("checkout.selectCity", "選擇縣市")}
                           </option>
                           {Object.keys(TAIWAN_CITIES).map((city) => (
                             <option key={city} value={city}>
@@ -962,7 +997,7 @@ export default function CheckoutPage() {
                           className={`border border-gray-200 p-4 text-sm outline-none focus:border-black ${!formData.city ? "bg-gray-50 text-gray-400" : "bg-white"}`}
                         >
                           <option value="" disabled>
-                            選擇區域
+                            {t("checkout.selectDistrict", "選擇區域")}
                           </option>
                           {formData.city &&
                             TAIWAN_CITIES[formData.city].map((district) => (
@@ -996,7 +1031,10 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       name="street"
-                      placeholder="Street Address"
+                      placeholder={t(
+                        "checkout.streetPlaceholder",
+                        "Street Address",
+                      )}
                       className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
                       value={formData.street}
                       onChange={handleChange}
@@ -1006,7 +1044,7 @@ export default function CheckoutPage() {
 
                 <section>
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
-                    {t("checkout.shippingMethod")}
+                    {t("checkout.shippingMethod", "Shipping Method")}
                   </h2>
                   <div className="border border-gray-200">
                     <label className="flex items-center justify-between p-6 bg-gray-50 cursor-default">
@@ -1029,7 +1067,7 @@ export default function CheckoutPage() {
 
                 <section>
                   <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
-                    {t("checkout.payment")}
+                    {t("checkout.payment", "Payment")}
                   </h2>
                   <div className="border border-gray-200 divide-y divide-gray-100">
                     {formData.country === "TW" ? (
@@ -1044,7 +1082,8 @@ export default function CheckoutPage() {
                             className="accent-black"
                           />
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <CreditCard size={16} /> 信用卡付款
+                            <CreditCard size={16} />{" "}
+                            {t("checkout.creditCard", "Credit Card")}
                           </span>
                         </label>
                         {formData.paymentMethod === "CREDIT_CARD" && (
@@ -1075,7 +1114,8 @@ export default function CheckoutPage() {
                             className="accent-black"
                           />
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <Landmark size={16} /> ATM 虛擬帳號轉帳
+                            <Landmark size={16} />{" "}
+                            {t("checkout.atmTransfer", "ATM 轉帳繳費")}
                           </span>
                         </label>
                       </>
@@ -1091,7 +1131,8 @@ export default function CheckoutPage() {
                             className="accent-black"
                           />
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <Globe size={16} /> PayPal / Apple Pay
+                            <Globe size={16} />{" "}
+                            {t("checkout.paypal", "PayPal / Apple Pay")}
                           </span>
                         </label>
 
@@ -1108,23 +1149,37 @@ export default function CheckoutPage() {
                                     !formData.city ||
                                     !formData.street
                                   ) {
-                                    alert("請先填寫上方完整的收件資訊！");
+                                    alert(t("checkout.alert.fillInfo"));
                                     return actions.reject();
                                   }
                                   return actions.resolve();
                                 }}
                                 createOrder={(data, actions) => {
-                                  const finalAmount = Math.max(
+                                  let finalAmountValue = Math.max(
                                     1,
                                     Math.round(total + shippingInfo.cost),
-                                  ).toString();
+                                  );
+
+                                  // 🔥 如果是韓元，使用即時匯率轉換為美金並取到小數點後兩位
+                                  if (isKRW) {
+                                    finalAmountValue = (
+                                      finalAmountValue / exchangeRate
+                                    ).toFixed(2);
+                                  } else {
+                                    finalAmountValue =
+                                      finalAmountValue.toString();
+                                  }
+
                                   return actions.order.create({
                                     purchase_units: [
                                       {
                                         amount: {
-                                          currency_code: shippingInfo.currency,
-                                          value: finalAmount,
+                                          currency_code: paypalCurrency,
+                                          value: finalAmountValue,
                                         },
+                                        description: isKRW
+                                          ? `Converted from KRW (Rate 1:${Math.round(exchangeRate)})`
+                                          : "",
                                       },
                                     ],
                                   });
@@ -1153,8 +1208,8 @@ export default function CheckoutPage() {
                       className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.4em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       {loading || isProcessing.current
-                        ? "PROCESSING..."
-                        : "COMPLETE PURCHASE"}
+                        ? t("checkout.processing", "PROCESSING...")
+                        : t("checkout.completePurchase", "COMPLETE PURCHASE")}
                     </button>
                   )}
                 </section>
@@ -1165,71 +1220,82 @@ export default function CheckoutPage() {
           <div className="w-full lg:w-[45%] bg-[#fafafa] px-6 py-10 lg:px-14 lg:py-20 border-l border-gray-100 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
             <div className="max-w-[400px] mx-auto lg:mx-0">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-8 border-b border-gray-200 pb-2">
-                ORDER SUMMARY
+                {t("checkout.orderSummary", "ORDER SUMMARY")}
               </h2>
 
               <div className="flex flex-col gap-5 mb-6">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <div className="w-16 h-16 bg-white border border-gray-200 rounded-lg relative overflow-hidden flex-shrink-0">
-                          {item.image && (
-                            <Image
-                              src={item.image}
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          )}
+                {cartItems.map((item) => {
+                  const itemImage =
+                    item.thumbnail ||
+                    item.image ||
+                    (item.images && item.images[0]) ||
+                    "";
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="w-16 h-16 bg-white border border-gray-200 rounded-lg relative overflow-hidden flex-shrink-0">
+                            {itemImage && (
+                              <Image
+                                src={itemImage}
+                                alt={item.title}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            )}
+                          </div>
+                          <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[11px] font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                            {item.quantity}
+                          </span>
                         </div>
-                        <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[11px] font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
-                          {item.quantity}
-                        </span>
+                        <div className="flex flex-col pr-4">
+                          <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
+                            {item.title}
+                          </h3>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Weight: {item.variant?.weight || item.weight || 0}g
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex flex-col pr-4">
-                        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
-                          {item.title}
-                        </h3>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Weight: {item.variant?.weight || item.weight || 0}g
-                        </p>
-                      </div>
+                      <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
+                        {(
+                          item.rawPrice ||
+                          parseInt(
+                            String(item.price).replace(/[^\d]/g, ""),
+                            10,
+                          ) ||
+                          0
+                        ).toLocaleString()}
+                      </span>
                     </div>
-                    <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
-                      {(
-                        item.rawPrice ||
-                        parseInt(
-                          String(item.price).replace(/[^\d]/g, ""),
-                          10,
-                        ) ||
-                        0
-                      ).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Subtotal</span>
+                  <span>{t("checkout.subtotal", "Subtotal")}</span>
                   <span>
                     {shippingInfo.sign} {total.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Shipping (Total Weight: {totalWeight}g)</span>
+                  <span>
+                    {t("checkout.shipping", "Shipping")} (Total Weight:{" "}
+                    {totalWeight}g)
+                  </span>
                   <span>
                     {shippingInfo.sign} {shippingInfo.cost.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-lg pt-3 border-t border-gray-100">
                   <span className="text-sm uppercase tracking-widest mt-1">
-                    TOTAL
+                    {t("checkout.total", "TOTAL")}
                   </span>
                   <span>
                     {shippingInfo.currency} {shippingInfo.sign}{" "}

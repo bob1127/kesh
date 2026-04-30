@@ -84,7 +84,7 @@ const FilterSection = ({ title, children, defaultOpen = true }) => {
     <div className="mb-10">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4 group outline-none"
+        className="w-full flex items-center justify-between text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4 group"
       >
         {title}
         <motion.div
@@ -131,7 +131,6 @@ const FilterSidebar = ({
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const t = (zh, en, ko) => (locale === "en" ? en : locale === "ko" ? ko : zh);
 
-  // 排序選單狀態
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   const sortOptions = [
@@ -325,7 +324,6 @@ const FilterSidebar = ({
         </FilterSection>
       </div>
 
-      {/* 按鈕區域：根據裝置顯示不同 UI */}
       {isMobile ? (
         <div className="flex gap-3 mt-4 border-t border-gray-100 pt-6">
           <button
@@ -433,20 +431,43 @@ const CompanyLocation = () => {
   );
 };
 
-// --- 🔥 主頁面 ---
-export default function CategoryOverview({ products, brands, categories }) {
+// --- 🔥 主頁面: 動態分類列表頁 ([slug].jsx) ---
+export default function CategoryPage({
+  products,
+  brands,
+  categories,
+  initialFilter,
+}) {
   const router = useRouter();
   const { locale } = router;
+  const metaLang = locale === "zh-TW" ? "zh" : locale;
+  const tAllProducts =
+    locale === "en"
+      ? "All Products"
+      : locale === "ko"
+        ? "전체 상품"
+        : "全部商品";
+
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [activeFilters, setActiveFilters] = useState({
-    categories: [],
-    brands: [],
+    categories: initialFilter?.type === "category" ? [initialFilter.value] : [],
+    brands: initialFilter?.type === "brand" ? [initialFilter.value] : [],
   });
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(12);
+
+  useEffect(() => {
+    if (initialFilter) {
+      setActiveFilters({
+        categories:
+          initialFilter.type === "category" ? [initialFilter.value] : [],
+        brands: initialFilter.type === "brand" ? [initialFilter.value] : [],
+      });
+    }
+  }, [initialFilter]);
 
   const handleMobileApply = () => {
     setIsMobileFilterOpen(false);
@@ -493,27 +514,79 @@ export default function CategoryOverview({ products, brands, categories }) {
     setVisibleCount(12);
   }, [activeFilters, priceRange, sortBy]);
 
+  if (router.isFallback)
+    return (
+      <div className="min-h-screen flex items-center justify-center tracking-widest uppercase">
+        Loading...
+      </div>
+    );
+
   const displayedProducts = finalProducts.slice(0, visibleCount);
 
-  const isFiltered =
-    activeFilters.categories.length > 0 || activeFilters.brands.length > 0;
-  const titleDisplay = isFiltered ? "Filtered Results" : "Online Store";
+  const getFilterDisplayName = () => {
+    if (
+      activeFilters.categories.length === 1 &&
+      activeFilters.brands.length === 0
+    ) {
+      const c = categories.find((x) => x.slug === activeFilters.categories[0]);
+      return c
+        ? c.metadata?.[`name_${metaLang}`] || c.name
+        : activeFilters.categories[0];
+    }
+    if (
+      activeFilters.brands.length === 1 &&
+      activeFilters.categories.length === 0
+    ) {
+      const b = brands.find((x) => x.slug === activeFilters.brands[0]);
+      return b
+        ? b.metadata?.[`name_${metaLang}`] || b.name
+        : activeFilters.brands[0];
+    }
+    if (
+      activeFilters.categories.length === 0 &&
+      activeFilters.brands.length === 0
+    ) {
+      return tAllProducts;
+    }
+    return "Filtered Results";
+  };
+
+  const displayTitle = getFilterDisplayName();
+  const pageTitle = `${displayTitle} | KÉSH de¹`;
 
   return (
     <>
       <Head>
-        <title>Shop | KÉSH de¹</title>
+        <title>{pageTitle}</title>
       </Head>
 
       <main className="pb-0 bg-white text-black font-sans min-h-screen">
         <Slider />
-        <Carousel />
 
         <section>
           <div className="title">
-            <div className="py-12 px-6 md:px-10 bg-[#fafafa]">
+            <div className="py-10 px-6 md:px-10 bg-[#fafafa]">
+              <nav className="text-[11px] font-medium text-gray-400 tracking-widest uppercase mb-6 flex items-center gap-2">
+                <Link href="/" className="hover:text-black transition-colors">
+                  Home
+                </Link>
+                <span>/</span>
+                <Link
+                  href="/category/all"
+                  className="hover:text-black transition-colors"
+                >
+                  Shop
+                </Link>
+                {activeFilters.categories.length > 0 ||
+                activeFilters.brands.length > 0 ? (
+                  <>
+                    <span>/</span>
+                    <span className="text-black uppercase">{displayTitle}</span>
+                  </>
+                ) : null}
+              </nav>
               <h1 className="text-3xl md:text-5xl font-light tracking-wide uppercase text-gray-900">
-                {titleDisplay}
+                {displayTitle}
               </h1>
               <p className="mt-4 text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">
                 {finalProducts.length} Items
@@ -656,8 +729,43 @@ export default function CategoryOverview({ products, brands, categories }) {
   );
 }
 
-export async function getStaticProps({ locale }) {
+export async function getStaticPaths() {
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+  const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+
+  if (!BACKEND_URL || !API_KEY) return { paths: [], fallback: "blocking" };
+
+  try {
+    const headers = { "x-publishable-api-key": API_KEY };
+    const [catRes, colRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/store/product-categories?limit=250`, { headers }),
+      fetch(`${BACKEND_URL}/store/collections?limit=250`, { headers }),
+    ]);
+
+    const catData = await catRes.json();
+    const colData = await colRes.json();
+
+    const catSlugs = (catData.product_categories || []).map((c) =>
+      c.handle.replace(/^\/+/, ""),
+    );
+    const colSlugs = (colData.collections || []).map((c) =>
+      c.handle.replace(/^\/+/, ""),
+    );
+
+    const validSlugs = ["all", ...catSlugs, ...colSlugs];
+    const paths = validSlugs.map((slug) => ({ params: { slug: slug } }));
+
+    return { paths, fallback: "blocking" };
+  } catch (error) {
+    return { paths: [], fallback: "blocking" };
+  }
+}
+
+export async function getStaticProps({ params, locale }) {
+  const { slug } = params;
   const currentLang = locale || "zh-TW";
+
   const targetCurrency =
     currentLang === "en" ? "usd" : currentLang === "ko" ? "krw" : "twd";
   const symbol =
@@ -667,6 +775,18 @@ export async function getStaticProps({ locale }) {
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
+  if (!BACKEND_URL || !API_KEY) {
+    return {
+      props: {
+        products: [],
+        brands: [],
+        categories: [],
+        initialFilter: { type: "all", value: null },
+      },
+      revalidate: 60,
+    };
+  }
+
   try {
     const headers = {
       "x-publishable-api-key": API_KEY,
@@ -675,7 +795,6 @@ export async function getStaticProps({ locale }) {
     const fetchOptions = { headers, cache: "no-store" };
 
     const [catRes, colRes, pRes] = await Promise.all([
-      // 🔥 將限制提高到 250，確保抓取所有分類、品牌與商品
       fetch(`${BACKEND_URL}/store/product-categories?limit=250`, fetchOptions),
       fetch(`${BACKEND_URL}/store/collections?limit=250`, fetchOptions),
       fetch(
@@ -717,7 +836,6 @@ export async function getStaticProps({ locale }) {
       };
     });
 
-    // 移除 .filter(c => c.count > 0) 讓空庫存也顯示出來
     const categoriesList = (catData.product_categories || []).map((c) => ({
       id: c.id,
       name: c.name,
@@ -735,16 +853,37 @@ export async function getStaticProps({ locale }) {
       count: formattedProducts.filter((p) => p.brandSlug === c.handle).length,
     }));
 
+    let initialFilter = { type: "all", value: null };
+    if (slug !== "all") {
+      if (brandsList.some((b) => b.slug === slug)) {
+        initialFilter = { type: "brand", value: slug };
+      } else if (categoriesList.some((c) => c.slug === slug)) {
+        initialFilter = { type: "category", value: slug };
+      } else {
+        return { notFound: true }; // 防呆
+      }
+    }
+
     return {
       props: {
         ...(await serverSideTranslations(currentLang, ["common"])),
         products: formattedProducts,
         brands: brandsList,
         categories: categoriesList,
+        initialFilter,
       },
       revalidate: 60,
     };
   } catch (error) {
-    return { props: { products: [], brands: [], categories: [] } };
+    return {
+      props: {
+        ...(await serverSideTranslations(currentLang, ["common"])),
+        products: [],
+        brands: [],
+        categories: [],
+        initialFilter: { type: "all", value: null },
+      },
+      revalidate: 60,
+    };
   }
 }

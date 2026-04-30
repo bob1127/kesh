@@ -361,20 +361,18 @@
       }
     }
   },
-  "news": {
-    "seo_title": "Latest News | KÉSH de¹",
-    "seo_desc": "KÉSH de¹ latest news, fashion trends, and brand announcements.",
-    "page_title": "Journal",
-    "page_subtitle": "News & Events / Fashion Trends",
-    "updated": "UPDATED :",
-    "no_posts": "No news available at the moment.",
-    "footer_official": "KÉSH de¹ Official",
-    "footer_store": "Go to Online Store",
-    "badge_latest": "Latest News",
-    "badge_news": "News",
-    "read_more": "Read More",
-    "view_details": "View Details"
-  },
+ "news": {
+  "category": "News",
+  "share": "Share :",
+  "editor": "Editor",
+  "category_label": "Category",
+  "category_value": "Fashion / Events",
+  "toc": "Table of Contents",
+  "no_outline": "No outlines available.",
+  "about_desc": "We are dedicated to building the highest quality pre-owned luxury trading platform, providing transparent pricing and professional authentication services.",
+  "back_btn": "Back to Journal",
+  "recent": "Recent Journal"
+},
   "faq": {
     "seo": {
       "title": "FAQ | KÉSH de¹ - Authentication &  Services",
@@ -585,42 +583,45 @@
     ]
   },
  "checkout": {
-    "backToBag": "Back to bag",
-    "emptyBag": "BAG IS EMPTY",
-    "title": "Checkout",
-    "customerInfo": "Customer Information",
-    "fullNamePlaceholder": "Full Name",
-    "emailPlaceholder": "Email Address",
-    "phonePlaceholder": "Phone Number",
-    "selectCity": "Select City",
-    "selectDistrict": "Select District",
-    "streetPlaceholder": "Street Address",
-    "shippingMethod": "Shipping Method",
-    "shippingDelivery": "Home Delivery (SF Express)",
-    "freeShipping": "Free Shipping",
-    "payment": "Payment",
-    "creditCard": "Credit Card",
-    "atmTransfer": "ATM Transfer",
-    "processing": "PROCESSING...",
-    "completePurchase": "COMPLETE PURCHASE",
-    "orderSummary": "Order Summary",
-    "total": "Total",
-    "alert": {
-      "fillInfo": "Please fill in complete contact and shipping information!",
-      "cardError": "Credit card information is invalid!",
-      "atmError": "Failed to generate virtual account. System busy.",
-      "success": "🎉 Checkout successful!"
-    },
-    "popup": {
-      "title": "Order Confirmed",
-      "desc1": "Your order has been successfully created.",
-      "desc2": "Please complete the transfer via ATM or online banking before the deadline.",
-      "bankCode": "Bank Code",
-      "account": "Account No.",
-      "deadline": "Deadline",
-      "viewOrder": "View Order Details"
-    }
+  "backToBag": "Back to Bag",
+  "emptyBag": "Your bag is currently empty.",
+  "title": "Checkout",
+  "customerInfo": "Customer Information",
+  "fullNamePlaceholder": "Full Name",
+  "emailPlaceholder": "Email Address",
+  "phonePlaceholder": "Phone Number",
+  "selectCity": "Select City / State",
+  "selectDistrict": "Select District / City",
+  "streetPlaceholder": "Street Address",
+  "shippingMethod": "Shipping Method",
+  "shippingDelivery": "Standard Delivery",
+  "freeShipping": "Free Shipping",
+  "payment": "Payment Method",
+  "creditCard": "Credit Card",
+  "atmTransfer": "ATM Transfer",
+  "paypal": "PayPal / Apple Pay",
+  "processing": "Processing...",
+  "completePurchase": "Complete Purchase",
+  "orderSummary": "Order Summary",
+  "subtotal": "Subtotal",
+  "shipping": "Shipping",
+  "total": "Total",
+  "alert": {
+    "fillInfo": "Please fill in all required contact and shipping information!",
+    "cardError": "Credit card information is invalid!",
+    "atmError": "Failed to generate virtual account. System is busy.",
+    "success": "Checkout successful!"
   },
+  "popup": {
+    "title": "ATM Transfer Information",
+    "desc1": "Your order has been created.",
+    "desc2": "Please transfer the funds within the deadline.",
+    "bankCode": "Bank Code",
+    "account": "Account Number",
+    "deadline": "Deadline",
+    "viewOrder": "View Order"
+  }
+},
   "login": {
     "title": "Sign In",
     "subtitle": "Welcome back to KÉSH de¹",
@@ -862,20 +863,22 @@
       ]
     }
   },
-  "cart": {
-    "title": "Cart",
-    "continue_shopping": "Continue Shopping",
-    "empty_message": "Your cart is currently empty",
-    "start_shopping": "Start Shopping",
-    "product": "Product",
-    "quantity": "Quantity",
-    "total": "Total",
-    "remove_item": "Remove item",
-    "subtotal": "Subtotal",
-    "tax_shipping_note": "Tax included. Shipping calculated at checkout.",
-    "secure_checkout_note": "Secure checkout powered by KÉSH de¹",
-    "go_to_checkout": "Go to Checkout"
-  },
+ "cart": {
+  "title": "Shopping Bag",
+  "product": "Items",
+  "continue_shopping": "Continue Shopping",
+  "empty_message": "Your bag is currently empty.",
+  "start_shopping": "Start Shopping",
+  "quantity": "Quantity",
+  "total": "Total",
+  "remove_item": "Remove Item",
+  "order_summary": "Order Summary",
+  "subtotal": "Subtotal",
+  "tax_shipping_note": "Taxes included. Shipping calculated at checkout.",
+  "estimated_total": "Estimated Total",
+  "go_to_checkout": "Proceed to Checkout",
+  "secure_checkout_note": "Secure checkout by KÉSH de¹"
+},
   "terms": {
     "seo_title": "Terms of Service & Policies | KÉSH de¹ Luxury Boutique",
     "seo_desc": "Thank you for choosing KÉSH de¹. We are committed to providing a transparent, professional, and trustworthy luxury shopping experience. Please read our service policies carefully before purchasing.",
@@ -994,47 +997,53 @@
     ]
   },
   "member": {
-    "title": "My Account",
-    "subtitle": "Manage your orders and personal details",
-    "welcome": "Welcome back",
-    "tabs": {
-      "dashboard": "Dashboard",
-      "orders": "My Orders",
-      "addresses": "Addresses",
-      "settings": "Account Details",
-      "logout": "Logout"
-    },
-    "dashboard": {
-      "total_spent": "Total Spent",
-      "completed_orders": "Completed",
-      "pending_orders": "Pending"
-    },
-    "orders": {
-      "empty": "No orders yet.",
-      "shop_now": "Shop Now",
-      "order_amount": "Total Amount",
-      "items": "items",
-      "view_details": "View Details",
-      "pay_now": "Pay Now"
-    },
-    "addresses": {
-      "empty": "No addresses saved yet.",
-      "add_new": "Add New Address"
-    },
-    "settings": {
-      "title": "Personal Details",
-      "name": "Name",
-      "email": "Email",
-      "save": "Save Changes"
-    },
-    "status": {
-      "pending": "Pending",
-      "processing": "Processing",
-      "completed": "Completed",
-      "canceled": "Canceled",
-      "unknown": "Unknown"
-    }
+  "title": "My Account",
+  "subtitle": "Manage your orders and personal information",
+  "welcome": "Hi,",
+  "tabs": {
+    "dashboard": "Dashboard",
+    "orders": "My Orders",
+    "addresses": "Addresses",
+    "settings": "Settings",
+    "logout": "Log Out"
   },
+  "orders": {
+    "title": "Order History",
+    "count": "Orders",
+    "empty": "You currently have no orders.",
+    "shop_now": "Start Shopping",
+    "order_no": "Order No.",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "view": "View",
+    "close": "Close",
+    "purchased_items": "Purchased Items",
+    "qty": "Qty",
+    "shipping_details": "Shipping Details",
+    "recipient": "Recipient",
+    "payment_method": "Payment Method",
+    "shipping_address": "Shipping Address",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "free": "Free",
+    "credit_card": "Credit Card",
+    "atm_transfer": "ATM Transfer"
+  },
+  "atm": {
+    "pending": "Pending Payment",
+    "bank_code": "Bank Code",
+    "account": "Account Number",
+    "deadline": "Deadline"
+  },
+  "status": {
+    "pending": "Awaiting Payment",
+    "processing": "Processing",
+    "completed": "Completed",
+    "canceled": "Canceled"
+  }
+},
   "showcase": {
     "title": "CURATION",
     "sub_title": "(STYLE)",

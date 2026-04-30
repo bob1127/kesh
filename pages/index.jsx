@@ -120,7 +120,7 @@ export default function Home({ featuredProducts }) {
       <HeroCarousel />
       <CollectionShowcase />
       <ParallaxProvider>
-        <section className="flex relative gap-4 my-[100px]">
+        <section className="flex relative gap-4 ">
           <div className="text absolute left-1/2 -translate-x-1/2 top-[40%] -translate-y-1/2 z-50">
             <div className="flex flex-col justify-center items-center">
               <h3 className="text-xl text-stone-100">
@@ -156,10 +156,10 @@ export default function Home({ featuredProducts }) {
       {/* =======================================================
           🔥 極簡雜誌風格輪播 (Updated Style)
       ======================================================= */}
-      <section className="py-20 relative container mx-auto px-6 md:px-12">
+      <section className="pt-10 relative container mx-auto px-6 md:px-12">
         {/* 標題與控制按鈕區 */}
         <div className="flex justify-between items-end mb-10 px-2">
-          <h2 className="text-2xl md:text-3xl font-normal tracking-[0.2em] uppercase text-gray-900">
+          <h2 className="text-2xl md:text-3xl lg:mt-10 font-normal tracking-[0.2em] uppercase text-gray-900">
             Featured Collections
           </h2>
           {/* 極簡箭頭 */}
@@ -228,14 +228,14 @@ export default function Home({ featuredProducts }) {
       </section>
       {/* ======================================================= */}
 
-      <div ref={scrollRef} className="relative pt-0 lg:pt-20 z-10">
-        <section className="feature sm:mt-10 xl:mt-20">
+      <div ref={scrollRef} className="relative z-10">
+        <section className="feature  ">
           <Gallery />
         </section>
 
         <section className="h-full py-5 md:py-20">
           <div className="container flex lg:flex-row flex-col max-w-[1920px] w-full xl:w-[85%] mx-auto">
-            <div className="left w-full lg:w-1/2 p-10">
+            <div className="left w-full lg:w-1/2 p-5">
               <h2 className="text-[1.5rem] max-w-[500px] mx-auto text-left font-[400]">
                 {t("home.philosophy_title")}
               </h2>

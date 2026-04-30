@@ -18,40 +18,50 @@ import {
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-const getStatusBadge = (paymentStatus) => {
-  if (paymentStatus === "captured")
-    return {
-      label: "已完成",
-      color: "bg-[#f2fcf5] text-[#166534] border border-[#dcfce7]",
-    };
-  if (paymentStatus === "awaiting" || paymentStatus === "requires_action")
-    return {
-      label: "待付款",
-      color: "bg-[#fffbeb] text-[#b45309] border border-[#fef3c7]",
-    };
-  if (paymentStatus === "canceled")
-    return {
-      label: "已取消",
-      color: "bg-[#f9fafb] text-[#52525b] border border-[#f3f4f6]",
-    };
-  return {
-    label: "處理中",
-    color: "bg-[#eff6ff] text-[#1d4ed8] border border-[#dbeafe]",
-  };
-};
-
 const formatMoney = (v) =>
   Number.isNaN(Number(v)) ? "0" : Math.round(Number(v)).toLocaleString();
 
 export default function MemberProfile() {
   const { userInfo, loading: authLoading, logout } = useUser();
   const router = useRouter();
+  const { locale } = router;
   const { t } = useTranslation("common");
+
+  // 🌍 智慧幣別與日期判斷引擎
+  const targetCurrency =
+    locale === "en" ? "usd" : locale === "ko" ? "krw" : "twd";
+  const symbol =
+    targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
+  const dateLocale =
+    locale === "zh-TW" ? "zh-TW" : locale === "ko" ? "ko-KR" : "en-US";
 
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [activeTab, setActiveTab] = useState("orders");
   const [expandedOrders, setExpandedOrders] = useState({});
+
+  // 📦 動態狀態標籤 (需傳入 t 函數翻譯)
+  const getStatusBadge = (paymentStatus) => {
+    if (paymentStatus === "captured")
+      return {
+        label: t("member.status.completed", "已完成"),
+        color: "bg-[#f2fcf5] text-[#166534] border border-[#dcfce7]",
+      };
+    if (paymentStatus === "awaiting" || paymentStatus === "requires_action")
+      return {
+        label: t("member.status.pending", "待付款"),
+        color: "bg-[#fffbeb] text-[#b45309] border border-[#fef3c7]",
+      };
+    if (paymentStatus === "canceled")
+      return {
+        label: t("member.status.canceled", "已取消"),
+        color: "bg-[#f9fafb] text-[#52525b] border border-[#f3f4f6]",
+      };
+    return {
+      label: t("member.status.processing", "處理中"),
+      color: "bg-[#eff6ff] text-[#1d4ed8] border border-[#dbeafe]",
+    };
+  };
 
   useEffect(() => {
     if (!authLoading && !userInfo) router.push("/login");
@@ -103,29 +113,45 @@ export default function MemberProfile() {
     );
 
   const menuItems = [
-    { id: "dashboard", label: "帳戶總覽", icon: <LayoutDashboard size={16} /> },
-    { id: "orders", label: "我的訂單", icon: <ShoppingBag size={16} /> },
-    { id: "addresses", label: "收件地址", icon: <MapPin size={16} /> },
-    { id: "settings", label: "帳號設定", icon: <Settings size={16} /> },
+    {
+      id: "dashboard",
+      label: t("member.tabs.dashboard", "帳戶總覽"),
+      icon: <LayoutDashboard size={16} />,
+    },
+    {
+      id: "orders",
+      label: t("member.tabs.orders", "我的訂單"),
+      icon: <ShoppingBag size={16} />,
+    },
+    {
+      id: "addresses",
+      label: t("member.tabs.addresses", "收件地址"),
+      icon: <MapPin size={16} />,
+    },
+    {
+      id: "settings",
+      label: t("member.tabs.settings", "帳號設定"),
+      icon: <Settings size={16} />,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-20">
+    <div className="min-h-screen bg-[#fdfeff] pt-24 pb-20">
       <Head>
-        <title>會員中心 | KÉSH de¹</title>
+        <title>{t("member.title", "會員中心")} | KÉSH de¹</title>
       </Head>
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="mb-12 pt-4 border-b border-gray-100 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-light tracking-widest uppercase mb-2 text-black">
-              My Account
+              {t("member.title", "MY ACCOUNT")}
             </h1>
             <p className="text-gray-400 text-sm tracking-wide">
-              管理您的訂單與個人資料
+              {t("member.subtitle", "管理您的訂單與個人資料")}
             </p>
           </div>
           <div className="text-xs text-gray-400 tracking-widest uppercase">
-            Hi, {userInfo.name}
+            {t("member.welcome", "Hi,")} {userInfo.name}
           </div>
         </div>
 
@@ -138,7 +164,7 @@ export default function MemberProfile() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center gap-4 w-full text-left px-4 py-3 text-xs tracking-widest uppercase transition-all duration-300 ${activeTab === item.id ? "bg-black text-white font-bold" : "text-gray-500 hover:bg-gray-50 hover:text-black"}`}
+                    className={`flex items-center gap-4 w-full text-left px-4 py-3 text-xs tracking-widest uppercase transition-all duration-300 ${activeTab === item.id ? "bg-slate-100 text-stone-800 font-bold" : "text-gray-500 hover:bg-gray-50 hover:text-black"}`}
                   >
                     <span
                       className={
@@ -158,7 +184,7 @@ export default function MemberProfile() {
                     <span className="opacity-60">
                       <LogOut size={16} />
                     </span>
-                    登出帳號
+                    {t("member.tabs.logout", "登出帳號")}
                   </button>
                 </div>
               </nav>
@@ -177,10 +203,10 @@ export default function MemberProfile() {
                 >
                   <div className="flex justify-between items-end mb-8">
                     <h3 className="text-sm font-bold tracking-widest uppercase text-black">
-                      Order History
+                      {t("member.orders.title", "ORDER HISTORY")}
                     </h3>
                     <p className="text-[10px] text-gray-400 uppercase tracking-widest">
-                      {orders.length} Orders
+                      {orders.length} {t("member.orders.count", "ORDERS")}
                     </p>
                   </div>
 
@@ -188,13 +214,13 @@ export default function MemberProfile() {
                     <div className="py-24 text-center border border-gray-100 bg-gray-50 flex flex-col items-center">
                       <ShoppingBag size={32} className="text-gray-400 mb-6" />
                       <p className="text-gray-500 tracking-widest text-xs uppercase mb-6">
-                        您目前沒有任何訂單紀錄
+                        {t("member.orders.empty", "您目前沒有任何訂單紀錄")}
                       </p>
                       <Link
                         href="/category/all"
                         className="bg-black text-white px-8 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors"
                       >
-                        開始購物
+                        {t("member.orders.shop_now", "開始購物")}
                       </Link>
                     </div>
                   ) : (
@@ -204,14 +230,13 @@ export default function MemberProfile() {
                         const badge = getStatusBadge(order.payment_status);
                         const date = new Date(
                           order.created_at,
-                        ).toLocaleDateString("en-US", {
+                        ).toLocaleDateString(dateLocale, {
                           year: "numeric",
                           month: "short",
                           day: "numeric",
                         });
 
                         const sAddr = order.shipping_address || {};
-                        const storeName = sAddr.company;
                         const cleanLastName =
                           sAddr.last_name === "Customer"
                             ? ""
@@ -230,8 +255,11 @@ export default function MemberProfile() {
 
                         const paymentType =
                           order.metadata?.payment_method === "ATM"
-                            ? "ATM 轉帳繳費"
-                            : "線上刷卡 (TapPay)";
+                            ? t("member.orders.atm_transfer", "ATM 轉帳繳費")
+                            : t(
+                                "member.orders.credit_card",
+                                "線上刷卡 (Credit Card)",
+                              );
 
                         const atmBankCode = order.metadata?.atm_bank_code;
                         const atmVaccount = order.metadata?.atm_vaccount;
@@ -245,7 +273,7 @@ export default function MemberProfile() {
                         return (
                           <div
                             key={order.id}
-                            className={`border transition-colors duration-300 ${expanded ? "border-black" : "border-gray-200 hover:border-gray-400"}`}
+                            className={`border transition-colors duration-300 bg-slate-100 ${expanded ? "border-gray-50" : "border-gray-200 hover:border-gray-400"}`}
                           >
                             <div
                               className="p-6 cursor-pointer"
@@ -254,7 +282,7 @@ export default function MemberProfile() {
                               <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
                                 <div className="col-span-2 md:col-span-1">
                                   <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
-                                    Order No.
+                                    {t("member.orders.order_no", "ORDER NO.")}
                                   </p>
                                   <p className="text-sm font-medium text-black tracking-wider">
                                     #{order.display_id}
@@ -262,7 +290,7 @@ export default function MemberProfile() {
                                 </div>
                                 <div className="hidden md:block">
                                   <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
-                                    Date
+                                    {t("member.orders.date", "DATE")}
                                   </p>
                                   <p className="text-xs text-gray-800 uppercase tracking-wider">
                                     {date}
@@ -270,7 +298,7 @@ export default function MemberProfile() {
                                 </div>
                                 <div>
                                   <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
-                                    Status
+                                    {t("member.orders.status", "STATUS")}
                                   </p>
                                   <span
                                     className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest ${badge.color}`}
@@ -280,15 +308,18 @@ export default function MemberProfile() {
                                 </div>
                                 <div className="hidden md:block text-right">
                                   <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-1.5">
-                                    Total
+                                    {t("member.orders.total", "TOTAL")}
                                   </p>
                                   <p className="text-sm font-medium text-black">
-                                    NT$ {formatMoney(order.total)}
+                                    {symbol}
+                                    {formatMoney(order.total)}
                                   </p>
                                 </div>
                                 <div className="col-span-2 md:col-span-1 flex justify-end">
                                   <button className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover:text-black transition-colors">
-                                    {expanded ? "Close" : "View"}
+                                    {expanded
+                                      ? t("member.orders.close", "CLOSE")
+                                      : t("member.orders.view", "VIEW")}
                                     {expanded ? (
                                       <ChevronUp size={14} />
                                     ) : (
@@ -312,7 +343,10 @@ export default function MemberProfile() {
                                     {/* 左：商品明細 */}
                                     <div className="flex-1">
                                       <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-6 pb-2 border-b border-gray-100">
-                                        Purchased Items
+                                        {t(
+                                          "member.orders.purchased_items",
+                                          "PURCHASED ITEMS",
+                                        )}
                                       </h4>
                                       <div className="space-y-6">
                                         {(order.items || []).map((item) => (
@@ -335,10 +369,15 @@ export default function MemberProfile() {
                                               </div>
                                               <div className="flex justify-between items-end">
                                                 <p className="text-[10px] text-gray-400 uppercase tracking-widest">
-                                                  Qty: {item.quantity}
+                                                  {t(
+                                                    "member.orders.qty",
+                                                    "QTY",
+                                                  )}
+                                                  : {item.quantity}
                                                 </p>
                                                 <p className="text-xs font-bold tracking-wider text-black">
-                                                  NT$ {formatMoney(item.total)}
+                                                  {symbol}
+                                                  {formatMoney(item.total)}
                                                 </p>
                                               </div>
                                             </div>
@@ -358,13 +397,19 @@ export default function MemberProfile() {
                                               className="text-black"
                                             />
                                             <h4 className="text-xs font-bold text-black uppercase tracking-widest">
-                                              Pending Payment (待付款)
+                                              {t(
+                                                "member.atm.pending",
+                                                "Pending Payment (待付款)",
+                                              )}
                                             </h4>
                                           </div>
                                           <div className="space-y-4">
                                             <div className="flex justify-between items-center">
                                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                Bank Code (銀行代碼)
+                                                {t(
+                                                  "member.atm.bank_code",
+                                                  "Bank Code (銀行代碼)",
+                                                )}
                                               </p>
                                               <p className="text-sm font-bold tracking-widest text-black">
                                                 {atmBankCode}
@@ -372,7 +417,10 @@ export default function MemberProfile() {
                                             </div>
                                             <div className="flex justify-between items-center">
                                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                Account (繳費帳號)
+                                                {t(
+                                                  "member.atm.account",
+                                                  "Account (繳費帳號)",
+                                                )}
                                               </p>
                                               <p className="text-lg font-bold tracking-widest text-[#ef4628]">
                                                 {atmVaccount}
@@ -380,7 +428,10 @@ export default function MemberProfile() {
                                             </div>
                                             <div className="flex justify-between items-center">
                                               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                Deadline (繳費期限)
+                                                {t(
+                                                  "member.atm.deadline",
+                                                  "Deadline (繳費期限)",
+                                                )}
                                               </p>
                                               <p className="text-xs font-medium tracking-widest text-gray-600">
                                                 {atmExpire}
@@ -392,12 +443,18 @@ export default function MemberProfile() {
 
                                       <div>
                                         <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-100">
-                                          Shipping Details
+                                          {t(
+                                            "member.orders.shipping_details",
+                                            "SHIPPING DETAILS",
+                                          )}
                                         </h4>
                                         <div className="text-xs text-gray-700 space-y-4 leading-relaxed">
                                           <div>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                              Recipient (收件人)
+                                              {t(
+                                                "member.orders.recipient",
+                                                "Recipient",
+                                              )}
                                             </p>
                                             <p className="font-bold text-black uppercase tracking-wider">
                                               {shippingName}
@@ -408,7 +465,10 @@ export default function MemberProfile() {
                                           </div>
                                           <div>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                              Payment Method
+                                              {t(
+                                                "member.orders.payment_method",
+                                                "Payment Method",
+                                              )}
                                             </p>
                                             <p className="font-medium text-black">
                                               {paymentType}
@@ -416,7 +476,10 @@ export default function MemberProfile() {
                                           </div>
                                           <div>
                                             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                              Shipping Address (配送地址)
+                                              {t(
+                                                "member.orders.shipping_address",
+                                                "Shipping Address",
+                                              )}
                                             </p>
                                             <p className="text-gray-500 leading-relaxed">
                                               {shippingAddress}
@@ -427,23 +490,45 @@ export default function MemberProfile() {
 
                                       <div>
                                         <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2 border-b border-gray-100">
-                                          Order Summary
+                                          {t(
+                                            "member.orders.order_summary",
+                                            "ORDER SUMMARY",
+                                          )}
                                         </h4>
                                         <div className="space-y-3 text-xs tracking-wider text-gray-600">
                                           <div className="flex justify-between">
-                                            <span>Subtotal</span>
                                             <span>
-                                              NT$ {formatMoney(order.subtotal)}
+                                              {t(
+                                                "member.orders.subtotal",
+                                                "Subtotal",
+                                              )}
+                                            </span>
+                                            <span>
+                                              {symbol}
+                                              {formatMoney(order.subtotal)}
                                             </span>
                                           </div>
                                           <div className="flex justify-between">
-                                            <span>Shipping (順豐速運)</span>
-                                            <span>Free</span>
+                                            <span>
+                                              {t(
+                                                "member.orders.shipping",
+                                                "Shipping",
+                                              )}
+                                            </span>
+                                            <span>
+                                              {t("member.orders.free", "Free")}
+                                            </span>
                                           </div>
                                           <div className="flex justify-between border-t border-gray-200 pt-3 mt-3 text-black font-bold text-sm">
-                                            <span>Total</span>
                                             <span>
-                                              NT$ {formatMoney(order.total)}
+                                              {t(
+                                                "member.orders.total",
+                                                "Total",
+                                              )}
+                                            </span>
+                                            <span>
+                                              {symbol}
+                                              {formatMoney(order.total)}
                                             </span>
                                           </div>
                                         </div>
@@ -467,6 +552,7 @@ export default function MemberProfile() {
     </div>
   );
 }
+
 export async function getStaticProps({ locale }) {
   return {
     props: { ...(await serverSideTranslations(locale || "zh-TW", ["common"])) },
