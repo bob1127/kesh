@@ -28,8 +28,8 @@ import {
   CreditCard,
   Truck,
   HelpCircle,
-  ZoomIn, // 🔥 新增放大鏡 Icon
-  ZoomOut, // 🔥 新增縮小鏡 Icon
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 
 import HeroSlider from "../../components/HeroSlider";
@@ -85,12 +85,10 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeTab, setActiveTab] = useState("features");
 
-  // 🔥 放大鏡專屬 State
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // 滑鼠移動時追蹤座標，只有在開啟放大鏡時才運作
   const handleMouseMove = (e) => {
     if (!isZoomEnabled) return;
     const { left, top, width, height } =
@@ -102,13 +100,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
 
   const pdT = t("product_detail", { returnObjects: true }) || {};
   const ui = pdT.ui || {};
-
-  useEffect(() => {
-    if (product) {
-      console.log("=== 🐞 [除錯] 當前頁面商品資料 ===", product);
-      console.log("👉 提取到的重量為:", product.weight, "g");
-    }
-  }, [product]);
 
   if (router.isFallback || !product) {
     return (
@@ -126,11 +117,192 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const tFAQ = isEn ? "FAQ" : isKo ? "자주 묻는 질문" : "常見問題";
   const tDetails = isEn ? "Product Details" : isKo ? "상품 상세" : "商品詳情";
 
+  // ==========================================
+  // 🔥 Google 官方四大電商結構化資料 滿血版
+  // ==========================================
+  const siteUrl =
+    process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
+  const currentUrl = `${siteUrl}${router.asPath}`;
+
+  const seoTitle = product.seoTitle
+    ? `${product.seoTitle} | KÉSH de¹`
+    : `${product.title} | ${product.brand} | KÉSH de¹`;
+  const seoDesc =
+    product.seoDesc ||
+    product.description?.substring(0, 160).replace(/<[^>]+>/g, "") ||
+    product.title;
+  const seoKeywords =
+    product.seoKeywords || `${product.brand}, ${product.title}, 二手精品, KESH`;
+
+  const ogImage =
+    product.thumbnail ||
+    (product.images?.length > 0
+      ? product.images[0]
+      : `${siteUrl}/default-og-image.jpg`);
+
+  const schemaGraph = [];
+
+  // 計算一年後的日期，提供給 priceValidUntil 避免 GSC 警告
+  const nextYearDate = new Date();
+  nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
+  const priceValidUntil = nextYearDate.toISOString().split("T")[0];
+
+  // 1. 商品摘要 (Product Snippet) + 商家清單 (Merchant Listing) + 物流與退貨
+  schemaGraph.push({
+    "@type": "Product",
+    name: product.title,
+    image: product.images || [ogImage],
+    description: seoDesc,
+    sku: product.sku || product.id,
+    mpn: product.sku || product.id, // Google 強烈建議提供 MPN 或 GTIN
+    brand: {
+      "@type": "Brand",
+      name: product.brand,
+    },
+    offers: {
+      "@type": "Offer",
+      url: currentUrl,
+      priceCurrency: product.currency,
+      price: product.rawPrice,
+      priceValidUntil: priceValidUntil,
+      itemCondition: "https://schema.org/UsedCondition", // 宣告二手精品
+      availability: product.inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: "KÉSH de¹",
+      },
+      // 2. 配送政策結構化資料 (Shipping Policy)
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: 0, // 設定為免運 (依據你的需求調整)
+          currency: product.currency,
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "TW",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: 0,
+            maxValue: 2,
+            unitCode: "d", // 天數
+          },
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: 1,
+            maxValue: 3,
+            unitCode: "d", // 天數
+          },
+        },
+      },
+      // 3. 退換貨政策結構化資料 (Merchant Return Policy)
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "TW",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7, // 7 天鑑賞期
+        returnMethod: "https://schema.org/ReturnInStore", // 支援門市退回
+        returnFees: "https://schema.org/FreeReturn", // 免退貨費
+      },
+    },
+  });
+
+  // 4. 常見問題結構化資料 (FAQPage)
+  if (product.faqInfo) {
+    const hasQAFormat =
+      /Q:|Ｑ：/i.test(product.faqInfo) && /A:|Ａ：/i.test(product.faqInfo);
+
+    if (hasQAFormat) {
+      const faqParts = product.faqInfo.split(/Q:|Ｑ：/i).filter(Boolean);
+      const mainEntities = faqParts
+        .map((part) => {
+          const [q, ...aArr] = part.split(/A:|Ａ：/i);
+          if (q && aArr.length > 0) {
+            return {
+              "@type": "Question",
+              name: q.trim(),
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: aArr.join("A:").trim(),
+              },
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (mainEntities.length > 0) {
+        schemaGraph.push({
+          "@type": "FAQPage",
+          mainEntity: mainEntities,
+        });
+      }
+    } else {
+      schemaGraph.push({
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: `關於 ${product.title} 的購買與配送問題`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: product.faqInfo,
+            },
+          },
+        ],
+      });
+    }
+  }
+
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@graph": schemaGraph,
+  };
+
   return (
     <>
       <Head>
-        <title>{`${product.title} | ${product.brand} | KÉSH de¹`}</title>
-        <meta name="description" content={product.title} />
+        <title key="title">{seoTitle}</title>
+        <meta name="description" content={seoDesc} key="desc" />
+        <meta name="keywords" content={seoKeywords} key="keywords" />
+
+        <meta property="og:type" content="product" key="ogtype" />
+        <meta property="og:title" content={seoTitle} key="ogtitle" />
+        <meta property="og:description" content={seoDesc} key="ogdesc" />
+        <meta property="og:image" content={ogImage} key="ogimage" />
+        <meta
+          property="og:image:secure_url"
+          content={ogImage}
+          key="ogimagesecure"
+        />
+        <meta property="og:url" content={currentUrl} key="ogurl" />
+        <meta
+          property="product:price:amount"
+          content={product.rawPrice}
+          key="productprice"
+        />
+        <meta
+          property="product:price:currency"
+          content={product.currency}
+          key="productcurrency"
+        />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={seoTitle} key="twtitle" />
+        <meta name="twitter:description" content={seoDesc} key="twdesc" />
+        <meta name="twitter:image" content={ogImage} key="twimage" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </Head>
 
       <main className="bg-white text-black min-h-screen pt-5 md:pt-14 pb-0">
@@ -138,7 +310,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
             {/* ================= 左側：圖片區 ================= */}
             <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10 relative">
-              {/* 🔥 右上角：放大鏡開關按鈕 */}
               <button
                 onClick={() => setIsZoomEnabled(!isZoomEnabled)}
                 className={`absolute top-4 right-4 z-20 p-2.5 rounded-full shadow-md transition-all duration-300 ${
@@ -169,7 +340,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
               >
                 {product.images?.map((img, idx) => (
                   <SwiperSlide key={idx}>
-                    {/* 🔥 圖片外框，加入滑鼠事件與動態 cursor */}
                     <div
                       className={`relative w-full h-full overflow-hidden ${isZoomEnabled ? "cursor-crosshair" : "cursor-default"}`}
                       onMouseEnter={() => isZoomEnabled && setIsHovered(true)}
@@ -474,10 +644,21 @@ export async function getStaticProps({ params, locale }) {
       subtitle: localizedSubtitle,
       price: `${symbol}${Math.round(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
       rawPrice: amount,
+      currency: targetCurrency.toUpperCase(),
+      sku: rawProduct.variants?.[0]?.sku || "",
       variantId: rawProduct.variants?.[0]?.id || null,
       brand: rawProduct.collection?.title || "KÉSH de¹ Select",
       weight: productWeight,
       description: localizedDesc || "",
+      thumbnail: rawProduct.thumbnail || rawProduct.images?.[0]?.url || "",
+
+      seoTitle: rawProduct.metadata?.seo_title || "",
+      seoDesc: rawProduct.metadata?.seo_description || "",
+      seoKeywords: rawProduct.metadata?.seo_keywords || "",
+
+      inStock:
+        rawProduct.variants?.some((v) => v.inventory_quantity > 0) || true,
+
       condition:
         rawProduct.metadata?.[`condition_${metaLang}`] ||
         rawProduct.metadata?.condition_zh ||
@@ -494,6 +675,7 @@ export async function getStaticProps({ params, locale }) {
         rawProduct.metadata?.[`faq_${metaLang}`] ||
         rawProduct.metadata?.faq_zh ||
         "",
+
       images:
         rawProduct.images?.map((img) => img.url) ||
         [rawProduct.thumbnail].filter(Boolean),
