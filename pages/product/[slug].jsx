@@ -546,10 +546,43 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="max-w-4xl mx-auto text-[14px] leading-8"
+                  className="max-w-4xl mx-auto text-[14px] leading-8 text-gray-700 space-y-8"
                 >
-                  <h3 className="font-bold mb-3">運送方式：門市自取</h3>
-                  <p>請於下單後前往台中中清路門市領取。</p>
+                  <div>
+                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                      日常清潔與保養
+                    </h3>
+                    <p>
+                      建議每次使用後，使用乾淨、柔軟的乾布輕輕擦拭皮件表面，去除灰塵與輕微汙垢。若遇較頑固汙漬，請使用精品專用的皮革清潔劑，切勿使用酒精、含有漂白成分或強烈化學物質的溶劑，以免破壞皮革天然的防護層與色澤。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                      防潮與遇水處理
+                    </h3>
+                    <p>
+                      精品皮件請盡量避免接觸水分、雨水及濕氣。若不慎淋濕，請立即以乾淨的吸水軟布將水分「輕壓」吸乾（切勿來回摩擦），隨後放置於陰涼通風處自然陰乾。絕對禁止使用吹風機熱風吹乾或直接曝曬於陽光下，否則極易造成皮革硬化、龜裂或變形。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                      正確的收納方式
+                    </h3>
+                    <p>
+                      皮件長期不使用時，請在包包或皮夾內部塞入適量的「無酸紙」或乾淨的軟布以支撐原有的包型，避免產生不可逆的摺痕。接著將其放入品牌專屬的防塵袋中，存放於通風乾燥、避免陽光直射的環境。建議定期將皮件取出通風，防止發霉。
+                    </p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                      五金配件維護
+                    </h3>
+                    <p>
+                      包款上的拉鍊、鎖扣等金屬五金，容易因接觸空氣、汗水或化妝品而產生氧化或失去光澤。保養時僅需使用乾燥的纖維軟布輕輕擦拭即可。請避免五金接觸香水、化妝品或護手霜等化學物質，以延長鍍層的壽命與閃耀度。
+                    </p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

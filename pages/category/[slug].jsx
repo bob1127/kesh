@@ -397,14 +397,6 @@ const CompanyLocation = () => {
           <div className="space-y-8">
             <div>
               <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
-                Address
-              </h4>
-              <p className="text-[15px] font-medium leading-relaxed">
-                台灣省台中市北區中清路一段 428 號
-              </p>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Open Hours
               </h4>
               <p className="text-[15px] font-medium leading-relaxed">

@@ -19,8 +19,11 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
+// 🔥 引入全球國家、州、城市資料庫套件
+import { State, City } from "country-state-city";
+
 // ==========================================
-// 內建台灣縣市區域資料庫
+// 內建台灣縣市區域資料庫 (保留原本客製化邏輯)
 // ==========================================
 const TAIWAN_CITIES = {
   臺北市: [
@@ -491,7 +494,6 @@ export default function CheckoutPage() {
     expireDate: "",
   });
 
-  // 🔥 動態匯率 State
   const [exchangeRate, setExchangeRate] = useState(1350);
 
   const [formData, setFormData] = useState({
@@ -502,10 +504,30 @@ export default function CheckoutPage() {
     city: "",
     district: "",
     street: "",
+    remark: "",
     paymentMethod: defaultCountry === "TW" ? "CREDIT_CARD" : "PAYPAL",
   });
 
-  // ⚖️ 重量計算引擎
+  // ==========================================
+  // 🔥 強制語系重整機制 (Hard Reload)
+  // ==========================================
+  const initialLocaleRef = useRef(router.locale);
+  useEffect(() => {
+    if (initialLocaleRef.current !== router.locale) {
+      window.location.reload();
+    }
+  }, [router.locale]);
+
+  const availableStates = useMemo(() => {
+    if (formData.country === "TW") return [];
+    return State.getStatesOfCountry(formData.country);
+  }, [formData.country]);
+
+  const availableCities = useMemo(() => {
+    if (formData.country === "TW" || !formData.city) return [];
+    return City.getCitiesOfState(formData.country, formData.city);
+  }, [formData.country, formData.city]);
+
   const totalWeight = useMemo(() => {
     return cartItems.reduce((acc, item) => {
       const weight = item.variant?.weight || item.weight || 0;
@@ -527,7 +549,6 @@ export default function CheckoutPage() {
     [cartItems],
   );
 
-  // 🚚 運費引擎
   const shippingInfo = useMemo(() => {
     if (formData.country === "TW")
       return {
@@ -591,7 +612,6 @@ export default function CheckoutPage() {
     };
   }, [formData.country, totalWeight, t]);
 
-  // 🔥 獲取即時韓元轉美金匯率
   useEffect(() => {
     if (shippingInfo.currency === "KRW") {
       const fetchRate = async () => {
@@ -600,7 +620,6 @@ export default function CheckoutPage() {
           const data = await res.json();
           if (data.rates && data.rates.KRW) {
             setExchangeRate(data.rates.KRW);
-            console.log("✅ 成功獲取即時 USD/KRW 匯率:", data.rates.KRW);
           }
         } catch (error) {
           console.warn("⚠️ 匯率 API 抓取失敗，使用備用匯率 1350", error);
@@ -614,13 +633,14 @@ export default function CheckoutPage() {
     if (defaultCountry !== "TW") {
       setFormData((prev) => ({
         ...prev,
-        name: "Test Foreign User",
-        email: "buyer-foreign@example.com",
-        phone: "1234567890",
+        name: "",
+        email: "",
+        phone: "",
         country: defaultCountry,
-        city: defaultCountry === "US" ? "CA" : "Seoul",
-        district: defaultCountry === "US" ? "Beverly Hills" : "Gangnam",
-        street: "123 Test Street",
+        city: "",
+        district: "",
+        street: "",
+        remark: "",
         paymentMethod: "PAYPAL",
       }));
     }
@@ -686,8 +706,9 @@ export default function CheckoutPage() {
           paymentMethod: resetPayment,
         };
       }
-      if (name === "city" && prev.country === "TW")
+      if (name === "city") {
         return { ...prev, [name]: value, district: "" };
+      }
       return { ...prev, [name]: value };
     });
   };
@@ -753,19 +774,27 @@ export default function CheckoutPage() {
         ) || regions[0];
       const activeRegionId = targetRegion.id;
 
+      const stateName =
+        formData.country === "TW"
+          ? formData.city
+          : State.getStateByCodeAndCountry(formData.city, formData.country)
+              ?.name || formData.city;
+
       const cartRes = await fetch(`${backendUrl}/store/carts`, {
         method: "POST",
         headers,
         body: JSON.stringify({
           region_id: activeRegionId,
           email: formData.email,
-          metadata: { payment_method: formData.paymentMethod },
+          metadata: {
+            payment_method: formData.paymentMethod,
+            remark: formData.remark,
+          },
           shipping_address: {
             first_name: formData.name,
             phone: formData.phone,
-            province: formData.city,
-            city:
-              formData.country === "TW" ? formData.district : formData.district,
+            province: stateName,
+            city: formData.district,
             address_1: formData.street,
             country_code: formData.country.toLowerCase(),
           },
@@ -777,10 +806,8 @@ export default function CheckoutPage() {
 
       for (const item of cartItems) {
         const currentVariantId = item.variantId || item.variant_id;
-
-        if (!currentVariantId) {
+        if (!currentVariantId)
           throw new Error(`商品「${item.title}」資料異常，找不到變體 ID。`);
-        }
 
         const lineItemRes = await fetch(
           `${backendUrl}/store/carts/${cartId}/line-items`,
@@ -796,7 +823,6 @@ export default function CheckoutPage() {
 
         if (!lineItemRes.ok) {
           const errData = await lineItemRes.json();
-          console.error("❌ Medusa 拒絕加入商品，詳細原因:", errData);
           throw new Error(
             `商品「${item.title}」加入失敗。\n系統回報：${errData.message || "未知錯誤"}`,
           );
@@ -878,9 +904,6 @@ export default function CheckoutPage() {
       </div>
     );
 
-  // ==========================================
-  // 🔥 PayPal 專屬處理引擎 (解決 KRW 閃退問題)
-  // ==========================================
   const isKRW = shippingInfo.currency === "KRW";
   const paypalCurrency = isKRW ? "USD" : shippingInfo.currency;
 
@@ -888,7 +911,7 @@ export default function CheckoutPage() {
     <PayPalScriptProvider
       options={{
         clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "sb",
-        currency: paypalCurrency, // 🔥 這裡傳入處理過後的幣別 (如果是 KRW 就會變成 USD)
+        currency: paypalCurrency,
         intent: "capture",
         components: "buttons,applepay,googlepay",
       }}
@@ -923,43 +946,63 @@ export default function CheckoutPage() {
 
               <div className="space-y-14">
                 <section>
-                  <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-3 border-b border-gray-100 pb-2">
                     {t("checkout.customerInfo", "Customer Information")}
                   </h2>
+                  <div className="mb-6 px-3 py-2 inline-block rounded-sm  ">
+                    <p className="text-sm text-black font-bold tracking-wide">
+                      {t(
+                        "checkout.securityNotice",
+                        "為確保配送與保價安全，請填寫正確完整資料",
+                      )}
+                    </p>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder={t(
-                        "checkout.fullNamePlaceholder",
-                        "Full Name",
-                      )}
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
-                    />
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder={t(
-                        "checkout.emailPlaceholder",
-                        "Email Address",
-                      )}
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
-                    />
-                    <input
-                      type="tel"
-                      name="phone"
-                      placeholder={t(
-                        "checkout.phonePlaceholder",
-                        "Phone Number",
-                      )}
-                      className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder={t(
+                          "checkout.fullNamePlaceholder",
+                          "請填寫收件人完整姓名 (需與證件相符)",
+                        )}
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="w-full border border-gray-200 p-4 text-sm outline-none focus:border-black"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder={t(
+                          "checkout.emailPlaceholder",
+                          "電子信箱 (必填)",
+                        )}
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full border border-gray-200 p-4 text-sm outline-none focus:border-black"
+                      />
+                      <p className="text-xs text-[#b2b2b2] font-medium mt-1.5 px-1">
+                        {t(
+                          "checkout.emailUsage",
+                          "用途：訂單通知 / 出貨通知 / 驗證",
+                        )}
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <input
+                        type="tel"
+                        name="phone"
+                        placeholder={t(
+                          "checkout.phonePlaceholder",
+                          "聯絡電話 (必填) 例：0912-345-678",
+                        )}
+                        className="w-full border border-gray-200 p-4 text-sm outline-none focus:border-black"
+                        value={formData.phone}
+                        onChange={handleChange}
+                      />
+                    </div>
 
                     <select
                       name="country"
@@ -1009,45 +1052,115 @@ export default function CheckoutPage() {
                       </>
                     ) : (
                       <>
-                        <input
-                          type="text"
-                          name="city"
-                          placeholder="State / Province"
-                          className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
-                          value={formData.city}
-                          onChange={handleChange}
-                        />
-                        <input
-                          type="text"
-                          name="district"
-                          placeholder="City"
-                          className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
-                          value={formData.district}
-                          onChange={handleChange}
-                        />
+                        {/* 國外：州/省 下拉選單 (防呆：若無資料則顯示 Input) */}
+                        {availableStates.length > 0 ? (
+                          <select
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            className="border border-gray-200 p-4 text-sm outline-none focus:border-black bg-white"
+                          >
+                            <option value="" disabled>
+                              {t(
+                                "checkout.stateProvince",
+                                "State / Province (州 / 省)",
+                              )}
+                            </option>
+                            {availableStates.map((state) => (
+                              <option key={state.isoCode} value={state.isoCode}>
+                                {state.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            name="city"
+                            placeholder={t(
+                              "checkout.stateProvince",
+                              "State / Province",
+                            )}
+                            className="border border-gray-200 p-4 text-sm outline-none focus:border-black"
+                            value={formData.city}
+                            onChange={handleChange}
+                          />
+                        )}
+
+                        {/* 國外：城市 下拉選單 (防呆：若無資料則顯示 Input) */}
+                        {availableCities.length > 0 ? (
+                          <select
+                            name="district"
+                            value={formData.district}
+                            onChange={handleChange}
+                            disabled={!formData.city}
+                            className={`border border-gray-200 p-4 text-sm outline-none focus:border-black ${!formData.city ? "bg-gray-50 text-gray-400" : "bg-white"}`}
+                          >
+                            <option value="" disabled>
+                              {t("checkout.city", "City (城市)")}
+                            </option>
+                            {availableCities.map((city) => (
+                              <option key={city.name} value={city.name}>
+                                {city.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            name="district"
+                            placeholder={t("checkout.city", "City")}
+                            className={`border border-gray-200 p-4 text-sm outline-none focus:border-black ${!formData.city && availableStates.length > 0 ? "bg-gray-50 cursor-not-allowed" : "bg-white"}`}
+                            value={formData.district}
+                            onChange={handleChange}
+                            disabled={
+                              !formData.city && availableStates.length > 0
+                            }
+                          />
+                        )}
                       </>
                     )}
 
-                    <input
-                      type="text"
-                      name="street"
-                      placeholder={t(
-                        "checkout.streetPlaceholder",
-                        "Street Address",
-                      )}
-                      className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black"
-                      value={formData.street}
-                      onChange={handleChange}
-                    />
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        name="street"
+                        placeholder={t(
+                          "checkout.streetPlaceholder",
+                          "詳細地址 (必填) 請填寫完整地址 (門牌、樓層、公司名稱)",
+                        )}
+                        className="w-full border border-gray-200 p-4 text-sm outline-none focus:border-black"
+                        value={formData.street}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2 mt-2">
+                      <textarea
+                        name="remark"
+                        placeholder={t(
+                          "checkout.remarkPlaceholder",
+                          "備註欄位 (如：指定收件時間、禮物包裝、低調出貨、報關需求)",
+                        )}
+                        className="w-full border border-gray-200 p-4 text-sm outline-none focus:border-black resize-none h-24"
+                        value={formData.remark}
+                        onChange={handleChange}
+                      />
+                    </div>
                   </div>
                 </section>
 
                 <section>
-                  <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-3 border-b border-gray-100 pb-2">
                     {t("checkout.shippingMethod", "Shipping Method")}
                   </h2>
+                  <p className="text-[13px] font-bold mb-4">
+                    {t(
+                      "checkout.shippingSecurityDesc",
+                      "您的訂單將由 KÉSH 專業團隊全程處理，確保安全與隱私",
+                    )}
+                  </p>
                   <div className="border border-gray-200">
-                    <label className="flex items-center justify-between p-6 bg-gray-50 cursor-default">
+                    <label className="flex flex-col p-6 bg-gray-50 cursor-default">
                       <div className="flex items-center gap-4">
                         <input
                           type="radio"
@@ -1061,14 +1174,33 @@ export default function CheckoutPage() {
                           {shippingInfo.cost.toLocaleString()})
                         </p>
                       </div>
+                      <div className="mt-3 ml-7 text-[#575757] text-[12px] px-3 py-1.5 font-bold w-fit rounded-sm tracking-wide">
+                        {t(
+                          "checkout.shippingProtection",
+                          "商品將以專業防護包裝寄出，並提供完整物流追蹤",
+                        )}
+                      </div>
                     </label>
                   </div>
                 </section>
 
                 <section>
-                  <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-6 border-b border-gray-100 pb-2">
+                  <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-3 border-b border-gray-100 pb-2">
                     {t("checkout.payment", "Payment")}
                   </h2>
+                  <p className="text-[12px] text-gray-700 font-bold mb-4 leading-relaxed">
+                    {t(
+                      "checkout.paymentSecurity1",
+                      "您的付款將透過 TapPay 國際級加密機制安全處理",
+                    )}
+                    <br />
+                    <span className="text-black bg-yellow-100 px-1">
+                      {t(
+                        "checkout.paymentSecurity2",
+                        "信用卡資料由金流服務商代為處理，本網站不會儲存您的完整卡片資訊",
+                      )}
+                    </span>
+                  </p>
                   <div className="border border-gray-200 divide-y divide-gray-100">
                     {formData.country === "TW" ? (
                       <>
@@ -1083,7 +1215,7 @@ export default function CheckoutPage() {
                           />
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
                             <CreditCard size={16} />{" "}
-                            {t("checkout.creditCard", "Credit Card")}
+                            {t("checkout.creditCard", "信用卡付款")}
                           </span>
                         </label>
                         {formData.paymentMethod === "CREDIT_CARD" && (
@@ -1115,7 +1247,10 @@ export default function CheckoutPage() {
                           />
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
                             <Landmark size={16} />{" "}
-                            {t("checkout.atmTransfer", "ATM 轉帳繳費")}
+                            {t(
+                              "checkout.atmTransfer",
+                              "銀行轉帳 (ATM / Virtual Account Transfer)",
+                            )}
                           </span>
                         </label>
                       </>
@@ -1160,7 +1295,6 @@ export default function CheckoutPage() {
                                     Math.round(total + shippingInfo.cost),
                                   );
 
-                                  // 🔥 如果是韓元，使用即時匯率轉換為美金並取到小數點後兩位
                                   if (isKRW) {
                                     finalAmountValue = (
                                       finalAmountValue / exchangeRate
@@ -1205,11 +1339,14 @@ export default function CheckoutPage() {
                       type="button"
                       onClick={() => executeCheckout(null)}
                       disabled={loading || isProcessing.current}
-                      className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.4em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
+                      className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.2em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       {loading || isProcessing.current
                         ? t("checkout.processing", "PROCESSING...")
-                        : t("checkout.completePurchase", "COMPLETE PURCHASE")}
+                        : t(
+                            "checkout.completePurchase",
+                            "確認訂單並前往安全付款",
+                          )}
                     </button>
                   )}
                 </section>
