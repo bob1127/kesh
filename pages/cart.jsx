@@ -15,26 +15,39 @@ export default function CartPage() {
   const { t } = useTranslation("common");
   const { cartItems, removeFromCart, updateQuantity } = useCart();
 
-  // 🌍 智慧幣別判斷引擎
+  // 🌍 智慧幣別與語系判斷引擎
   const targetCurrency =
     locale === "en" ? "usd" : locale === "ko" ? "krw" : "twd";
   const symbol =
     targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
+  const metaLang = locale === "zh-TW" ? "zh" : locale;
 
-  // 1. 所有的 State 和 Hook 必須放在最前面！
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 💰 智慧金額計算
+  // 🔥 動態計算總金額：自動尋找當前幣值的價格
   const subtotal = cartItems.reduce((acc, item) => {
-    const priceVal =
+    let currentRawPrice =
       item.rawPrice ||
       parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
       0;
-    return acc + priceVal * item.quantity;
+
+    // 如果購物車裡有各國價格表，就找出符合現在語系的價格
+    if (item.prices && item.prices.length > 0) {
+      const matchedPrice = item.prices.find(
+        (p) => p.currency_code?.toLowerCase() === targetCurrency,
+      );
+      if (matchedPrice) {
+        currentRawPrice =
+          matchedPrice.amount > 1000000
+            ? matchedPrice.amount / 100
+            : matchedPrice.amount;
+      }
+    }
+    return acc + currentRawPrice * item.quantity;
   }, 0);
 
   const handleQuantity = (item, type) => {
@@ -49,7 +62,6 @@ export default function CartPage() {
     }
   };
 
-  // 2. 所有的 Hook 都宣告完了，這時候才可以做 if return！
   if (!mounted) return null;
 
   return (
@@ -92,10 +104,28 @@ export default function CartPage() {
               <div className="lg:col-span-8">
                 <div className="flex flex-col">
                   {cartItems.map((item) => {
-                    const priceVal =
+                    // 動態語系標題
+                    const displayTitle =
+                      item.metadata?.[`title_${metaLang}`] || item.title;
+
+                    // 🔥 動態語系單價計算
+                    let priceVal =
                       item.rawPrice ||
                       parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
                       0;
+                    if (item.prices && item.prices.length > 0) {
+                      const matchedPrice = item.prices.find(
+                        (p) =>
+                          p.currency_code?.toLowerCase() === targetCurrency,
+                      );
+                      if (matchedPrice) {
+                        priceVal =
+                          matchedPrice.amount > 1000000
+                            ? matchedPrice.amount / 100
+                            : matchedPrice.amount;
+                      }
+                    }
+
                     return (
                       <div
                         key={item.id}
@@ -109,7 +139,7 @@ export default function CartPage() {
                               (item.images && item.images[0]) ||
                               ""
                             }
-                            alt={item.title || "Product Image"}
+                            alt={displayTitle || "Product Image"}
                             fill
                             className="object-cover"
                           />
@@ -123,7 +153,7 @@ export default function CartPage() {
                                 {item.brand || "KÉSH de¹ Select"}
                               </p>
                               <h3 className="text-sm md:text-base font-medium uppercase tracking-wide mb-2 line-clamp-2 pr-4">
-                                {item.title}
+                                {displayTitle}
                               </h3>
                             </div>
                             <button

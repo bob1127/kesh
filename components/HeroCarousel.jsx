@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { CustomEase } from "gsap/dist/CustomEase";
+import { motion, AnimatePresence } from "framer-motion";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(CustomEase);
@@ -28,53 +29,80 @@ const PickleballAnimation = () => {
   });
 
   // ==========================================
-  // 1. API 抓取邏輯
+  // 1. API 抓取與「防彈級圖片預先載入」邏輯
   // ==========================================
   useEffect(() => {
     if (typeof window === "undefined" || isFetched.current) return;
     isFetched.current = true;
 
+    // 定義備用的預設輪播圖 (當後台沒資料或連線失敗時使用)
+    const fallbackSlides = [
+      {
+        type: "image",
+        src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
+        title: "LUXURY BOUTIQUE",
+        category: "KÉSH DE¹",
+        alt: "KÉSH de¹ Luxury Boutique",
+      },
+    ];
+
+    // 🔥 防彈級預載引擎：確保不管發生什麼事，黑畫面一定會消失
+    const preloadFirstImage = (slide) => {
+      const targetUrl = slide?.mediaUrl || slide?.src;
+
+      // 如果這張幻燈片沒有網址，或是它是影片，直接放行不卡 loading
+      if (!targetUrl || slide?.type === "video") {
+        setIsLoading(false);
+        return;
+      }
+
+      const img = new window.Image();
+      // ⚠️ 最佳實踐：先綁定事件，再賦予 src
+      img.onload = () => setIsLoading(false);
+      img.onerror = () => {
+        console.warn("輪播圖片載入失敗，但仍解除 Loading 狀態:", targetUrl);
+        setIsLoading(false);
+      };
+      img.src = targetUrl;
+    };
+
     const fetchSlides = async () => {
       const BACKEND_URL =
         process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
       const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-      const targetUrl = `${BACKEND_URL}/store/custom/hero-slides`;
+      const targetUrl = `${BACKEND_URL}/store/custom/hero-slides?t=${Date.now()}`;
 
       try {
         const headers = { "Content-Type": "application/json" };
         if (API_KEY) headers["x-publishable-api-key"] = API_KEY;
 
-        const res = await fetch(targetUrl, { headers });
+        const res = await fetch(targetUrl, { headers, cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const data = await res.json();
+        let fetchedSlides = [];
 
-        if (data.slides && data.slides.length > 0) {
-          setSlides(data.slides);
-        } else {
-          setSlides([
-            {
-              type: "image",
-              src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
-              title: "LUXURY BOUTIQUE",
-              category: "KÉSH DE¹",
-              alt: "KÉSH de¹ Luxury Boutique",
-            },
-          ]);
+        // 嚴格過濾：只留下「有圖片網址」的有效資料，避免 Admin 存到空網址導致卡死
+        if (data.slides && Array.isArray(data.slides)) {
+          fetchedSlides = data.slides.filter((s) => s.mediaUrl || s.src);
+        } else if (Array.isArray(data)) {
+          fetchedSlides = data.filter((s) => s.mediaUrl || s.src);
         }
+
+        // 如果過濾後發現完全沒有有效圖片，就拋出錯誤進入 fallback
+        if (fetchedSlides.length === 0) {
+          throw new Error("後台 API 沒有回傳有效的輪播圖片");
+        }
+
+        setSlides(fetchedSlides);
+        preloadFirstImage(fetchedSlides[0]);
       } catch (error) {
-        console.error("無法連線到 Medusa API，載入預設圖片:", error);
-        setSlides([
-          {
-            type: "image",
-            src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
-            title: "LUXURY BOUTIQUE",
-            category: "KÉSH DE¹",
-            alt: "KÉSH de¹ Luxury Boutique",
-          },
-        ]);
-      } finally {
-        setIsLoading(false);
+        console.error(
+          "⚠️ 無法取得後台輪播圖，自動載入預設圖片:",
+          error.message,
+        );
+        setSlides(fallbackSlides);
+        preloadFirstImage(fallbackSlides[0]);
       }
     };
 
@@ -89,10 +117,12 @@ const PickleballAnimation = () => {
       slideData.type === "video"
         ? document.createElement("video")
         : document.createElement("img");
+
     mediaEl.src = slideData.mediaUrl || slideData.src;
 
     if (slideData.type === "image") {
-      mediaEl.alt = slideData.alt || "KÉSH de¹ Luxury Boutique";
+      mediaEl.alt =
+        slideData.alt || slideData.title || "KÉSH de¹ Luxury Boutique";
     }
 
     if (slideData.type === "video") {
@@ -130,7 +160,6 @@ const PickleballAnimation = () => {
     const nextIndex = stateRef.current.currentIndex;
     const nextData = slides[nextIndex];
 
-    // 🔥 智慧防呆：如果後台沒填文字，自動補上品牌預設字
     const nextTitle = nextData.title || "LUXURY BOUTIQUE";
     const nextCategory = nextData.category || "KÉSH DE¹";
 
@@ -141,16 +170,11 @@ const PickleballAnimation = () => {
         opacity: 0,
         duration: 0.4,
         ease: "power2.in",
-        stagger: 0.1, // 讓分類與標題錯開消失
+        stagger: 0.1,
         onComplete: () => {
-          // 更新文字內容
           textTitleRef.current.innerText = nextTitle;
           textCategoryRef.current.innerText = nextCategory;
-
-          // 準備從下方滑入
           gsap.set([textCategoryRef.current, textTitleRef.current], { y: 30 });
-
-          // 滑入動畫
           gsap.to([textCategoryRef.current, textTitleRef.current], {
             y: 0,
             opacity: 1,
@@ -207,8 +231,9 @@ const PickleballAnimation = () => {
         duration: 1.5,
         ease: "hop",
         onComplete: () => {
+          if (!carouselImagesRef.current) return;
           const allSlides =
-            carouselImagesRef.current?.querySelectorAll(".img") || [];
+            carouselImagesRef.current.querySelectorAll(".img") || [];
           if (allSlides.length > 1) {
             for (let i = 0; i < allSlides.length - 1; i++)
               allSlides[i].remove();
@@ -263,6 +288,7 @@ const PickleballAnimation = () => {
       slides.length === 0
     )
       return;
+
     if (isGsapInitialized.current) return;
     isGsapInitialized.current = true;
 
@@ -285,7 +311,6 @@ const PickleballAnimation = () => {
       initContainer.appendChild(createMediaElement(slides[0]));
       carouselImagesRef.current.appendChild(initContainer);
 
-      // 🔥 初始化時注入文字，並加上優雅的進場動畫
       if (textTitleRef.current && textCategoryRef.current) {
         textTitleRef.current.innerText = slides[0].title || "LUXURY BOUTIQUE";
         textCategoryRef.current.innerText = slides[0].category || "KÉSH DE¹";
@@ -302,16 +327,6 @@ const PickleballAnimation = () => {
 
     return () => stopAutoPlay();
   }, [isLoading, slides]);
-
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen bg-black flex items-center justify-center">
-        <span className="text-white text-xs tracking-widest uppercase">
-          KÉSH de¹ Loading...
-        </span>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -407,6 +422,24 @@ const PickleballAnimation = () => {
           }
         }
       `}</style>
+
+      {/* 🔥 優雅退場的黑畫面 Loading */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{
+              opacity: 0,
+              transition: { duration: 0.8, ease: "easeInOut" },
+            }}
+            className="absolute inset-0 z-50 bg-black flex items-center justify-center"
+          >
+            <span className="text-white text-xs tracking-widest uppercase animate-pulse">
+              KÉSH de¹ Loading...
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div id="integrated-wrapper" ref={wrapperRef}>
         <div className="carousel">

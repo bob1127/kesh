@@ -23,7 +23,7 @@ import Image from "next/image";
 import { State, City } from "country-state-city";
 
 // ==========================================
-// 內建台灣縣市區域資料庫 (保留原本客製化邏輯)
+// 內建台灣縣市區域資料庫
 // ==========================================
 const TAIWAN_CITIES = {
   臺北市: [
@@ -484,6 +484,14 @@ export default function CheckoutPage() {
 
   const defaultCountry =
     router.locale === "en" ? "US" : router.locale === "ko" ? "KR" : "TW";
+
+  // 🌍 智慧幣別與語系判斷引擎
+  const targetCurrency =
+    router.locale === "en" ? "usd" : router.locale === "ko" ? "krw" : "twd";
+  const symbol =
+    targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
+  const metaLang = router.locale === "zh-TW" ? "zh" : router.locale;
+
   const [loading, setLoading] = useState(false);
   const isProcessing = useRef(false);
   const isTapPaySetup = useRef(false);
@@ -508,9 +516,7 @@ export default function CheckoutPage() {
     paymentMethod: defaultCountry === "TW" ? "CREDIT_CARD" : "PAYPAL",
   });
 
-  // ==========================================
-  // 🔥 強制語系重整機制 (Hard Reload)
-  // ==========================================
+  // 強制語系重整機制
   const initialLocaleRef = useRef(router.locale);
   useEffect(() => {
     if (initialLocaleRef.current !== router.locale) {
@@ -535,19 +541,28 @@ export default function CheckoutPage() {
     }, 0);
   }, [cartItems]);
 
-  const total = useMemo(
-    () =>
-      cartItems.reduce(
-        (acc, item) =>
-          acc +
-          (item.rawPrice ||
-            parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
-            0) *
-            item.quantity,
-        0,
-      ),
-    [cartItems],
-  );
+  // 🔥 關鍵修正：總金額動態抓取對應語系的幣別與數值
+  const total = useMemo(() => {
+    return cartItems.reduce((acc, item) => {
+      let currentRawPrice =
+        item.rawPrice ||
+        parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
+        0;
+
+      if (item.prices && item.prices.length > 0) {
+        const matchedPrice = item.prices.find(
+          (p) => p.currency_code?.toLowerCase() === targetCurrency,
+        );
+        if (matchedPrice) {
+          currentRawPrice =
+            matchedPrice.amount > 1000000
+              ? matchedPrice.amount / 100
+              : matchedPrice.amount;
+        }
+      }
+      return acc + currentRawPrice * item.quantity;
+    }, 0);
+  }, [cartItems, targetCurrency]);
 
   const shippingInfo = useMemo(() => {
     if (formData.country === "TW")
@@ -622,7 +637,7 @@ export default function CheckoutPage() {
             setExchangeRate(data.rates.KRW);
           }
         } catch (error) {
-          console.warn("⚠️ 匯率 API 抓取失敗，使用備用匯率 1350", error);
+          console.warn("⚠️ 匯率 API 抓取失敗", error);
         }
       };
       fetchRate();
@@ -633,14 +648,10 @@ export default function CheckoutPage() {
     if (defaultCountry !== "TW") {
       setFormData((prev) => ({
         ...prev,
-        name: "",
-        email: "",
-        phone: "",
         country: defaultCountry,
         city: "",
         district: "",
         street: "",
-        remark: "",
         paymentMethod: "PAYPAL",
       }));
     }
@@ -931,6 +942,9 @@ export default function CheckoutPage() {
         </AnimatePresence>
 
         <div className="flex flex-col-reverse lg:flex-row">
+          {/* ======================= */}
+          {/* 左側：填寫資料與付款區塊 */}
+          {/* ======================= */}
           <div className="w-full lg:w-[55%] px-6 py-10 lg:px-20 lg:py-16">
             <div className="max-w-[700px] mx-auto">
               <Link
@@ -1052,7 +1066,6 @@ export default function CheckoutPage() {
                       </>
                     ) : (
                       <>
-                        {/* 國外：州/省 下拉選單 (防呆：若無資料則顯示 Input) */}
                         {availableStates.length > 0 ? (
                           <select
                             name="city"
@@ -1086,7 +1099,6 @@ export default function CheckoutPage() {
                           />
                         )}
 
-                        {/* 國外：城市 下拉選單 (防呆：若無資料則顯示 Input) */}
                         {availableCities.length > 0 ? (
                           <select
                             name="district"
@@ -1256,19 +1268,64 @@ export default function CheckoutPage() {
                       </>
                     ) : (
                       <>
-                        <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="PAYPAL"
-                            checked={formData.paymentMethod === "PAYPAL"}
-                            onChange={handleChange}
-                            className="accent-black"
-                          />
-                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <Globe size={16} />{" "}
-                            {t("checkout.paypal", "PayPal / Apple Pay")}
-                          </span>
+                        <label className="flex items-start gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <div className="pt-0.5">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="PAYPAL"
+                              checked={formData.paymentMethod === "PAYPAL"}
+                              onChange={handleChange}
+                              className="accent-black"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
+                              <Globe size={16} />{" "}
+                              {t(
+                                "checkout.paypal",
+                                "PayPal / Apple Pay / Google Pay",
+                              )}
+                            </span>
+                            {/* 🔥 支援的信用卡/支付圖示 */}
+                            <div className="flex flex-wrap items-center gap-2">
+                              <img
+                                src="/images/svg/paypal-svgrepo-com.svg"
+                                alt="PayPal"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/visa-svgrepo-com.svg"
+                                alt="Visa"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/mastercard-svgrepo-com.svg"
+                                alt="Mastercard"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/amex-3-svgrepo-com.svg"
+                                alt="Amex"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/jcb-3-svgrepo-com.svg"
+                                alt="JCB"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/apple-pay-svgrepo-com.svg"
+                                alt="Apple Pay"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/google-pay-svgrepo-com.svg"
+                                alt="Google Pay"
+                                className="h-6 w-auto"
+                              />
+                            </div>
+                          </div>
                         </label>
 
                         {formData.paymentMethod === "PAYPAL" && (
@@ -1354,7 +1411,11 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="w-full lg:w-[45%] bg-[#fafafa] px-6 py-10 lg:px-14 lg:py-20 border-l border-gray-100 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
+          {/* ======================= */}
+          {/* 右側：訂單摘要區塊 */}
+          {/* ======================= */}
+          {/* 🔥 解決高度截斷：使用 h-[calc(100vh-64px)] 確保完美滑動且不被切掉 */}
+          <div className="w-full lg:w-[45%] bg-[#fafafa] px-6 py-10 lg:px-14 lg:py-10 border-l border-gray-100 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:overflow-y-auto">
             <div className="max-w-[400px] mx-auto lg:mx-0">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-8 border-b border-gray-200 pb-2">
                 {t("checkout.orderSummary", "ORDER SUMMARY")}
@@ -1368,6 +1429,27 @@ export default function CheckoutPage() {
                     (item.images && item.images[0]) ||
                     "";
 
+                  // 🔥 動態抓取當前語系的標題翻譯
+                  const displayTitle =
+                    item.metadata?.[`title_${metaLang}`] || item.title;
+
+                  // 🔥 動態計算商品單價
+                  let currentRawPrice =
+                    item.rawPrice ||
+                    parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
+                    0;
+                  if (item.prices && item.prices.length > 0) {
+                    const matchedPrice = item.prices.find(
+                      (p) => p.currency_code?.toLowerCase() === targetCurrency,
+                    );
+                    if (matchedPrice) {
+                      currentRawPrice =
+                        matchedPrice.amount > 1000000
+                          ? matchedPrice.amount / 100
+                          : matchedPrice.amount;
+                    }
+                  }
+
                   return (
                     <div
                       key={item.id}
@@ -1379,7 +1461,7 @@ export default function CheckoutPage() {
                             {itemImage && (
                               <Image
                                 src={itemImage}
-                                alt={item.title}
+                                alt={displayTitle}
                                 fill
                                 className="object-cover"
                                 unoptimized
@@ -1392,7 +1474,7 @@ export default function CheckoutPage() {
                         </div>
                         <div className="flex flex-col pr-4">
                           <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
-                            {item.title}
+                            {displayTitle} {/* ✅ 替換為動態語系標題 */}
                           </h3>
                           <p className="text-xs text-gray-400 mt-1">
                             Weight: {item.variant?.weight || item.weight || 0}g
@@ -1400,14 +1482,9 @@ export default function CheckoutPage() {
                         </div>
                       </div>
                       <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
-                        {(
-                          item.rawPrice ||
-                          parseInt(
-                            String(item.price).replace(/[^\d]/g, ""),
-                            10,
-                          ) ||
-                          0
-                        ).toLocaleString()}
+                        {symbol}
+                        {currentRawPrice.toLocaleString()}{" "}
+                        {/* ✅ 動態顯示單價 */}
                       </span>
                     </div>
                   );
@@ -1418,7 +1495,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>{t("checkout.subtotal", "Subtotal")}</span>
                   <span>
-                    {shippingInfo.sign} {total.toLocaleString()}
+                    {symbol} {total.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
@@ -1427,7 +1504,7 @@ export default function CheckoutPage() {
                     {totalWeight}g)
                   </span>
                   <span>
-                    {shippingInfo.sign} {shippingInfo.cost.toLocaleString()}
+                    {symbol} {shippingInfo.cost.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-lg pt-3 border-t border-gray-100">
@@ -1435,8 +1512,7 @@ export default function CheckoutPage() {
                     {t("checkout.total", "TOTAL")}
                   </span>
                   <span>
-                    {shippingInfo.currency} {shippingInfo.sign}{" "}
-                    {(total + shippingInfo.cost).toLocaleString()}
+                    {symbol} {(total + shippingInfo.cost).toLocaleString()}
                   </span>
                 </div>
               </div>

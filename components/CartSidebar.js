@@ -1,18 +1,34 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router"; 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trash2, Plus, Minus } from "lucide-react"; // ✅ 引入加減圖示
+import { X, Trash2, Plus, Minus } from "lucide-react";
 import { useCart } from "./context/CartContext";
 
 export default function CartSidebar() {
-  // ✅ 加入 updateQuantity
+  const router = useRouter();
+  
+  // ✅ 定義當前語系與對應的幣值代碼
+  const currentLang = router.locale || "zh-TW";
+  const metaLang = currentLang === "zh-TW" ? "zh" : currentLang;
+  const targetCurrency = currentLang === "en" ? "usd" : currentLang === "ko" ? "krw" : "twd";
+  const symbol = currentLang === "en" ? "$ " : currentLang === "ko" ? "₩ " : "NT$ ";
+
   const { isCartOpen, setIsCartOpen, cartItems, removeFromCart, updateQuantity } = useCart();
 
-  // 計算總金額
+  // 🔥 動態計算總金額：自動尋找當前幣值的價格
   const totalPrice = cartItems.reduce((acc, item) => {
-    const priceNum = parseInt(item.price.replace(/[^\d]/g, ""), 10) || 0;
-    return acc + priceNum * item.quantity;
+    let currentRawPrice = item.rawPrice ? item.rawPrice : (parseInt((item.price || "").toString().replace(/[^\d]/g, ""), 10) || 0);
+    
+    // 如果購物車裡有各國價格表，就找出符合現在語系的價格
+    if (item.prices && item.prices.length > 0) {
+      const matchedPrice = item.prices.find((p) => p.currency_code?.toLowerCase() === targetCurrency);
+      if (matchedPrice) {
+        currentRawPrice = matchedPrice.amount > 1000000 ? matchedPrice.amount / 100 : matchedPrice.amount;
+      }
+    }
+    return acc + currentRawPrice * item.quantity;
   }, 0);
 
   return (
@@ -53,7 +69,9 @@ export default function CartSidebar() {
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {cartItems.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4">
-                  <p className="text-sm">您的購物車是空的</p>
+                  <p className="text-sm">
+                    {currentLang === "en" ? "Your cart is empty" : currentLang === "ko" ? "장바구니가 비어 있습니다" : "您的購物車是空的"}
+                  </p>
                   <button
                     onClick={() => setIsCartOpen(false)}
                     className="text-black underline decoration-1 underline-offset-4 text-xs font-bold uppercase"
@@ -62,64 +80,77 @@ export default function CartSidebar() {
                   </button>
                 </div>
               ) : (
-                cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-4">
-                    {/* 圖片區 */}
-                    <div className="relative w-20 h-24 bg-gray-50 flex-shrink-0">
-                      <div
-                        className="w-full h-full bg-cover bg-center"
-                        style={{
-                          backgroundImage: `url('${
-                            item.images ? encodeURI(item.images[0]) : ""
-                          }')`,
-                        }}
-                      />
-                    </div>
+                cartItems.map((item) => {
+                  // 動態語系標題
+                  const displayTitle = item.metadata?.[`title_${metaLang}`] || item.title;
+                  
+                  // 🔥 動態語系單價計算
+                  let currentRawPrice = item.rawPrice ? item.rawPrice : (parseInt((item.price || "").toString().replace(/[^\d]/g, ""), 10) || 0);
+                  if (item.prices && item.prices.length > 0) {
+                    const matchedPrice = item.prices.find((p) => p.currency_code?.toLowerCase() === targetCurrency);
+                    if (matchedPrice) {
+                      currentRawPrice = matchedPrice.amount > 1000000 ? matchedPrice.amount / 100 : matchedPrice.amount;
+                    }
+                  }
+                  const displayPrice = `${symbol}${Math.round(currentRawPrice).toLocaleString()}`;
 
-                    {/* 資訊區 */}
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-sm font-bold uppercase leading-tight mb-1 line-clamp-2">
-                          {item.title}
-                        </h3>
-                        <p className="text-xs text-gray-500">{item.brand}</p>
-                        <p className="text-sm font-medium mt-1">{item.price}</p>
+                  return (
+                    <div key={item.id} className="flex gap-4">
+                      {/* 圖片區 */}
+                      <div className="relative w-20 h-24 bg-gray-50 flex-shrink-0">
+                        <div
+                          className="w-full h-full bg-cover bg-center"
+                          style={{
+                            backgroundImage: `url('${
+                              item.images && item.images.length > 0 ? encodeURI(item.images[0]) : ""
+                            }')`,
+                          }}
+                        />
                       </div>
 
-                      {/* ✅ 數量控制與刪除按鈕區 */}
-                      <div className="flex justify-between items-center mt-2">
-                        {/* 數量控制器 */}
-                        <div className="flex items-center border border-gray-300 h-7 w-20 rounded-sm">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
-                            className="w-6 h-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-30 text-gray-600"
-                          >
-                            <Minus size={12} />
-                          </button>
-                          <span className="flex-1 text-center text-xs font-bold">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="w-6 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600"
-                          >
-                            <Plus size={12} />
-                          </button>
+                      {/* 資訊區 */}
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <h3 className="text-sm font-bold uppercase leading-tight mb-1 line-clamp-2">
+                            {displayTitle}
+                          </h3>
+                          <p className="text-xs text-gray-500">{item.brand}</p>
+                          <p className="text-sm font-medium mt-1">{displayPrice}</p>
                         </div>
 
-                        {/* 刪除按鈕 */}
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
-                          title="移除商品"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {/* 數量控制與刪除按鈕區 */}
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="flex items-center border border-gray-300 h-7 w-20 rounded-sm">
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                              className="w-6 h-full flex items-center justify-center hover:bg-gray-100 disabled:opacity-30 text-gray-600"
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="flex-1 text-center text-xs font-bold">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="w-6 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                            title="Remove item"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
@@ -128,10 +159,10 @@ export default function CartSidebar() {
               <div className="p-6 border-t border-gray-100 bg-gray-50">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm font-medium text-gray-600">
-                    總計價格
+                    {currentLang === "en" ? "Subtotal" : currentLang === "ko" ? "총액" : "總計價格"}
                   </span>
                   <span className="text-lg font-bold">
-                    NT$ {totalPrice.toLocaleString()}
+                    {symbol}{totalPrice.toLocaleString()} 
                   </span>
                 </div>
                 <Link href="/cart">

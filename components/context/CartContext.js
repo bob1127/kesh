@@ -12,7 +12,7 @@ export const CartProvider = ({ children }) => {
   // 用來標記「是否已經從 LocalStorage 讀取過資料」
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // ✅ 1. 初始讀取：從 LocalStorage 撈資料
+  // 1. 初始讀取：從 LocalStorage 撈資料
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedCart = localStorage.getItem("shopping-cart");
@@ -27,30 +27,39 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // ✅ 2. 自動存檔：當 cartItems 變動時，寫入 LocalStorage
+  // 2. 自動存檔：當 cartItems 變動時，寫入 LocalStorage
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem("shopping-cart", JSON.stringify(cartItems));
     }
   }, [cartItems, isInitialized]);
 
-  // 加入購物車邏輯
-  const addToCart = (product, quantity) => {
+  // 🔥 關鍵修復：加入購物車邏輯
+  const addToCart = (newItem, quantity) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+      // 🔍 嚴格比對商品 ID！
+      const existingItemIndex = prevItems.findIndex((item) => item.id === newItem.id);
+
+      if (existingItemIndex !== -1) {
+        // ⚠️ 如果已經存在，只「增加數量」，絕對不新增一筆！
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex].quantity += quantity;
+        
+        // 順便把最新的價格格式和 metadata 補上去，確保跨語系時不會落後
+        updatedItems[existingItemIndex].rawPrice = newItem.rawPrice; 
+        updatedItems[existingItemIndex].price = newItem.price; 
+        updatedItems[existingItemIndex].metadata = newItem.metadata; 
+        
+        return updatedItems;
+      } else {
+        // 只有找不到這個 ID 的時候，才新增為獨立的一筆
+        return [...prevItems, { ...newItem, quantity }];
       }
-      return [...prevItems, { ...product, quantity }];
     });
-    setIsCartOpen(true);
+    setIsCartOpen(true); // 打開側邊欄
   };
 
-  // ✅ 新增：直接更新數量 (用於 + - 按鈕)
+  // 直接更新數量 (用於側邊欄的 + - 按鈕)
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity < 1) return; // 防止數量小於 1
     setCartItems((prevItems) =>
@@ -74,7 +83,7 @@ export const CartProvider = ({ children }) => {
         cartItems,
         addToCart,
         removeFromCart,
-        updateQuantity, // ✅ 記得匯出這個 function
+        updateQuantity, 
         isCartOpen,
         setIsCartOpen,
         totalQty,

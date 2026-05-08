@@ -116,9 +116,14 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const tShipping = isEn ? "Shipping Info" : isKo ? "배송 안내" : "配送說明";
   const tFAQ = isEn ? "FAQ" : isKo ? "자주 묻는 질문" : "常見問題";
   const tDetails = isEn ? "Product Details" : isKo ? "상품 상세" : "商品詳情";
+  const tCare = isEn
+    ? "Care Instructions"
+    : isKo
+      ? "취급 시 주의사항"
+      : "清潔與保養建議";
 
   // ==========================================
-  // 🔥 Google 官方四大電商結構化資料 滿血版
+  // 🔥 Google 官方四大電商結構化資料 滿血版 (多語系優化)
   // ==========================================
   const siteUrl =
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
@@ -127,12 +132,20 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const seoTitle = product.seoTitle
     ? `${product.seoTitle} | KÉSH de¹`
     : `${product.title} | ${product.brand} | KÉSH de¹`;
+
   const seoDesc =
     product.seoDesc ||
     product.description?.substring(0, 160).replace(/<[^>]+>/g, "") ||
     product.title;
+
+  const defaultKeyword = isEn
+    ? "Pre-owned Luxury"
+    : isKo
+      ? "중고 명품"
+      : "二手精品";
   const seoKeywords =
-    product.seoKeywords || `${product.brand}, ${product.title}, 二手精品, KESH`;
+    product.seoKeywords ||
+    `${product.brand}, ${product.title}, ${defaultKeyword}, KESH`;
 
   const ogImage =
     product.thumbnail ||
@@ -150,11 +163,11 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   // 1. 商品摘要 (Product Snippet) + 商家清單 (Merchant Listing) + 物流與退貨
   schemaGraph.push({
     "@type": "Product",
-    name: product.title,
+    name: product.title, // 自動跟隨語系
     image: product.images || [ogImage],
-    description: seoDesc,
+    description: seoDesc, // 自動跟隨語系
     sku: product.sku || product.id,
-    mpn: product.sku || product.id, // Google 強烈建議提供 MPN 或 GTIN
+    mpn: product.sku || product.id,
     brand: {
       "@type": "Brand",
       name: product.brand,
@@ -165,7 +178,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
       priceCurrency: product.currency,
       price: product.rawPrice,
       priceValidUntil: priceValidUntil,
-      itemCondition: "https://schema.org/UsedCondition", // 宣告二手精品
+      itemCondition: "https://schema.org/UsedCondition",
       availability: product.inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
@@ -173,12 +186,11 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         "@type": "Organization",
         name: "KÉSH de¹",
       },
-      // 2. 配送政策結構化資料 (Shipping Policy)
       shippingDetails: {
         "@type": "OfferShippingDetails",
         shippingRate: {
           "@type": "MonetaryAmount",
-          value: 0, // 設定為免運 (依據你的需求調整)
+          value: 0,
           currency: product.currency,
         },
         shippingDestination: {
@@ -191,74 +203,108 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
             "@type": "QuantitativeValue",
             minValue: 0,
             maxValue: 2,
-            unitCode: "d", // 天數
+            unitCode: "d",
           },
           transitTime: {
             "@type": "QuantitativeValue",
             minValue: 1,
             maxValue: 3,
-            unitCode: "d", // 天數
+            unitCode: "d",
           },
         },
       },
-      // 3. 退換貨政策結構化資料 (Merchant Return Policy)
       hasMerchantReturnPolicy: {
         "@type": "MerchantReturnPolicy",
         applicableCountry: "TW",
         returnPolicyCategory:
           "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7, // 7 天鑑賞期
-        returnMethod: "https://schema.org/ReturnInStore", // 支援門市退回
-        returnFees: "https://schema.org/FreeReturn", // 免退貨費
+        merchantReturnDays: 7,
+        returnMethod: "https://schema.org/ReturnInStore",
+        returnFees: "https://schema.org/FreeReturn",
       },
     },
   });
 
-  // 4. 常見問題結構化資料 (FAQPage)
+  // 4. 強化版結構化資料：結合「常見問題」與「保養建議」 (FAQPage)
+  const faqEntities = [];
+
+  // --- A. 自動生成：保養與清潔 QA ---
+  // 根據語系動態生成 Google 搜尋問題
+  const careQuestionName = isEn
+    ? `How to clean and care for ${product.title}?`
+    : isKo
+      ? `${product.title} 관리 및 보관 방법은 무엇인가요?`
+      : `如何清潔與保養 ${product.title}？`;
+
+  // 準備給結構化資料的純文字預設保養內容 (若後台沒填時的備用資料)
+  const defaultCareZh =
+    "【日常清潔與保養】建議每次使用後，使用乾淨、柔軟的乾布輕輕擦拭皮件表面，去除灰塵與輕微汙垢。【防潮與遇水處理】精品皮件請盡量避免接觸水分、雨水及濕氣。若不慎淋濕，請立即以乾淨的吸水軟布將水分輕壓吸乾。【正確的收納方式】皮件長期不使用時，請在包包內部塞入適量的無酸紙或乾淨軟布以支撐包型，並放入防塵袋中。【五金配件維護】保養時僅需使用乾燥的纖維軟布輕輕擦拭即可。";
+  const defaultCareEn =
+    "【Daily Care】Wipe gently with a soft, dry cloth after each use. 【Moisture Protection】Avoid contact with water and humidity. If wet, pat dry immediately. 【Storage】Stuff with acid-free paper to maintain shape and store in a dust bag. 【Hardware Maintenance】Wipe metal parts with a dry microfiber cloth.";
+  const defaultCareKo =
+    "【일상 관리】사용 후 부드럽고 마른 천으로 부드럽게 닦아주세요. 【습기 주의】물과 습기를 피하고, 젖었을 경우 즉시 물기를 닦아내세요. 【보관 방법】모양 유지를 위해 산성 없는 종이를 넣고 더스트 백에 보관하세요. 【금속 부품 관리】마른 극세사 천으로 금속 부품을 닦아주세요.";
+
+  // 抓取後台資料，如果沒有就套用上方預設文字
+  const finalCareInfo =
+    product.careInfo ||
+    (isEn ? defaultCareEn : isKo ? defaultCareKo : defaultCareZh);
+
+  // 將保養建議推入 QA 結構中
+  faqEntities.push({
+    "@type": "Question",
+    name: careQuestionName,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: finalCareInfo,
+    },
+  });
+
+  // --- B. 加入原本的：常見問題 FAQ QA ---
   if (product.faqInfo) {
     const hasQAFormat =
       /Q:|Ｑ：/i.test(product.faqInfo) && /A:|Ａ：/i.test(product.faqInfo);
 
     if (hasQAFormat) {
+      // 若有寫 Q: A: 就自動拆解成多個問題
       const faqParts = product.faqInfo.split(/Q:|Ｑ：/i).filter(Boolean);
-      const mainEntities = faqParts
-        .map((part) => {
-          const [q, ...aArr] = part.split(/A:|Ａ：/i);
-          if (q && aArr.length > 0) {
-            return {
-              "@type": "Question",
-              name: q.trim(),
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: aArr.join("A:").trim(),
-              },
-            };
-          }
-          return null;
-        })
-        .filter(Boolean);
-
-      if (mainEntities.length > 0) {
-        schemaGraph.push({
-          "@type": "FAQPage",
-          mainEntity: mainEntities,
-        });
-      }
-    } else {
-      schemaGraph.push({
-        "@type": "FAQPage",
-        mainEntity: [
-          {
+      faqParts.forEach((part) => {
+        const [q, ...aArr] = part.split(/A:|Ａ：/i);
+        if (q && aArr.length > 0) {
+          faqEntities.push({
             "@type": "Question",
-            name: `關於 ${product.title} 的購買與配送問題`,
+            name: q.trim(),
             acceptedAnswer: {
               "@type": "Answer",
-              text: product.faqInfo,
+              text: aArr.join("A:").trim(),
             },
-          },
-        ],
+          });
+        }
+      });
+    } else {
+      // 若只是一大段文字，就整合成單一問題
+      const fallbackQuestionName = isEn
+        ? `Purchasing and Shipping for ${product.title}`
+        : isKo
+          ? `${product.title} 구매 및 배송 관련 질문`
+          : `關於 ${product.title} 的購買與配送問題`;
+
+      faqEntities.push({
+        "@type": "Question",
+        name: fallbackQuestionName,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: product.faqInfo,
+        },
       });
     }
+  }
+
+  // 將所有組裝好的 QA 正式寫入結構化資料
+  if (faqEntities.length > 0) {
+    schemaGraph.push({
+      "@type": "FAQPage",
+      mainEntity: faqEntities,
+    });
   }
 
   const jsonLd = {
@@ -548,41 +594,50 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   exit={{ opacity: 0 }}
                   className="max-w-4xl mx-auto text-[14px] leading-8 text-gray-700 space-y-8"
                 >
-                  <div>
-                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                      日常清潔與保養
-                    </h3>
-                    <p>
-                      建議每次使用後，使用乾淨、柔軟的乾布輕輕擦拭皮件表面，去除灰塵與輕微汙垢。若遇較頑固汙漬，請使用精品專用的皮革清潔劑，切勿使用酒精、含有漂白成分或強烈化學物質的溶劑，以免破壞皮革天然的防護層與色澤。
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                      防潮與遇水處理
-                    </h3>
-                    <p>
-                      精品皮件請盡量避免接觸水分、雨水及濕氣。若不慎淋濕，請立即以乾淨的吸水軟布將水分「輕壓」吸乾（切勿來回摩擦），隨後放置於陰涼通風處自然陰乾。絕對禁止使用吹風機熱風吹乾或直接曝曬於陽光下，否則極易造成皮革硬化、龜裂或變形。
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                      正確的收納方式
-                    </h3>
-                    <p>
-                      皮件長期不使用時，請在包包或皮夾內部塞入適量的「無酸紙」或乾淨的軟布以支撐原有的包型，避免產生不可逆的摺痕。接著將其放入品牌專屬的防塵袋中，存放於通風乾燥、避免陽光直射的環境。建議定期將皮件取出通風，防止發霉。
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                      五金配件維護
-                    </h3>
-                    <p>
-                      包款上的拉鍊、鎖扣等金屬五金，容易因接觸空氣、汗水或化妝品而產生氧化或失去光澤。保養時僅需使用乾燥的纖維軟布輕輕擦拭即可。請避免五金接觸香水、化妝品或護手霜等化學物質，以延長鍍層的壽命與閃耀度。
-                    </p>
-                  </div>
+                  {/* 判斷後台是否有填寫保養建議，有就顯示後台動態資料，沒有就顯示舊的預設文字 */}
+                  {product.careInfo ? (
+                    <div>
+                      <h3 className="text-base font-bold mb-4 text-black tracking-widest border-b border-gray-100 pb-2">
+                        {tCare}
+                      </h3>
+                      <p className="whitespace-pre-wrap">{product.careInfo}</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                          日常清潔與保養
+                        </h3>
+                        <p>
+                          建議每次使用後，使用乾淨、柔軟的乾布輕輕擦拭皮件表面，去除灰塵與輕微汙垢。若遇較頑固汙漬，請使用精品專用的皮革清潔劑，切勿使用酒精、含有漂白成分或強烈化學物質的溶劑，以免破壞皮革天然的防護層與色澤。
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                          防潮與遇水處理
+                        </h3>
+                        <p>
+                          精品皮件請盡量避免接觸水分、雨水及濕氣。若不慎淋濕，請立即以乾淨的吸水軟布將水分「輕壓」吸乾（切勿來回摩擦），隨後放置於陰涼通風處自然陰乾。絕對禁止使用吹風機熱風吹乾或直接曝曬於陽光下，否則極易造成皮革硬化、龜裂或變形。
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                          正確的收納方式
+                        </h3>
+                        <p>
+                          皮件長期不使用時，請在包包或皮夾內部塞入適量的「無酸紙」或乾淨的軟布以支撐原有的包型，避免產生不可逆的摺痕。接著將其放入品牌專屬的防塵袋中，存放於通風乾燥、避免陽光直射的環境。建議定期將皮件取出通風，防止發霉。
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
+                          五金配件維護
+                        </h3>
+                        <p>
+                          包款上的拉鍊、鎖扣等金屬五金，容易因接觸空氣、汗水或化妝品而產生氧化或失去光澤。保養時僅需使用乾燥的纖維軟布輕輕擦拭即可。請避免五金接觸香水、化妝品或護手霜等化學物質，以延長鍍層的壽命與閃耀度。
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -661,6 +716,7 @@ export async function getStaticProps({ params, locale }) {
       rawProduct.variants?.[0]?.weight || rawProduct.weight || 0;
     const metaLang = currentLang === "zh-TW" ? "zh" : currentLang;
 
+    // 基本資訊多語系
     const localizedTitle =
       rawProduct.metadata?.[`title_${metaLang}`] || rawProduct.title;
     const localizedSubtitle =
@@ -670,6 +726,22 @@ export async function getStaticProps({ params, locale }) {
     const localizedDesc =
       rawProduct.metadata?.[`desc_${metaLang}`] || rawProduct.description;
 
+    // SEO 智慧多語系
+    const finalSeoTitle =
+      rawProduct.metadata?.[`seo_title_${metaLang}`] ||
+      (metaLang === "zh" ? rawProduct.metadata?.seo_title : null) ||
+      localizedTitle;
+
+    const finalSeoDesc =
+      rawProduct.metadata?.[`seo_description_${metaLang}`] ||
+      (metaLang === "zh" ? rawProduct.metadata?.seo_description : null) ||
+      localizedDesc;
+
+    const finalSeoKeywords =
+      rawProduct.metadata?.[`seo_keywords_${metaLang}`] ||
+      rawProduct.metadata?.seo_keywords ||
+      "";
+
     const product = {
       id: rawProduct.id || "",
       slug: rawProduct.handle || slug,
@@ -678,6 +750,7 @@ export async function getStaticProps({ params, locale }) {
       price: `${symbol}${Math.round(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
       rawPrice: amount,
       currency: targetCurrency.toUpperCase(),
+      prices: rawProduct.variants?.[0]?.prices || [],
       sku: rawProduct.variants?.[0]?.sku || "",
       variantId: rawProduct.variants?.[0]?.id || null,
       brand: rawProduct.collection?.title || "KÉSH de¹ Select",
@@ -685,9 +758,10 @@ export async function getStaticProps({ params, locale }) {
       description: localizedDesc || "",
       thumbnail: rawProduct.thumbnail || rawProduct.images?.[0]?.url || "",
 
-      seoTitle: rawProduct.metadata?.seo_title || "",
-      seoDesc: rawProduct.metadata?.seo_description || "",
-      seoKeywords: rawProduct.metadata?.seo_keywords || "",
+      // SEO 使用剛剛運算過的智慧變數
+      seoTitle: finalSeoTitle || "",
+      seoDesc: finalSeoDesc || "",
+      seoKeywords: finalSeoKeywords || "",
 
       inStock:
         rawProduct.variants?.some((v) => v.inventory_quantity > 0) || true,
@@ -708,11 +782,18 @@ export async function getStaticProps({ params, locale }) {
         rawProduct.metadata?.[`faq_${metaLang}`] ||
         rawProduct.metadata?.faq_zh ||
         "",
+      careInfo:
+        rawProduct.metadata?.[`care_${metaLang}`] ||
+        rawProduct.metadata?.care_zh ||
+        "",
 
       images:
         rawProduct.images?.map((img) => img.url) ||
         [rawProduct.thumbnail].filter(Boolean),
       specs: { rank: rawProduct.metadata?.rank || "Rank S" },
+
+      // 🔥 非常重要：把原始的 metadata 整包傳給購物車，用來即時翻譯！
+      metadata: rawProduct.metadata || {},
     };
 
     return {

@@ -15,7 +15,7 @@ import {
   ChevronRight,
   Loader2,
   X,
-  FileText, // 用於文章的 Icon
+  FileText,
 } from "lucide-react";
 
 import { useCart } from "../../components/context/CartContext";
@@ -35,7 +35,7 @@ export const SlideTabsExample = () => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchResults, setSearchResults] = useState({
     products: [],
-    pages: [], // 預留給文章/頁面的搜尋結果
+    pages: [],
   });
   const searchContainerRef = useRef(null);
 
@@ -50,7 +50,6 @@ export const SlideTabsExample = () => {
   const router = useRouter();
   const { t } = useTranslation("common");
 
-  // 滾動監聽
   useEffect(() => {
     setMounted(true);
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -58,7 +57,30 @@ export const SlideTabsExample = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 點擊外部關閉搜尋下拉選單
+  // 🔥 守門員 2.0：完美解決「上一頁」語系跑掉，且不引發無窮迴圈
+  useEffect(() => {
+    if (!mounted) return;
+
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+      return null;
+    };
+
+    const savedLocale = getCookie("NEXT_LOCALE");
+
+    // 當使用者按上一頁回到舊語系網址時，柔性將他導回設定好的語系
+    if (savedLocale && savedLocale !== router.locale) {
+      // 💡 關鍵修復：第二個參數放入 undefined，避免網址疊加
+      router.replace(
+        { pathname: router.pathname, query: router.query },
+        undefined,
+        { locale: savedLocale },
+      );
+    }
+  }, [router.locale, router.pathname, router.query, mounted]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -72,7 +94,6 @@ export const SlideTabsExample = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 抓取 Mega Menu 資料
   useEffect(() => {
     async function fetchMenuData() {
       try {
@@ -120,21 +141,16 @@ export const SlideTabsExample = () => {
     if (mounted) fetchMenuData();
   }, [mounted]);
 
-  // 搜尋防抖與 API 呼叫
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
         setIsSearching(true);
         setShowSearchDropdown(true);
         try {
-          // 抓取商品
           const { products } = await medusa.products.list({
             q: searchQuery,
-            limit: 4, // 限制預覽數量，避免選單過長
+            limit: 4,
           });
-
-          // 如果你有客製化的文章 API，可以在這裡發送 Promise.all 同時抓取
-          // const pagesResponse = await fetch('/api/articles?q=' + searchQuery).then(res => res.json());
 
           setSearchResults({
             products: products.map((p) => ({
@@ -146,7 +162,6 @@ export const SlideTabsExample = () => {
                 ? `${(p.variants[0].prices[0].amount / 100).toLocaleString()} TWD`
                 : "TBA",
             })),
-            // 若有文章資料，替換成 pagesResponse.data
             pages: [],
           });
         } catch (err) {
@@ -161,19 +176,28 @@ export const SlideTabsExample = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  // 提交搜尋 (按下 Enter 或是點擊放大鏡)
   const handleSearchSubmit = (e) => {
     if ((e.key === "Enter" || e.type === "click") && searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setShowSearchDropdown(false);
       setSearchQuery("");
+      setIsMenuOpen(false);
     }
   };
 
+  // 🔥 關鍵修復：解決 /en/ko 網址錯亂層級的 Bug
   const changeLanguage = (newLocale) => {
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
-    router.push(router.pathname, router.asPath, { locale: newLocale });
+
+    // 💡 關鍵修復：第二個參數放入 undefined，讓 Next.js 自行重新組裝網址，不再疊加舊的語系！
+    router.replace(
+      { pathname: router.pathname, query: router.query },
+      undefined,
+      { locale: newLocale },
+    );
+
     setIsLangOpen(false);
+    setIsMenuOpen(false);
   };
 
   const navLinks = [
@@ -214,7 +238,7 @@ export const SlideTabsExample = () => {
         onMouseLeave={() => setOpenMega("none")}
         className={`font-sans text-gray-800 z-[1000] w-full transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 shadow-md" : "relative"}`}
       >
-        {/* Top Bar (保持不變) */}
+        {/* Top Bar */}
         <div className="bg-[#ef4628] text-white text-[11px] md:text-xs font-medium py-2 px-4">
           <div className="max-w-[1920px] mx-auto flex justify-between items-center px-4">
             <div className="flex gap-4">
@@ -361,7 +385,6 @@ export const SlideTabsExample = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleSearchSubmit}
-                    // 當輸入框重新獲得焦點且有值時，再次展開下拉選單
                     onFocus={() => {
                       if (searchQuery.trim().length > 1) {
                         setShowSearchDropdown(true);
@@ -397,7 +420,6 @@ export const SlideTabsExample = () => {
                         </div>
                       ) : (
                         <div className="max-h-[70vh] overflow-y-auto overscroll-contain">
-                          {/* 商品搜尋結果 */}
                           {searchResults.products.length > 0 && (
                             <div className="p-2">
                               <h4 className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-3 py-2">
@@ -437,7 +459,6 @@ export const SlideTabsExample = () => {
                             </div>
                           )}
 
-                          {/* 文章/頁面搜尋結果 */}
                           {searchResults.pages.length > 0 && (
                             <div className="p-2 border-t border-gray-50">
                               <h4 className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-3 py-2">
@@ -461,7 +482,6 @@ export const SlideTabsExample = () => {
                             </div>
                           )}
 
-                          {/* 查看全部結果 */}
                           <div className="p-2 bg-gray-50 border-t border-gray-100">
                             <button
                               onClick={handleSearchSubmit}
@@ -495,7 +515,7 @@ export const SlideTabsExample = () => {
           </div>
         </div>
 
-        {/* Mega Menu (保持不變) */}
+        {/* Mega Menu */}
         <AnimatePresence>
           {openMega !== "none" && (
             <motion.div
@@ -607,7 +627,7 @@ export const SlideTabsExample = () => {
         </AnimatePresence>
       </div>
 
-      {/* 手機版側邊滑出選單 (Mobile Sidebar - 保持不變) */}
+      {/* 手機版側邊滑出選單 */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -684,28 +704,19 @@ export const SlideTabsExample = () => {
                 </Link>
                 <div className="flex gap-4 pt-4 border-t border-gray-200">
                   <button
-                    onClick={() => {
-                      changeLanguage("zh-TW");
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={() => changeLanguage("zh-TW")}
                     className={`text-xs ${router.locale === "zh-TW" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
                   >
                     繁
                   </button>
                   <button
-                    onClick={() => {
-                      changeLanguage("en");
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={() => changeLanguage("en")}
                     className={`text-xs ${router.locale === "en" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
                   >
                     EN
                   </button>
                   <button
-                    onClick={() => {
-                      changeLanguage("ko");
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={() => changeLanguage("ko")}
                     className={`text-xs ${router.locale === "ko" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
                   >
                     KR
