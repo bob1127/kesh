@@ -185,7 +185,7 @@ export default function NewsDetail({ post, recentPosts }) {
         </div>
 
         <div className="max-w-[1000px] mx-auto px-6 mb-24 flex flex-col lg:flex-row gap-16 items-start">
-          <aside className="hidden lg:block w-48 sticky top-32 shrink-0">
+          <aside className="hidden lg:block mr-10 w-48 sticky top-32 shrink-0">
             <h3 className="text-xs font-bold uppercase tracking-widest mb-6 border-b border-gray-200 pb-3">
               {t("news.toc", "Table of Contents")}
             </h3>
@@ -213,7 +213,13 @@ export default function NewsDetail({ post, recentPosts }) {
           <div className="flex-1 w-full max-w-[700px]">
             <article
               ref={contentRef}
-              className="prose prose-stone max-w-none prose-p:text-[15px] prose-p:leading-[1] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-10 prose-h2:mb-3 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:pb-4 prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide prose-img:w-full prose-img:aspect-[4/3] prose-img:object-cover prose-img:my-12 prose-img:bg-gray-50 prose-img:rounded-md prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
+              className="prose prose-h1:mt-8 prose-h1:mb-1 prose-h1:text-2xl prose-h1:text-stone-800 prose-stone max-w-none 
+              prose-p:text-[15px] prose-p:leading-[1] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-p:mb-1
+              prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-h2:mb-0 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:pb-4 prose-h2:border-b prose-h2:border-gray-100
+              prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide 
+              [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide 
+              prose-img:w-full prose-img:h-auto prose-img:mt-4 prose-img:mb-2 prose-img:rounded-lg prose-img:shadow-sm
+              prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             <div className="flex justify-end mt-16">

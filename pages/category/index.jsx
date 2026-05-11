@@ -131,7 +131,6 @@ const FilterSidebar = ({
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const t = (zh, en, ko) => (locale === "en" ? en : locale === "ko" ? ko : zh);
 
-  // 排序選單狀態
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   const sortOptions = [
@@ -181,7 +180,6 @@ const FilterSidebar = ({
   return (
     <div className="py-6 pr-6 pl-8 md:py-8 md:pr-8 md:pl-12 flex flex-col h-full">
       <div className="flex-1">
-        {/* 🔥 手工客製化 排序選單 (徹底解決原生 select 雙箭頭問題) */}
         <div className="mb-10 relative">
           <h3 className="text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4">
             {t("排序方式", "Sort By", "정렬 기준")}
@@ -226,7 +224,6 @@ const FilterSidebar = ({
           </div>
         </div>
 
-        {/* 價格區間 Price Range */}
         <FilterSection
           title={t("價格區間", "Price Range", "가격 범위")}
           defaultOpen={true}
@@ -264,7 +261,6 @@ const FilterSidebar = ({
           </div>
         </FilterSection>
 
-        {/* 分類 Categories */}
         <FilterSection
           title={t("產品類別", "Categories", "카테고리")}
           defaultOpen={true}
@@ -294,7 +290,6 @@ const FilterSidebar = ({
           </div>
         </FilterSection>
 
-        {/* 品牌 Brands */}
         <FilterSection
           title={t("精選品牌", "Brands", "브랜드")}
           defaultOpen={true}
@@ -325,7 +320,6 @@ const FilterSidebar = ({
         </FilterSection>
       </div>
 
-      {/* 按鈕區域：根據裝置顯示不同 UI */}
       {isMobile ? (
         <div className="flex gap-3 mt-4 border-t border-gray-100 pt-6">
           <button
@@ -397,7 +391,6 @@ const CompanyLocation = () => {
             STORE INFO
           </h2>
           <div className="space-y-8">
-            
             <div>
               <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Open Hours
@@ -453,22 +446,31 @@ export default function CategoryOverview({ products, brands, categories }) {
     }, 600);
   };
 
+  // 🔥 核心修復：最終商品列表運算 (支援多重分類判斷)
   const finalProducts = useMemo(() => {
     let list = [...products];
 
+    // 分類篩選：只要商品的分類陣列 (categorySlugs) 中，有包含任何一個使用者選中的分類即可
     if (activeFilters.categories.length > 0) {
       list = list.filter((p) =>
-        activeFilters.categories.includes(p.categorySlug),
+        p.categorySlugs?.some((slug) =>
+          activeFilters.categories.includes(slug),
+        ),
       );
     }
+
+    // 品牌篩選
     if (activeFilters.brands.length > 0) {
       list = list.filter((p) => activeFilters.brands.includes(p.brandSlug));
     }
+
+    // 價格區間篩選
     if (priceRange.min)
       list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
     if (priceRange.max)
       list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
 
+    // 排序
     list.sort((a, b) => {
       if (sortBy === "price-high") return b.rawPrice - a.rawPrice;
       if (sortBy === "price-low") return a.rawPrice - b.rawPrice;
@@ -481,6 +483,52 @@ export default function CategoryOverview({ products, brands, categories }) {
 
     return list;
   }, [products, activeFilters, priceRange, sortBy]);
+
+  // 🔥 頂級 UX 優化：計算「當前篩選條件下」的分類動態數量
+  const listForCategoryCount = useMemo(() => {
+    let list = [...products];
+    if (activeFilters.brands.length > 0) {
+      list = list.filter((p) => activeFilters.brands.includes(p.brandSlug));
+    }
+    if (priceRange.min)
+      list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
+    if (priceRange.max)
+      list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
+    return list;
+  }, [products, activeFilters.brands, priceRange]);
+
+  const dynamicCategoriesWithCount = useMemo(() => {
+    return categories.map((cat) => ({
+      ...cat,
+      count: listForCategoryCount.filter((p) =>
+        p.categorySlugs?.includes(cat.slug),
+      ).length,
+    }));
+  }, [categories, listForCategoryCount]);
+
+  // 🔥 頂級 UX 優化：計算「當前篩選條件下」的品牌動態數量
+  const listForBrandCount = useMemo(() => {
+    let list = [...products];
+    if (activeFilters.categories.length > 0) {
+      list = list.filter((p) =>
+        p.categorySlugs?.some((slug) =>
+          activeFilters.categories.includes(slug),
+        ),
+      );
+    }
+    if (priceRange.min)
+      list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
+    if (priceRange.max)
+      list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
+    return list;
+  }, [products, activeFilters.categories, priceRange]);
+
+  const dynamicBrandsWithCount = useMemo(() => {
+    return brands.map((brand) => ({
+      ...brand,
+      count: listForBrandCount.filter((p) => p.brandSlug === brand.slug).length,
+    }));
+  }, [brands, listForBrandCount]);
 
   useEffect(() => {
     setVisibleCount(12);
@@ -558,8 +606,8 @@ export default function CategoryOverview({ products, brands, categories }) {
                 <FilterSidebar
                   activeFilters={activeFilters}
                   setActiveFilters={setActiveFilters}
-                  dynamicBrands={brands}
-                  dynamicCategories={categories}
+                  dynamicBrands={dynamicBrandsWithCount}
+                  dynamicCategories={dynamicCategoriesWithCount}
                   locale={locale}
                   priceRange={priceRange}
                   setPriceRange={setPriceRange}
@@ -574,14 +622,13 @@ export default function CategoryOverview({ products, brands, categories }) {
         </div>
 
         <section className="products-content flex flex-col md:flex-row">
-          {/* 🔥 移除 overflow-y-auto 與 max-h，讓高度隨收折自由伸縮，僅保留 sticky 讓它能隨畫面下滑 */}
           <aside className="hidden md:block w-[280px] lg:w-[320px] border-r border-gray-200 bg-white relative">
             <div className="sticky top-[100px] h-fit pb-10">
               <FilterSidebar
                 activeFilters={activeFilters}
                 setActiveFilters={setActiveFilters}
-                dynamicBrands={brands}
-                dynamicCategories={categories}
+                dynamicBrands={dynamicBrandsWithCount}
+                dynamicCategories={dynamicCategoriesWithCount}
                 locale={locale}
                 priceRange={priceRange}
                 setPriceRange={setPriceRange}
@@ -668,11 +715,11 @@ export async function getStaticProps({ locale }) {
     const fetchOptions = { headers, cache: "no-store" };
 
     const [catRes, colRes, pRes] = await Promise.all([
-      // 🔥 將限制提高到 250，確保抓取所有分類、品牌與商品
       fetch(`${BACKEND_URL}/store/product-categories?limit=250`, fetchOptions),
       fetch(`${BACKEND_URL}/store/collections?limit=250`, fetchOptions),
+      // 🔥 關鍵核心修正：API 必須展開 *categories 才能拿到商品所屬的所有分類！
       fetch(
-        `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection`,
+        `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection,*categories`,
         fetchOptions,
       ),
     ]);
@@ -699,7 +746,13 @@ export async function getStaticProps({ locale }) {
         title: p.title || "",
         brand: p.collection?.title || "KÉSH de¹ Select",
         brandSlug: p.collection?.handle || "select",
-        categorySlug: p.categories?.[0]?.handle || "others",
+
+        // 🔥 關鍵修正：將分類抓取從「單一字串」改成「字串陣列」，以支援商品同時存在多個分類！
+        categorySlugs:
+          p.categories && p.categories.length > 0
+            ? p.categories.map((c) => c.handle)
+            : ["others"],
+
         displayPrice: `${symbol}${Math.round(amount).toLocaleString()}`,
         rawPrice: amount,
         createdAt: p.created_at,
@@ -710,14 +763,11 @@ export async function getStaticProps({ locale }) {
       };
     });
 
-    // 移除 .filter(c => c.count > 0) 讓空庫存也顯示出來
     const categoriesList = (catData.product_categories || []).map((c) => ({
       id: c.id,
       name: c.name,
       metadata: c.metadata || {},
       slug: c.handle,
-      count: formattedProducts.filter((p) => p.categorySlug === c.handle)
-        .length,
     }));
 
     const brandsList = (colData.collections || []).map((c) => ({
@@ -725,7 +775,6 @@ export async function getStaticProps({ locale }) {
       name: c.title,
       metadata: c.metadata || {},
       slug: c.handle,
-      count: formattedProducts.filter((p) => p.brandSlug === c.handle).length,
     }));
 
     return {
