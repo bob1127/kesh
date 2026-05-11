@@ -33,7 +33,7 @@ export default function ProductGridShowcase() {
   const containerRef = useRef(null);
 
   // ==========================================
-  // 🔍 1. 抓取分類 (自帶空分類過濾雷達)
+  // 🔍 1. 抓取分類 (高效能版：解決被截斷與 N+1 問題)
   // ==========================================
   useEffect(() => {
     const fetchValidCollections = async () => {
@@ -44,32 +44,37 @@ export default function ProductGridShowcase() {
       const headers = API_KEY ? { "x-publishable-api-key": API_KEY } : {};
 
       try {
-        const res = await fetch(`${BACKEND_URL}/store/collections`, {
-          headers,
-        });
-        if (!res.ok) return;
-        const data = await res.json();
+        // 🔥 優化點 1：先一次性抓取所有商品，提取出「真正有商品」的 collection_id
+        const prodRes = await fetch(
+          `${BACKEND_URL}/store/products?limit=250&fields=id,collection_id`,
+          { headers },
+        );
+        if (!prodRes.ok) return;
+        const prodData = await prodRes.json();
 
-        const validCollections = [];
+        // 利用 Set 確保 ID 不重複，提升比對效能
+        const activeCollectionIds = new Set(
+          (prodData.products || [])
+            .filter((p) => p.collection_id)
+            .map((p) => p.collection_id),
+        );
 
-        // 掃描每個分類，確認裡面是否有商品
-        for (const col of data.collections) {
-          const countRes = await fetch(
-            `${BACKEND_URL}/store/products?collection_id[]=${col.id}&limit=1`,
-            { headers },
-          );
-          if (countRes.ok) {
-            const countData = await countRes.json();
-            if (countData.count > 0) {
-              validCollections.push({
-                id: col.id,
-                title: col.metadata?.[`title_${metaLang}`] || col.title,
-              });
-            }
-          }
-        }
+        // 🔥 優化點 2：抓取系列時加上 limit=250，避免預設 10 筆吃掉 CHANEL
+        const colRes = await fetch(
+          `${BACKEND_URL}/store/collections?limit=250`,
+          { headers },
+        );
+        if (!colRes.ok) return;
+        const colData = await colRes.json();
 
-        // 🔥 使用安全的專屬前綴 showcase.view_all
+        // 將擁有商品的分類篩選出來
+        const validCollections = (colData.collections || [])
+          .filter((col) => activeCollectionIds.has(col.id))
+          .map((col) => ({
+            id: col.id,
+            title: col.metadata?.[`title_${metaLang}`] || col.title,
+          }));
+
         setCollections([
           { id: "all", title: t("showcase.view_all", "全部商品") },
           ...validCollections,
