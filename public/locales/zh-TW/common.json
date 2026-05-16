@@ -362,18 +362,20 @@
       }
     }
   },
- "news": {
-  "category": "最新消息",
-  "share": "分享 :",
-  "editor": "編輯",
-  "category_label": "分類",
-  "category_value": "時尚 / 活動",
-  "toc": "文章目錄",
-  "no_outline": "沒有大綱可顯示。",
-  "about_desc": "我們致力於打造最優質的二手精品交易平台，提供透明的報價與專業的鑑定服務。每一件商品都經過嚴格把關，讓您買得安心，賣得放心。",
-  "back_btn": "返回列表",
-  "recent": "推薦閱讀"
-},
+"news": {
+    "page_title": "最新消息",
+    "page_subtitle": "探索 KÉSH de¹ 的品牌動態與精選文章",
+    "seo_title": "最新消息與品牌動態 | KÉSH de¹",
+    "seo_desc": "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
+    "badge_latest": "最新發佈",
+    "badge_news": "新聞",
+    "read_more": "閱讀更多",
+    "view_details": "查看詳情",
+    "no_posts": "目前沒有任何文章發佈",
+    "updated": "最後更新",
+    "footer_official": "KÉSH de¹ 官方日誌",
+    "footer_store": "前往線上商店"
+  },
   "faq": {
     "seo": {
       "title": "FAQ 常見問題｜KÉSH de¹ 凱仕國際精品 - 正品鑑定與服務",

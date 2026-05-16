@@ -67,7 +67,7 @@ const GenericAccordion = ({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="pt-4 text-[14.5px] text-stone-700 tracking-wide leading-[25px] font-medium whitespace-pre-wrap">
+            <div className="pt-4 text-[14.5px] text-stone-900  leading-[25px] tracking-widest whitespace-pre-wrap break-words">
               {children}
             </div>
           </motion.div>
@@ -85,16 +85,44 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [activeTab, setActiveTab] = useState("features");
 
+  // 🔥 放大鏡專屬 State
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
 
+  // 🔥 縮圖方向 State (用於判斷手機版水平、電腦版垂直)
+  const [thumbDirection, setThumbDirection] = useState("horizontal");
+
+  useEffect(() => {
+    const updateDirection = () => {
+      setThumbDirection(window.innerWidth >= 768 ? "vertical" : "horizontal");
+    };
+    updateDirection();
+    window.addEventListener("resize", updateDirection);
+    return () => window.removeEventListener("resize", updateDirection);
+  }, []);
+
+  // 🖱️ 滑鼠版放大鏡追蹤
   const handleMouseMove = (e) => {
     if (!isZoomEnabled) return;
     const { left, top, width, height } =
       e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
+    setCursorPos({ x, y });
+  };
+
+  // 📱 手機觸控版放大鏡追蹤
+  const handleTouchMove = (e) => {
+    if (!isZoomEnabled) return;
+    const touch = e.touches[0];
+    const { left, top, width, height } =
+      e.currentTarget.getBoundingClientRect();
+    let x = ((touch.clientX - left) / width) * 100;
+    let y = ((touch.clientY - top) / height) * 100;
+    // 限制範圍在 0~100 之間，避免觸控超界導致破圖
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
     setCursorPos({ x, y });
   };
 
@@ -121,6 +149,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     : isKo
       ? "취급 시 주의사항"
       : "清潔與保養建議";
+  const tReport = isEn ? "Condition Report" : isKo ? "상태 보고서" : "品況報告";
 
   // ==========================================
   // 🔥 Google 官方四大電商結構化資料 滿血版 (多語系優化)
@@ -160,12 +189,11 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
   const priceValidUntil = nextYearDate.toISOString().split("T")[0];
 
-  // 1. 商品摘要 (Product Snippet) + 商家清單 (Merchant Listing) + 物流與退貨
   schemaGraph.push({
     "@type": "Product",
-    name: product.title, // 自動跟隨語系
+    name: product.title,
     image: product.images || [ogImage],
-    description: seoDesc, // 自動跟隨語系
+    description: seoDesc,
     sku: product.sku || product.id,
     mpn: product.sku || product.id,
     brand: {
@@ -225,18 +253,14 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     },
   });
 
-  // 4. 強化版結構化資料：結合「常見問題」與「保養建議」 (FAQPage)
   const faqEntities = [];
 
-  // --- A. 自動生成：保養與清潔 QA ---
-  // 根據語系動態生成 Google 搜尋問題
   const careQuestionName = isEn
     ? `How to clean and care for ${product.title}?`
     : isKo
       ? `${product.title} 관리 및 보관 방법은 무엇인가요?`
       : `如何清潔與保養 ${product.title}？`;
 
-  // 準備給結構化資料的純文字預設保養內容 (若後台沒填時的備用資料)
   const defaultCareZh =
     "【日常清潔與保養】建議每次使用後，使用乾淨、柔軟的乾布輕輕擦拭皮件表面，去除灰塵與輕微汙垢。【防潮與遇水處理】精品皮件請盡量避免接觸水分、雨水及濕氣。若不慎淋濕，請立即以乾淨的吸水軟布將水分輕壓吸乾。【正確的收納方式】皮件長期不使用時，請在包包內部塞入適量的無酸紙或乾淨軟布以支撐包型，並放入防塵袋中。【五金配件維護】保養時僅需使用乾燥的纖維軟布輕輕擦拭即可。";
   const defaultCareEn =
@@ -244,12 +268,10 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const defaultCareKo =
     "【일상 관리】사용 후 부드럽고 마른 천으로 부드럽게 닦아주세요. 【습기 주의】물과 습기를 피하고, 젖었을 경우 즉시 물기를 닦아내세요. 【보관 방법】모양 유지를 위해 산성 없는 종이를 넣고 더스트 백에 보관하세요. 【금속 부품 관리】마른 극세사 천으로 금속 부품을 닦아주세요.";
 
-  // 抓取後台資料，如果沒有就套用上方預設文字
   const finalCareInfo =
     product.careInfo ||
     (isEn ? defaultCareEn : isKo ? defaultCareKo : defaultCareZh);
 
-  // 將保養建議推入 QA 結構中
   faqEntities.push({
     "@type": "Question",
     name: careQuestionName,
@@ -259,13 +281,11 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     },
   });
 
-  // --- B. 加入原本的：常見問題 FAQ QA ---
   if (product.faqInfo) {
     const hasQAFormat =
       /Q:|Ｑ：/i.test(product.faqInfo) && /A:|Ａ：/i.test(product.faqInfo);
 
     if (hasQAFormat) {
-      // 若有寫 Q: A: 就自動拆解成多個問題
       const faqParts = product.faqInfo.split(/Q:|Ｑ：/i).filter(Boolean);
       faqParts.forEach((part) => {
         const [q, ...aArr] = part.split(/A:|Ａ：/i);
@@ -281,7 +301,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         }
       });
     } else {
-      // 若只是一大段文字，就整合成單一問題
       const fallbackQuestionName = isEn
         ? `Purchasing and Shipping for ${product.title}`
         : isKo
@@ -299,7 +318,6 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     }
   }
 
-  // 將所有組裝好的 QA 正式寫入結構化資料
   if (faqEntities.length > 0) {
     schemaGraph.push({
       "@type": "FAQPage",
@@ -351,96 +369,168 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         />
       </Head>
 
+      {/* 🔥 加入全域樣式以複寫 Swiper 預設箭頭，呈現毛玻璃效果 */}
+      <style jsx global>{`
+        .main-product-swiper .swiper-button-next,
+        .main-product-swiper .swiper-button-prev {
+          width: 44px !important;
+          height: 44px !important;
+          background-color: rgba(255, 255, 255, 0.45) !important;
+          backdrop-filter: blur(8px) !important;
+          -webkit-backdrop-filter: blur(8px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.4) !important;
+          border-radius: 50% !important;
+          color: #1a1a1a !important;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+          transition: all 0.3s ease !important;
+          opacity: 0 !important;
+        }
+        .main-swiper-group:hover
+          .main-product-swiper
+          .swiper-button-next:not(.swiper-button-disabled),
+        .main-swiper-group:hover
+          .main-product-swiper
+          .swiper-button-prev:not(.swiper-button-disabled) {
+          opacity: 1 !important;
+        }
+        .main-product-swiper .swiper-button-next:hover,
+        .main-product-swiper .swiper-button-prev:hover {
+          background-color: rgba(255, 255, 255, 0.85) !important;
+          transform: scale(1.05) !important;
+        }
+        .main-product-swiper .swiper-button-next::after,
+        .main-product-swiper .swiper-button-prev::after {
+          font-size: 16px !important;
+          font-weight: 900 !important;
+        }
+        .main-product-swiper .swiper-button-prev {
+          left: 16px !important;
+        }
+        .main-product-swiper .swiper-button-next {
+          right: 16px !important;
+        }
+        .main-product-swiper .swiper-button-disabled {
+          opacity: 0 !important;
+          cursor: default;
+        }
+      `}</style>
+
       <main className="bg-white text-black min-h-screen pt-5 md:pt-14 pb-0">
         <div className="max-w-[1440px] mx-auto px-6 md:px-10">
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
-            {/* ================= 左側：圖片區 ================= */}
-            <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10 relative">
-              <button
-                onClick={() => setIsZoomEnabled(!isZoomEnabled)}
-                className={`absolute top-4 right-4 z-20 p-2.5 rounded-full shadow-md transition-all duration-300 ${
-                  isZoomEnabled
-                    ? "bg-[#ef4628] text-white hover:bg-red-700"
-                    : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-black hover:scale-105"
-                }`}
-                title={isZoomEnabled ? "關閉放大鏡" : "開啟放大鏡"}
-              >
-                {isZoomEnabled ? (
-                  <ZoomOut size={20} strokeWidth={2.5} />
-                ) : (
-                  <ZoomIn size={20} strokeWidth={2.5} />
-                )}
-              </button>
-
-              <Swiper
-                spaceBetween={10}
-                navigation={true}
-                thumbs={{
-                  swiper:
-                    thumbsSwiper && !thumbsSwiper.destroyed
-                      ? thumbsSwiper
-                      : null,
-                }}
-                modules={[FreeMode, Navigation, Thumbs]}
-                className="w-full aspect-[4/4] bg-gray-50 mb-4 rounded-sm"
-              >
-                {product.images?.map((img, idx) => (
-                  <SwiperSlide key={idx}>
-                    <div
-                      className={`relative w-full h-full overflow-hidden ${isZoomEnabled ? "cursor-crosshair" : "cursor-default"}`}
-                      onMouseEnter={() => isZoomEnabled && setIsHovered(true)}
-                      onMouseLeave={() => {
-                        setIsHovered(false);
-                        setCursorPos({ x: 50, y: 50 });
-                      }}
-                      onMouseMove={handleMouseMove}
-                    >
-                      <Image
-                        src={img}
-                        alt={product.title}
-                        fill
-                        className="object-cover transition-transform duration-200 ease-out"
-                        style={{
-                          transform:
-                            isHovered && isZoomEnabled
-                              ? "scale(2.5)"
-                              : "scale(1)",
-                          transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`,
-                        }}
-                        priority={idx === 0}
-                        unoptimized
-                      />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-
-              <Swiper
-                onSwiper={setThumbsSwiper}
-                spaceBetween={10}
-                slidesPerView={4}
-                freeMode={true}
-                watchSlidesProgress={true}
-                modules={[FreeMode, Navigation, Thumbs]}
-                className="w-full h-24 md:h-28 thumb-swiper"
-              >
-                {product.images?.map((img, idx) => (
-                  <SwiperSlide
-                    key={idx}
-                    className="cursor-pointer opacity-50 [&.swiper-slide-thumb-active]:opacity-100"
+            {/* ================= 左側：圖片區 (結合垂直與水平排列) ================= */}
+            <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10 flex flex-col-reverse md:flex-row gap-3 items-stretch">
+              {/* 縮圖區塊 */}
+              <div className="w-full md:w-[80px] lg:w-[100px] shrink-0 relative h-24 md:h-auto">
+                <div className="md:absolute md:inset-0 w-full h-full">
+                  <Swiper
+                    key={thumbDirection}
+                    onSwiper={setThumbsSwiper}
+                    direction={thumbDirection}
+                    spaceBetween={10}
+                    slidesPerView={4}
+                    freeMode={true}
+                    watchSlidesProgress={true}
+                    modules={[FreeMode, Navigation, Thumbs]}
+                    className="w-full h-full thumb-swiper"
                   >
-                    <div className="relative w-full h-full border border-transparent bg-white">
-                      <Image
-                        src={img}
-                        alt="thumb"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+                    {product.images?.map((img, idx) => (
+                      <SwiperSlide
+                        key={idx}
+                        className="cursor-pointer opacity-50 [&.swiper-slide-thumb-active]:opacity-100"
+                      >
+                        <div className="relative w-full h-full border border-transparent bg-white">
+                          <Image
+                            src={img}
+                            alt="thumb"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+              </div>
+
+              {/* 主圖區塊 (加入 main-swiper-group 讓 hover 生效) */}
+              <div className="w-full flex-1 relative min-w-0 main-swiper-group">
+                <button
+                  onClick={() => setIsZoomEnabled(!isZoomEnabled)}
+                  className={`absolute top-4 right-4 z-20 p-2.5 rounded-full shadow-md transition-all duration-300 ${
+                    isZoomEnabled
+                      ? "bg-[#ef4628] text-white hover:bg-red-700"
+                      : "bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white hover:text-black hover:scale-105"
+                  }`}
+                  title={isZoomEnabled ? "關閉放大鏡" : "開啟放大鏡"}
+                >
+                  {isZoomEnabled ? (
+                    <ZoomOut size={20} strokeWidth={2.5} />
+                  ) : (
+                    <ZoomIn size={20} strokeWidth={2.5} />
+                  )}
+                </button>
+
+                <Swiper
+                  spaceBetween={10}
+                  navigation={true}
+                  thumbs={{
+                    swiper:
+                      thumbsSwiper && !thumbsSwiper.destroyed
+                        ? thumbsSwiper
+                        : null,
+                  }}
+                  modules={[FreeMode, Navigation, Thumbs]}
+                  // 🔥 加入 main-product-swiper 套用上方毛玻璃 CSS
+                  className="w-full aspect-[4/4] bg-gray-50 rounded-sm main-product-swiper"
+                >
+                  {product.images?.map((img, idx) => (
+                    <SwiperSlide key={idx}>
+                      <div
+                        className={`relative w-full h-full overflow-hidden ${
+                          isZoomEnabled
+                            ? "cursor-crosshair touch-none"
+                            : "cursor-default"
+                        }`}
+                        onMouseEnter={() => isZoomEnabled && setIsHovered(true)}
+                        onMouseLeave={() => {
+                          setIsHovered(false);
+                          setCursorPos({ x: 50, y: 50 });
+                        }}
+                        onMouseMove={handleMouseMove}
+                        onTouchStart={(e) => {
+                          if (isZoomEnabled) {
+                            setIsHovered(true);
+                            handleTouchMove(e);
+                          }
+                        }}
+                        onTouchEnd={() => {
+                          setIsHovered(false);
+                          setCursorPos({ x: 50, y: 50 });
+                        }}
+                        onTouchMove={handleTouchMove}
+                      >
+                        <Image
+                          src={img}
+                          alt={product.title}
+                          fill
+                          className="object-cover transition-transform duration-200 ease-out"
+                          style={{
+                            transform:
+                              isHovered && isZoomEnabled
+                                ? "scale(2.5)"
+                                : "scale(1)",
+                            transformOrigin: `${cursorPos.x}% ${cursorPos.y}%`,
+                          }}
+                          priority={idx === 0}
+                          unoptimized
+                        />
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
             </div>
 
             {/* ================= 右側：商品資訊區 ================= */}
@@ -540,7 +630,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
               onClick={() => setActiveTab("features")}
               className={`pb-4 text-sm font-bold uppercase tracking-widest relative ${activeTab === "features" ? "text-black" : "text-gray-400"}`}
             >
-              {ui.tab_features || "產品特色"}
+              {ui.tab_features || "品況報告"}
               {activeTab === "features" && (
                 <motion.div
                   layoutId="activeTabIndicator"
@@ -569,7 +659,22 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  className="flex flex-col gap-10 overflow-hidden" // 🔥 加入 overflow-hidden
                 >
+                  {product.reportInfo && (
+                    <div className="max-w-4xl mx-auto w-full text-[14px] leading-8 text-gray-700 space-y-8">
+                      <div>
+                        <h3 className="text-base font-bold mb-4 text-black tracking-widest border-b border-gray-100 pb-2">
+                          {tReport}
+                        </h3>
+                        {/* 🔥 加入 break-words 修正連續字串爆版問題 */}
+                        <p className="whitespace-pre-wrap break-words">
+                          {product.reportInfo}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <HeroSlider
                     carouselSlides={[
                       {
@@ -586,6 +691,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   />
                 </motion.div>
               )}
+
               {activeTab === "shipping" && (
                 <motion.div
                   key="shipping"
@@ -594,13 +700,15 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   exit={{ opacity: 0 }}
                   className="max-w-4xl mx-auto text-[14px] leading-8 text-gray-700 space-y-8"
                 >
-                  {/* 判斷後台是否有填寫保養建議，有就顯示後台動態資料，沒有就顯示舊的預設文字 */}
                   {product.careInfo ? (
                     <div>
                       <h3 className="text-base font-bold mb-4 text-black tracking-widest border-b border-gray-100 pb-2">
                         {tCare}
                       </h3>
-                      <p className="whitespace-pre-wrap">{product.careInfo}</p>
+                      {/* 同理加上 break-words 確保安全 */}
+                      <p className="whitespace-pre-wrap break-words">
+                        {product.careInfo}
+                      </p>
                     </div>
                   ) : (
                     <>
@@ -785,6 +893,10 @@ export async function getStaticProps({ params, locale }) {
       careInfo:
         rawProduct.metadata?.[`care_${metaLang}`] ||
         rawProduct.metadata?.care_zh ||
+        "",
+      reportInfo:
+        rawProduct.metadata?.[`report_${metaLang}`] ||
+        rawProduct.metadata?.report_zh ||
         "",
 
       images:

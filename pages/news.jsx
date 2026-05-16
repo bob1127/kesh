@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Head from "next/head";
 import Link from "next/link";
@@ -35,7 +37,7 @@ const HeroPost = ({ post, t }) => {
         <div className="absolute bottom-0 left-0 md:left-auto md:right-[10%] md:bottom-[10%] w-full md:w-[500px] bg-[#ef4628]/90 text-white p-8 md:p-12 backdrop-blur-sm transition-all duration-300">
           <div className="flex justify-between items-start mb-4 border-b border-white/30 pb-4">
             <span className="text-xs font-bold tracking-[0.2em] uppercase">
-              {t("news.badge_latest")}
+              {t("news.badge_latest", "最新發佈")}
             </span>
             <span className="text-sm font-mono">{post.date}</span>
           </div>
@@ -47,7 +49,7 @@ const HeroPost = ({ post, t }) => {
             dangerouslySetInnerHTML={{ __html: post.excerpt }}
           />
           <div className="mt-6 flex items-center gap-2 text-xs font-bold tracking-widest uppercase">
-            {t("news.read_more")}
+            {t("news.read_more", "閱讀更多")}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -95,7 +97,7 @@ const NewsCard = ({ post, index, t }) => {
         <div className="flex flex-col flex-grow border-t border-gray-200 pt-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-[10px] font-bold text-[#ef4628] uppercase tracking-widest">
-              {t("news.badge_news")}
+              {t("news.badge_news", "新聞")}
             </span>
           </div>
           <h3 className="text-lg font-bold text-gray-900 leading-snug mb-3 uppercase group-hover:text-[#ef4628] transition-colors line-clamp-2">
@@ -107,7 +109,7 @@ const NewsCard = ({ post, index, t }) => {
           />
           <div className="mt-auto">
             <span className="inline-block border-b border-black pb-0.5 text-[10px] font-bold tracking-widest uppercase group-hover:border-[#ef4628] group-hover:text-[#ef4628] transition-colors">
-              {t("news.view_details")}
+              {t("news.view_details", "查看詳情")}
             </span>
           </div>
         </div>
@@ -123,6 +125,12 @@ export default function NewsPage({ posts }) {
   const heroPost = posts.length > 0 ? posts[0] : null;
   const gridPosts = posts.length > 1 ? posts.slice(1) : [];
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
+
+  // 🔥 SEO: 抓取第一篇文章的圖作為社群分享圖，若沒有文章則用預設圖
+  const ogImage = heroPost ? heroPost.image : `${siteUrl}/default-og-image.jpg`;
+
   // 🔥 SEO 結構化資料：ItemList (文章清單標記)
   const schemaItemList = {
     "@context": "https://schema.org",
@@ -130,7 +138,7 @@ export default function NewsPage({ posts }) {
     itemListElement: posts.map((post, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      url: `${process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com"}/news/${post.slug}`,
+      url: `${siteUrl}/news/${post.slug}`,
       name: post.title,
     })),
   };
@@ -138,8 +146,47 @@ export default function NewsPage({ posts }) {
   return (
     <>
       <Head>
-        <title>{t("news.seo_title")}</title>
-        <meta name="description" content={t("news.seo_desc")} />
+        <title>{t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}</title>
+        <meta
+          name="description"
+          content={t(
+            "news.seo_desc",
+            "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
+          )}
+        />
+
+        {/* 🔥 Open Graph (Facebook, Line 分享標籤) */}
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:title"
+          content={t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}
+        />
+        <meta
+          property="og:description"
+          content={t(
+            "news.seo_desc",
+            "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
+          )}
+        />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:image:secure_url" content={ogImage} />
+        <meta property="og:url" content={`${siteUrl}/news`} />
+
+        {/* 🔥 Twitter Card 標籤 */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content={t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}
+        />
+        <meta
+          name="twitter:description"
+          content={t(
+            "news.seo_desc",
+            "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
+          )}
+        />
+        <meta name="twitter:image" content={ogImage} />
+
         {/* 注入自動生成的 JSON-LD */}
         <script
           type="application/ld+json"
@@ -151,15 +198,15 @@ export default function NewsPage({ posts }) {
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-6">
           <div>
             <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-2">
-              {t("news.page_title")}
+              {t("news.page_title", "LATEST NEWS")}
             </h1>
             <p className="text-sm text-gray-500 tracking-widest uppercase">
-              {t("news.page_subtitle")}
+              {t("news.page_subtitle", "EXPLORE KÉSH de¹ JOURNAL")}
             </p>
           </div>
           <div className="hidden md:block text-right">
             <p className="text-xs font-mono text-gray-400">
-              {t("news.updated")} {new Date().toLocaleDateString()}
+              {t("news.updated", "Updated")} {new Date().toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -167,7 +214,7 @@ export default function NewsPage({ posts }) {
         <div className="max-w-[1440px] mx-auto px-6 md:px-10">
           {posts.length === 0 ? (
             <div className="text-center py-20 text-gray-500">
-              {t("news.no_posts")}
+              {t("news.no_posts", "No posts available")}
             </div>
           ) : (
             <>
@@ -187,13 +234,13 @@ export default function NewsPage({ posts }) {
           <div className="w-full h-[1px] bg-gray-200"></div>
           <div className="flex justify-between items-center py-6">
             <span className="text-[10px] text-gray-400 uppercase tracking-widest">
-              {t("news.footer_official")}
+              {t("news.footer_official", "KÉSH de¹ OFFICIAL JOURNAL")}
             </span>
             <Link
               href="/shop"
               className="text-[10px] font-bold uppercase tracking-widest hover:text-[#ef4628]"
             >
-              {t("news.footer_store")}
+              {t("news.footer_store", "GO TO ONLINE STORE")}
             </Link>
           </div>
         </div>

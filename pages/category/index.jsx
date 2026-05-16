@@ -127,6 +127,7 @@ const FilterSidebar = ({
   setSortBy,
   isMobile = false,
   onApply,
+  onUserInteraction,
 }) => {
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const t = (zh, en, ko) => (locale === "en" ? en : locale === "ko" ? ko : zh);
@@ -154,6 +155,7 @@ const FilterSidebar = ({
         : [...current, slug];
       return { ...prev, [type]: updated };
     });
+    onUserInteraction();
   };
 
   const CustomCircleCheckbox = ({ isChecked }) => (
@@ -175,6 +177,12 @@ const FilterSidebar = ({
     setActiveFilters({ categories: [], brands: [] });
     setPriceRange({ min: "", max: "" });
     setSortBy("newest");
+    onUserInteraction();
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      sessionStorage.removeItem(`kesh_filters_${currentPath}`);
+      sessionStorage.removeItem(`kesh_scroll_${currentPath}`);
+    }
   };
 
   return (
@@ -207,6 +215,7 @@ const FilterSidebar = ({
                       key={option.value}
                       onClick={() => {
                         setSortBy(option.value);
+                        onUserInteraction();
                         setIsSortOpen(false);
                       }}
                       className={`px-4 py-3 text-[13px] cursor-pointer hover:bg-stone-50 transition-colors ${
@@ -237,9 +246,10 @@ const FilterSidebar = ({
                 type="number"
                 placeholder={t("最低", "Min", "최소")}
                 value={priceRange.min}
-                onChange={(e) =>
-                  setPriceRange((prev) => ({ ...prev, min: e.target.value }))
-                }
+                onChange={(e) => {
+                  setPriceRange((prev) => ({ ...prev, min: e.target.value }));
+                  onUserInteraction();
+                }}
                 className="w-full bg-transparent border-b border-gray-200 py-2 pl-4 pr-1 text-[13px] outline-none focus:border-black transition-colors rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
@@ -252,9 +262,10 @@ const FilterSidebar = ({
                 type="number"
                 placeholder={t("最高", "Max", "최대")}
                 value={priceRange.max}
-                onChange={(e) =>
-                  setPriceRange((prev) => ({ ...prev, max: e.target.value }))
-                }
+                onChange={(e) => {
+                  setPriceRange((prev) => ({ ...prev, max: e.target.value }));
+                  onUserInteraction();
+                }}
                 className="w-full bg-transparent border-b border-gray-200 py-2 pl-4 pr-1 text-[13px] outline-none focus:border-black transition-colors rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
@@ -419,10 +430,18 @@ const CompanyLocation = () => {
   );
 };
 
-// --- 🔥 主頁面 ---
+// --- 🔥 主頁面: 分類列表頁 (index.jsx) ---
 export default function CategoryOverview({ products, brands, categories }) {
   const router = useRouter();
-  const { locale } = router;
+  const { locale, asPath } = router;
+  const metaLang = locale === "zh-TW" ? "zh" : locale;
+  const tAllProducts =
+    locale === "en"
+      ? "All Products"
+      : locale === "ko"
+        ? "전체 상품"
+        : "全部商品";
+
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -433,6 +452,144 @@ export default function CategoryOverview({ products, brands, categories }) {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(12);
+
+  const isReady = useRef(false);
+  const prevFiltersRef = useRef("");
+  const [loadedPath, setLoadedPath] = useState(null);
+
+  // ==========================================
+  // 🔥 防呆包裝器：只有使用者手動點擊才重置數量
+  // ==========================================
+  const handleSetActiveFilters = (action) => {
+    setActiveFilters(action);
+    setVisibleCount(12);
+  };
+  const handleSetPriceRange = (action) => {
+    setPriceRange(action);
+    setVisibleCount(12);
+  };
+  const handleSetSortBy = (action) => {
+    setSortBy(action);
+    setVisibleCount(12);
+  };
+
+  // ==========================================
+  // 🔥 1. 關閉瀏覽器預設滾動，並記錄離開時的 Y 軸
+  // ==========================================
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      "scrollRestoration" in window.history
+    ) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    let scrollTimeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        sessionStorage.setItem(
+          `kesh_scroll_${asPath}`,
+          window.scrollY.toString(),
+        );
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [asPath]);
+
+  // ==========================================
+  // 🔥 2. 初始化與還原 SessionStorage，智慧滾動還原
+  // ==========================================
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedState = sessionStorage.getItem(`kesh_filters_${asPath}`);
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setActiveFilters(
+          parsed.activeFilters || { categories: [], brands: [] },
+        );
+        setPriceRange(parsed.priceRange || { min: "", max: "" });
+        setSortBy(parsed.sortBy || "newest");
+        setVisibleCount(parsed.visibleCount || 12);
+        prevFiltersRef.current = JSON.stringify({
+          activeFilters: parsed.activeFilters,
+          priceRange: parsed.priceRange,
+          sortBy: parsed.sortBy,
+        });
+      } catch (e) {
+        console.error("Failed to parse filters", e);
+      }
+    } else {
+      const defaultFilters = { categories: [], brands: [] };
+      setActiveFilters(defaultFilters);
+      setPriceRange({ min: "", max: "" });
+      setSortBy("newest");
+      setVisibleCount(12);
+      prevFiltersRef.current = JSON.stringify({
+        activeFilters: defaultFilters,
+        priceRange: { min: "", max: "" },
+        sortBy: "newest",
+      });
+    }
+
+    // ✅ 宣告這頁的狀態已經「乾淨載入」，放行存檔功能
+    setLoadedPath(asPath);
+
+    // 🔥 智慧輪詢滾動：等待 DOM 長高後再滾過去
+    const savedScroll = sessionStorage.getItem(`kesh_scroll_${asPath}`);
+    if (savedScroll) {
+      const targetY = parseInt(savedScroll, 10);
+      let attempts = 0;
+      const tryScroll = () => {
+        if (document.body.scrollHeight >= targetY || attempts > 20) {
+          window.scrollTo({ top: targetY, behavior: "instant" });
+          sessionStorage.removeItem(`kesh_scroll_${asPath}`);
+        } else {
+          attempts++;
+          setTimeout(tryScroll, 50);
+        }
+      };
+      tryScroll();
+    }
+    isReady.current = true;
+  }, [asPath]);
+
+  // ==========================================
+  // 🔥 3. 監聽變更並儲存狀態至 SessionStorage
+  // ==========================================
+  useEffect(() => {
+    if (loadedPath !== asPath) return;
+
+    const stateToSave = { activeFilters, priceRange, sortBy, visibleCount };
+    sessionStorage.setItem(
+      `kesh_filters_${asPath}`,
+      JSON.stringify(stateToSave),
+    );
+  }, [activeFilters, priceRange, sortBy, visibleCount, asPath, loadedPath]);
+
+  // ==========================================
+  // 🔥 4. 只有當過濾條件「真正被使用者改變」時，才重置顯示數量為 12
+  // ==========================================
+  useEffect(() => {
+    if (loadedPath !== asPath) return;
+    const currentFiltersString = JSON.stringify({
+      activeFilters,
+      priceRange,
+      sortBy,
+    });
+
+    if (
+      prevFiltersRef.current !== currentFiltersString &&
+      prevFiltersRef.current !== ""
+    ) {
+      setVisibleCount(12);
+      prevFiltersRef.current = currentFiltersString;
+    }
+  }, [activeFilters, priceRange, sortBy, loadedPath, asPath]);
 
   const handleMobileApply = () => {
     setIsMobileFilterOpen(false);
@@ -446,11 +603,9 @@ export default function CategoryOverview({ products, brands, categories }) {
     }, 600);
   };
 
-  // 🔥 核心修復：最終商品列表運算 (支援多重分類判斷)
   const finalProducts = useMemo(() => {
     let list = [...products];
 
-    // 分類篩選：只要商品的分類陣列 (categorySlugs) 中，有包含任何一個使用者選中的分類即可
     if (activeFilters.categories.length > 0) {
       list = list.filter((p) =>
         p.categorySlugs?.some((slug) =>
@@ -458,19 +613,14 @@ export default function CategoryOverview({ products, brands, categories }) {
         ),
       );
     }
-
-    // 品牌篩選
     if (activeFilters.brands.length > 0) {
       list = list.filter((p) => activeFilters.brands.includes(p.brandSlug));
     }
-
-    // 價格區間篩選
     if (priceRange.min)
       list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
     if (priceRange.max)
       list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
 
-    // 排序
     list.sort((a, b) => {
       if (sortBy === "price-high") return b.rawPrice - a.rawPrice;
       if (sortBy === "price-low") return a.rawPrice - b.rawPrice;
@@ -484,7 +634,6 @@ export default function CategoryOverview({ products, brands, categories }) {
     return list;
   }, [products, activeFilters, priceRange, sortBy]);
 
-  // 🔥 頂級 UX 優化：計算「當前篩選條件下」的分類動態數量
   const listForCategoryCount = useMemo(() => {
     let list = [...products];
     if (activeFilters.brands.length > 0) {
@@ -506,7 +655,6 @@ export default function CategoryOverview({ products, brands, categories }) {
     }));
   }, [categories, listForCategoryCount]);
 
-  // 🔥 頂級 UX 優化：計算「當前篩選條件下」的品牌動態數量
   const listForBrandCount = useMemo(() => {
     let list = [...products];
     if (activeFilters.categories.length > 0) {
@@ -530,15 +678,11 @@ export default function CategoryOverview({ products, brands, categories }) {
     }));
   }, [brands, listForBrandCount]);
 
-  useEffect(() => {
-    setVisibleCount(12);
-  }, [activeFilters, priceRange, sortBy]);
-
   const displayedProducts = finalProducts.slice(0, visibleCount);
 
   const isFiltered =
     activeFilters.categories.length > 0 || activeFilters.brands.length > 0;
-  const titleDisplay = isFiltered ? "Filtered Results" : "Online Store";
+  const titleDisplay = isFiltered ? "Filtered Results" : tAllProducts;
 
   return (
     <>
@@ -605,16 +749,17 @@ export default function CategoryOverview({ products, brands, categories }) {
               >
                 <FilterSidebar
                   activeFilters={activeFilters}
-                  setActiveFilters={setActiveFilters}
+                  setActiveFilters={handleSetActiveFilters}
                   dynamicBrands={dynamicBrandsWithCount}
                   dynamicCategories={dynamicCategoriesWithCount}
                   locale={locale}
                   priceRange={priceRange}
-                  setPriceRange={setPriceRange}
+                  setPriceRange={handleSetPriceRange}
                   sortBy={sortBy}
-                  setSortBy={setSortBy}
+                  setSortBy={handleSetSortBy}
                   isMobile={true}
                   onApply={handleMobileApply}
+                  onUserInteraction={() => setVisibleCount(12)}
                 />
               </motion.div>
             )}
@@ -626,15 +771,16 @@ export default function CategoryOverview({ products, brands, categories }) {
             <div className="sticky top-[100px] h-fit pb-10">
               <FilterSidebar
                 activeFilters={activeFilters}
-                setActiveFilters={setActiveFilters}
+                setActiveFilters={handleSetActiveFilters}
                 dynamicBrands={dynamicBrandsWithCount}
                 dynamicCategories={dynamicCategoriesWithCount}
                 locale={locale}
                 priceRange={priceRange}
-                setPriceRange={setPriceRange}
+                setPriceRange={handleSetPriceRange}
                 sortBy={sortBy}
-                setSortBy={setSortBy}
+                setSortBy={handleSetSortBy}
                 isMobile={false}
+                onUserInteraction={() => setVisibleCount(12)}
               />
             </div>
           </aside>
@@ -678,8 +824,9 @@ export default function CategoryOverview({ products, brands, categories }) {
                 </p>
                 <button
                   onClick={() => {
-                    setActiveFilters({ categories: [], brands: [] });
-                    setPriceRange({ min: "", max: "" });
+                    handleSetActiveFilters({ categories: [], brands: [] });
+                    handleSetPriceRange({ min: "", max: "" });
+                    sessionStorage.removeItem(`kesh_filters_${asPath}`);
                   }}
                   className="mt-6 text-[11px] font-bold uppercase tracking-widest border-b border-gray-400 pb-1 hover:text-black hover:border-black transition-colors"
                 >
@@ -717,7 +864,6 @@ export async function getStaticProps({ locale }) {
     const [catRes, colRes, pRes] = await Promise.all([
       fetch(`${BACKEND_URL}/store/product-categories?limit=250`, fetchOptions),
       fetch(`${BACKEND_URL}/store/collections?limit=250`, fetchOptions),
-      // 🔥 關鍵核心修正：API 必須展開 *categories 才能拿到商品所屬的所有分類！
       fetch(
         `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection,*categories`,
         fetchOptions,
@@ -746,13 +892,10 @@ export async function getStaticProps({ locale }) {
         title: p.title || "",
         brand: p.collection?.title || "KÉSH de¹ Select",
         brandSlug: p.collection?.handle || "select",
-
-        // 🔥 關鍵修正：將分類抓取從「單一字串」改成「字串陣列」，以支援商品同時存在多個分類！
         categorySlugs:
           p.categories && p.categories.length > 0
             ? p.categories.map((c) => c.handle)
             : ["others"],
-
         displayPrice: `${symbol}${Math.round(amount).toLocaleString()}`,
         rawPrice: amount,
         createdAt: p.created_at,

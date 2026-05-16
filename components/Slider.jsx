@@ -35,10 +35,13 @@ export default function Slider() {
 
       function animateSlide(nextIndex) {
         if (isAnimating || nextIndex === currentIndex) return;
-        isAnimating = true;
 
+        // 🔥 防呆 1：確保要操作的圖片真的存在，避免跳頁時 DOM 消失導致報錯
         const currentImg = imagesRef.current[currentIndex];
         const nextImg = imagesRef.current[nextIndex];
+        if (!currentImg || !nextImg) return;
+
+        isAnimating = true;
 
         // 這是「切換」的時間軸，不包含圖片縮放
         const tl = gsap.timeline({
@@ -74,6 +77,7 @@ export default function Slider() {
         // ==========================================
         // 文字乾淨切換 (無多餘特效，單純淡入淡出)
         // ==========================================
+        // 🔥 防呆 2：確保 titleRef 存在，且 querySelector 有抓到東西
         if (titleRef.current) {
           const currentTitle = titleRef.current.querySelector(
             `div[data-index="${currentIndex}"]`,
@@ -82,39 +86,45 @@ export default function Slider() {
             `div[data-index="${nextIndex}"]`,
           );
 
-          // 隱藏所有其他文字層
-          const allTitleDivs =
-            titleRef.current.querySelectorAll(".title-group");
-          gsap.set(allTitleDivs, { zIndex: 1 });
-          gsap.set(nextTitle, { zIndex: 2 });
+          if (currentTitle && nextTitle) {
+            // 隱藏所有其他文字層
+            const allTitleDivs =
+              titleRef.current.querySelectorAll(".title-group");
+            gsap.set(allTitleDivs, { zIndex: 1 });
+            gsap.set(nextTitle, { zIndex: 2 });
 
-          // 舊文字淡出，新文字淡入
-          tl.to(
-            currentTitle,
-            {
-              autoAlpha: 0,
-              duration: transitionDuration,
-              ease: "power2.inOut",
-            },
-            0,
-          );
-          gsap.set(nextTitle, { autoAlpha: 0 });
-          tl.to(
-            nextTitle,
-            {
-              autoAlpha: 1,
-              duration: transitionDuration,
-              ease: "power2.inOut",
-            },
-            0,
-          );
+            // 舊文字淡出，新文字淡入
+            tl.to(
+              currentTitle,
+              {
+                autoAlpha: 0,
+                duration: transitionDuration,
+                ease: "power2.inOut",
+              },
+              0,
+            );
+            gsap.set(nextTitle, { autoAlpha: 0 });
+            tl.to(
+              nextTitle,
+              {
+                autoAlpha: 1,
+                duration: transitionDuration,
+                ease: "power2.inOut",
+              },
+              0,
+            );
+          }
         }
 
         // ==========================================
         // 右側導覽圓點動畫
         // ==========================================
         indicatorsRef.current.forEach((ind, i) => {
+          // 🔥 防呆 3：確保 indicator DOM 真的存在
+          if (!ind) return;
           const ring = ind.querySelector(".ring");
+          if (!ring) return;
+
           if (i === nextIndex) {
             gsap.to(ind, { opacity: 1, duration: 0.3 }, 0);
             gsap.to(
@@ -139,23 +149,29 @@ export default function Slider() {
       // ==========================================
       // 初始化第一張設定
       // ==========================================
-      gsap.set(imagesRef.current, { opacity: 0 });
-      gsap.set(imagesRef.current[0], {
-        opacity: 1,
-        scale: scaleStart,
-        zIndex: 2,
-      });
+      // 🔥 防呆 4：確保 imagesRef[0] 存在再進行初始化
+      if (imagesRef.current[0]) {
+        gsap.set(imagesRef.current, { opacity: 0 });
+        gsap.set(imagesRef.current[0], {
+          opacity: 1,
+          scale: scaleStart,
+          zIndex: 2,
+        });
 
-      // 第一張圖開始獨立的緩慢收縮
-      gsap.to(imagesRef.current[0], {
-        scale: 1,
-        duration: scaleDuration,
-        ease: "none",
-      });
+        // 第一張圖開始獨立的緩慢收縮
+        gsap.to(imagesRef.current[0], {
+          scale: 1,
+          duration: scaleDuration,
+          ease: "none",
+        });
+      }
 
       // 導覽圓點初始化
       indicatorsRef.current.forEach((ind, i) => {
+        if (!ind) return;
         const ring = ind.querySelector(".ring");
+        if (!ring) return;
+
         if (i === 0) {
           gsap.set(ind, { opacity: 1 });
           gsap.set(ring, { scale: 1, opacity: 1 });
@@ -168,8 +184,10 @@ export default function Slider() {
       // 文字初始化 (直接顯示，無進場特效)
       if (titleRef.current) {
         const allTitleDivs = titleRef.current.querySelectorAll(".title-group");
-        gsap.set(allTitleDivs, { autoAlpha: 0 });
-        gsap.set(allTitleDivs[0], { autoAlpha: 1, zIndex: 2 });
+        if (allTitleDivs.length > 0) {
+          gsap.set(allTitleDivs, { autoAlpha: 0 });
+          gsap.set(allTitleDivs[0], { autoAlpha: 1, zIndex: 2 });
+        }
       }
 
       startAutoplay();

@@ -361,18 +361,20 @@
       }
     }
   },
- "news": {
-  "category": "News",
-  "share": "Share :",
-  "editor": "Editor",
-  "category_label": "Category",
-  "category_value": "Fashion / Events",
-  "toc": "Table of Contents",
-  "no_outline": "No outlines available.",
-  "about_desc": "We are dedicated to building the highest quality pre-owned luxury trading platform, providing transparent pricing and professional authentication services.",
-  "back_btn": "Back to Journal",
-  "recent": "Recent Journal"
-},
+"news": {
+    "page_title": "Latest News",
+    "page_subtitle": "Explore KÉSH de¹ brand updates and curated articles",
+    "seo_title": "Latest News & Brand Updates | KÉSH de¹",
+    "seo_desc": "Discover the latest news, exclusive events, and professional pre-owned luxury care insights from KÉSH de¹.",
+    "badge_latest": "Latest",
+    "badge_news": "News",
+    "read_more": "Read More",
+    "view_details": "View Details",
+    "no_posts": "No posts available at the moment",
+    "updated": "Last Updated",
+    "footer_official": "KÉSH de¹ Official Journal",
+    "footer_store": "Go to Online Store"
+  },
   "faq": {
     "seo": {
       "title": "FAQ | KÉSH de¹ - Authentication &  Services",

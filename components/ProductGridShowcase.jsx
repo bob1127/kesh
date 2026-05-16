@@ -100,7 +100,8 @@ export default function ProductGridShowcase() {
       if (isLoadMore) setIsLoadingMore(true);
       else setIsLoading(true);
 
-      let targetUrl = `${BACKEND_URL}/store/products?limit=${limit}&offset=${currentOffset}&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`;
+      // 🔥 關鍵修改：加入 &order=-created_at 讓最新發布的商品排在最前面
+      let targetUrl = `${BACKEND_URL}/store/products?limit=${limit}&offset=${currentOffset}&order=-created_at&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`;
       if (tabId !== "all") {
         targetUrl += `&collection_id[]=${tabId}`;
       }

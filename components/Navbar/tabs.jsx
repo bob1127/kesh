@@ -57,7 +57,7 @@ export const SlideTabsExample = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔥 守門員 2.0：完美解決「上一頁」語系跑掉，且不引發無窮迴圈
+  // 🔥 守門員 2.0：完美解決「上一頁」語系跑掉
   useEffect(() => {
     if (!mounted) return;
 
@@ -70,9 +70,7 @@ export const SlideTabsExample = () => {
 
     const savedLocale = getCookie("NEXT_LOCALE");
 
-    // 當使用者按上一頁回到舊語系網址時，柔性將他導回設定好的語系
     if (savedLocale && savedLocale !== router.locale) {
-      // 💡 關鍵修復：第二個參數放入 undefined，避免網址疊加
       router.replace(
         { pathname: router.pathname, query: router.query },
         undefined,
@@ -185,18 +183,34 @@ export const SlideTabsExample = () => {
     }
   };
 
-  // 🔥 關鍵修復：解決 /en/ko 網址錯亂層級的 Bug
   const changeLanguage = (newLocale) => {
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
-
-    // 💡 關鍵修復：第二個參數放入 undefined，讓 Next.js 自行重新組裝網址，不再疊加舊的語系！
     router.replace(
       { pathname: router.pathname, query: router.query },
       undefined,
       { locale: newLocale },
     );
-
     setIsLangOpen(false);
+    setIsMenuOpen(false);
+  };
+
+  // ==========================================
+  // 🔥 關鍵核心：導航淨化器 (清除目標頁面的快取)
+  // ==========================================
+  const handleMenuClick = (targetPath) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem(`kesh_filters_${targetPath}`);
+      sessionStorage.removeItem(`kesh_scroll_${targetPath}`);
+
+      // 防呆：如果是點擊 /category，連帶清除 /category/all 的可能記憶
+      if (targetPath === "/category" || targetPath === "/category/all") {
+        sessionStorage.removeItem(`kesh_filters_/category/all`);
+        sessionStorage.removeItem(`kesh_scroll_/category/all`);
+        sessionStorage.removeItem(`kesh_filters_/category`);
+        sessionStorage.removeItem(`kesh_scroll_/category`);
+      }
+    }
+    setOpenMega("none");
     setIsMenuOpen(false);
   };
 
@@ -204,13 +218,13 @@ export const SlideTabsExample = () => {
     {
       key: "categories",
       label: t("navbar.categories") || "產品類別",
-      href: "/category",
+      href: "/category/all", // 確保指到動態路由
       hasMega: true,
     },
     {
       key: "brand",
       label: t("navbar.brand") || "品牌館",
-      href: "/category",
+      href: "/category/all",
       hasMega: true,
     },
     {
@@ -362,6 +376,7 @@ export const SlideTabsExample = () => {
                 >
                   <Link
                     href={link.href}
+                    onClick={() => handleMenuClick(link.href)}
                     className="text-[13px] font-bold tracking-widest hover:text-[#ef4628] uppercase transition-colors"
                   >
                     {link.label}
@@ -538,7 +553,8 @@ export const SlideTabsExample = () => {
                             {t("mega.categories") || "產品類別"}
                           </h3>
                           <Link
-                            href="/category"
+                            href="/category/all"
+                            onClick={() => handleMenuClick("/category/all")}
                             className="text-xs text-gray-500 hover:text-[#ef4628] uppercase tracking-widest"
                           >
                             {t("mega.view_all") || "查看全部"} &rarr;
@@ -549,6 +565,9 @@ export const SlideTabsExample = () => {
                             <li key={cat.id} className="group cursor-pointer">
                               <Link
                                 href={`/category/${cat.slug}`}
+                                onClick={() =>
+                                  handleMenuClick(`/category/${cat.slug}`)
+                                }
                                 className="flex flex-col items-center gap-3"
                               >
                                 <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ef4628] transition-colors relative">
@@ -582,7 +601,8 @@ export const SlideTabsExample = () => {
                             {t("mega.brands") || "精選品牌"}
                           </h3>
                           <Link
-                            href="/category"
+                            href="/category/all"
+                            onClick={() => handleMenuClick("/category/all")}
                             className="text-xs text-gray-500 hover:text-[#ef4628] uppercase tracking-widest"
                           >
                             {t("mega.view_all") || "查看全部"} &rarr;
@@ -593,6 +613,9 @@ export const SlideTabsExample = () => {
                             <li key={brand.id} className="group cursor-pointer">
                               <Link
                                 href={`/category/${brand.slug}`}
+                                onClick={() =>
+                                  handleMenuClick(`/category/${brand.slug}`)
+                                }
                                 className="flex flex-col items-center gap-3"
                               >
                                 <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ef4628] transition-colors relative">
@@ -684,7 +707,7 @@ export const SlideTabsExample = () => {
                   <div key={link.key}>
                     <Link
                       href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
+                      onClick={() => handleMenuClick(link.href)}
                       className="block text-sm font-bold tracking-widest uppercase hover:text-[#ef4628] transition-colors"
                     >
                       {link.label}

@@ -362,18 +362,20 @@
       }
     }
   },
-  "news": {
-  "category": "뉴스",
-  "share": "공유 :",
-  "editor": "에디터",
-  "category_label": "카테고리",
-  "category_value": "패션 / 이벤트",
-  "toc": "목차",
-  "no_outline": "개요가 없습니다.",
-  "about_desc": "우리는 투명한 가격과 전문적인 감정 서비스를 제공하여 최고의 중고 명품 거래 플랫폼을 구축하기 위해 최선을 다하고 있습니다.",
-  "back_btn": "목록으로 돌아가기",
-  "recent": "추천 기사"
-},
+"news": {
+    "page_title": "새로운 소식",
+    "page_subtitle": "KÉSH de¹의 브랜드 소식 및 엄선된 아티클을 만나보세요",
+    "seo_title": "새로운 소식 & 브랜드 업데이트 | KÉSH de¹",
+    "seo_desc": "KÉSH de¹ 명품관의 최신 뉴스, 특별 이벤트 정보 및 전문적인 중고 명품 관리 지식을 확인해 보세요.",
+    "badge_latest": "최신 뉴스",
+    "badge_news": "뉴스",
+    "read_more": "더 보기",
+    "view_details": "자세히 보기",
+    "no_posts": "현재 등록된 게시물이 없습니다",
+    "updated": "최근 업데이트",
+    "footer_official": "KÉSH de¹ 공식 저널",
+    "footer_store": "온라인 스토어 바로가기"
+  },
   "faq": {
     "seo": {
       "title": "FAQ | KÉSH de¹ - 정품 감정 및 위탁 판매 서비스",

@@ -84,7 +84,7 @@ const FilterSection = ({ title, children, defaultOpen = true }) => {
     <div className="mb-10">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4 group"
+        className="w-full flex items-center justify-between text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4 group outline-none"
       >
         {title}
         <motion.div
@@ -127,6 +127,7 @@ const FilterSidebar = ({
   setSortBy,
   isMobile = false,
   onApply,
+  onUserInteraction,
 }) => {
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const t = (zh, en, ko) => (locale === "en" ? en : locale === "ko" ? ko : zh);
@@ -154,6 +155,7 @@ const FilterSidebar = ({
         : [...current, slug];
       return { ...prev, [type]: updated };
     });
+    onUserInteraction();
   };
 
   const CustomCircleCheckbox = ({ isChecked }) => (
@@ -175,12 +177,17 @@ const FilterSidebar = ({
     setActiveFilters({ categories: [], brands: [] });
     setPriceRange({ min: "", max: "" });
     setSortBy("newest");
+    onUserInteraction();
+    if (typeof window !== "undefined") {
+      const currentPath = window.location.pathname;
+      sessionStorage.removeItem(`kesh_filters_${currentPath}`);
+      sessionStorage.removeItem(`kesh_scroll_${currentPath}`);
+    }
   };
 
   return (
     <div className="py-6 pr-6 pl-8 md:py-8 md:pr-8 md:pl-12 flex flex-col h-full">
       <div className="flex-1">
-        {/* 🔥 手工客製化 排序選單 (徹底解決原生 select 雙箭頭問題) */}
         <div className="mb-10 relative">
           <h3 className="text-[11px] font-bold text-black uppercase tracking-[0.2em] mb-4">
             {t("排序方式", "Sort By", "정렬 기준")}
@@ -208,6 +215,7 @@ const FilterSidebar = ({
                       key={option.value}
                       onClick={() => {
                         setSortBy(option.value);
+                        onUserInteraction();
                         setIsSortOpen(false);
                       }}
                       className={`px-4 py-3 text-[13px] cursor-pointer hover:bg-stone-50 transition-colors ${
@@ -225,7 +233,6 @@ const FilterSidebar = ({
           </div>
         </div>
 
-        {/* 價格區間 Price Range */}
         <FilterSection
           title={t("價格區間", "Price Range", "가격 범위")}
           defaultOpen={true}
@@ -239,9 +246,10 @@ const FilterSidebar = ({
                 type="number"
                 placeholder={t("最低", "Min", "최소")}
                 value={priceRange.min}
-                onChange={(e) =>
-                  setPriceRange((prev) => ({ ...prev, min: e.target.value }))
-                }
+                onChange={(e) => {
+                  setPriceRange((prev) => ({ ...prev, min: e.target.value }));
+                  onUserInteraction();
+                }}
                 className="w-full bg-transparent border-b border-gray-200 py-2 pl-4 pr-1 text-[13px] outline-none focus:border-black transition-colors rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
@@ -254,16 +262,16 @@ const FilterSidebar = ({
                 type="number"
                 placeholder={t("最高", "Max", "최대")}
                 value={priceRange.max}
-                onChange={(e) =>
-                  setPriceRange((prev) => ({ ...prev, max: e.target.value }))
-                }
+                onChange={(e) => {
+                  setPriceRange((prev) => ({ ...prev, max: e.target.value }));
+                  onUserInteraction();
+                }}
                 className="w-full bg-transparent border-b border-gray-200 py-2 pl-4 pr-1 text-[13px] outline-none focus:border-black transition-colors rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>
         </FilterSection>
 
-        {/* 分類 Categories */}
         <FilterSection
           title={t("產品類別", "Categories", "카테고리")}
           defaultOpen={true}
@@ -293,7 +301,6 @@ const FilterSidebar = ({
           </div>
         </FilterSection>
 
-        {/* 品牌 Brands */}
         <FilterSection
           title={t("精選品牌", "Brands", "브랜드")}
           defaultOpen={true}
@@ -424,14 +431,9 @@ const CompanyLocation = () => {
 };
 
 // --- 🔥 主頁面: 動態分類列表頁 ([slug].jsx) ---
-export default function CategoryPage({
-  products,
-  brands,
-  categories,
-  initialFilter,
-}) {
+export default function CategoryPage({ products, brands, categories }) {
   const router = useRouter();
-  const { locale } = router;
+  const { locale, asPath } = router;
   const metaLang = locale === "zh-TW" ? "zh" : locale;
   const tAllProducts =
     locale === "en"
@@ -444,22 +446,173 @@ export default function CategoryPage({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [activeFilters, setActiveFilters] = useState({
-    categories: initialFilter?.type === "category" ? [initialFilter.value] : [],
-    brands: initialFilter?.type === "brand" ? [initialFilter.value] : [],
+    categories: [],
+    brands: [],
   });
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [sortBy, setSortBy] = useState("newest");
   const [visibleCount, setVisibleCount] = useState(12);
 
+  const isReady = useRef(false);
+  const prevFiltersRef = useRef("");
+  const [loadedPath, setLoadedPath] = useState(null);
+
+  // ==========================================
+  // 🔥 防呆包裝器：只有使用者手動點擊才重置數量
+  // ==========================================
+  const handleSetActiveFilters = (action) => {
+    setActiveFilters(action);
+    setVisibleCount(12);
+  };
+  const handleSetPriceRange = (action) => {
+    setPriceRange(action);
+    setVisibleCount(12);
+  };
+  const handleSetSortBy = (action) => {
+    setSortBy(action);
+    setVisibleCount(12);
+  };
+
+  // ==========================================
+  // 🔥 1. 關閉瀏覽器預設滾動，並記錄離開時的 Y 軸
+  // ==========================================
   useEffect(() => {
-    if (initialFilter) {
-      setActiveFilters({
-        categories:
-          initialFilter.type === "category" ? [initialFilter.value] : [],
-        brands: initialFilter.type === "brand" ? [initialFilter.value] : [],
+    if (
+      typeof window !== "undefined" &&
+      "scrollRestoration" in window.history
+    ) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    let scrollTimeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        sessionStorage.setItem(
+          `kesh_scroll_${asPath}`,
+          window.scrollY.toString(),
+        );
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [asPath]);
+
+  // ==========================================
+  // 🔥 2. 終極淨化初始化 (無視 initialFilter，直接攔截 URL 計算)
+  // ==========================================
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+
+    // 🔥 從網址列硬核抓取 slug，無視 Next.js 生命週期的延遲！
+    const currentSlug = router.query.slug;
+    const currentPath = router.asPath.split("?")[0];
+
+    const savedState = sessionStorage.getItem(`kesh_filters_${currentPath}`);
+
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        setActiveFilters(
+          parsed.activeFilters || { categories: [], brands: [] },
+        );
+        setPriceRange(parsed.priceRange || { min: "", max: "" });
+        setSortBy(parsed.sortBy || "newest");
+        setVisibleCount(parsed.visibleCount || 12);
+        prevFiltersRef.current = JSON.stringify({
+          activeFilters: parsed.activeFilters,
+          priceRange: parsed.priceRange,
+          sortBy: parsed.sortBy,
+        });
+      } catch (e) {
+        console.error("Failed to parse filters", e);
+      }
+    } else {
+      // 💡 找不到存檔時，【自己】去比對這個 slug 是屬於品牌還是分類，保證 100% 準確！
+      const defaultFilters = { categories: [], brands: [] };
+      if (currentSlug && currentSlug !== "all") {
+        if (categories.some((c) => c.slug === currentSlug)) {
+          defaultFilters.categories = [currentSlug];
+        } else if (brands.some((b) => b.slug === currentSlug)) {
+          defaultFilters.brands = [currentSlug];
+        }
+      }
+
+      setActiveFilters(defaultFilters);
+      setPriceRange({ min: "", max: "" });
+      setSortBy("newest");
+      setVisibleCount(12);
+      prevFiltersRef.current = JSON.stringify({
+        activeFilters: defaultFilters,
+        priceRange: { min: "", max: "" },
+        sortBy: "newest",
       });
     }
-  }, [initialFilter]);
+
+    setLoadedPath(currentPath);
+
+    // 智慧輪詢滾動 (防跳躍設計)
+    const savedScroll = sessionStorage.getItem(`kesh_scroll_${currentPath}`);
+    if (savedScroll) {
+      const targetY = parseInt(savedScroll, 10);
+      let attempts = 0;
+      const tryScroll = () => {
+        if (document.body.scrollHeight >= targetY || attempts > 20) {
+          window.scrollTo({ top: targetY, behavior: "instant" });
+          sessionStorage.removeItem(`kesh_scroll_${currentPath}`);
+        } else {
+          attempts++;
+          setTimeout(tryScroll, 50);
+        }
+      };
+      tryScroll();
+    }
+    isReady.current = true;
+  }, [router.isReady, router.query.slug, router.asPath, categories, brands]);
+
+  // ==========================================
+  // 🔥 3. 監聽變更並儲存狀態至 SessionStorage
+  // ==========================================
+  useEffect(() => {
+    const currentPath = router.asPath.split("?")[0];
+    if (loadedPath !== currentPath) return;
+
+    const stateToSave = { activeFilters, priceRange, sortBy, visibleCount };
+    sessionStorage.setItem(
+      `kesh_filters_${currentPath}`,
+      JSON.stringify(stateToSave),
+    );
+  }, [
+    activeFilters,
+    priceRange,
+    sortBy,
+    visibleCount,
+    router.asPath,
+    loadedPath,
+  ]);
+
+  // ==========================================
+  // 🔥 4. 使用者動作重置檢視數量
+  // ==========================================
+  useEffect(() => {
+    const currentPath = router.asPath.split("?")[0];
+    if (loadedPath !== currentPath) return;
+
+    const currentFiltersString = JSON.stringify({
+      activeFilters,
+      priceRange,
+      sortBy,
+    });
+
+    if (
+      prevFiltersRef.current !== currentFiltersString &&
+      prevFiltersRef.current !== ""
+    ) {
+      setVisibleCount(12);
+      prevFiltersRef.current = currentFiltersString;
+    }
+  }, [activeFilters, priceRange, sortBy, loadedPath, router.asPath]);
 
   const handleMobileApply = () => {
     setIsMobileFilterOpen(false);
@@ -478,7 +631,9 @@ export default function CategoryPage({
 
     if (activeFilters.categories.length > 0) {
       list = list.filter((p) =>
-        activeFilters.categories.includes(p.categorySlug),
+        p.categorySlugs?.some((slug) =>
+          activeFilters.categories.includes(slug),
+        ),
       );
     }
     if (activeFilters.brands.length > 0) {
@@ -502,9 +657,49 @@ export default function CategoryPage({
     return list;
   }, [products, activeFilters, priceRange, sortBy]);
 
-  useEffect(() => {
-    setVisibleCount(12);
-  }, [activeFilters, priceRange, sortBy]);
+  const listForCategoryCount = useMemo(() => {
+    let list = [...products];
+    if (activeFilters.brands.length > 0) {
+      list = list.filter((p) => activeFilters.brands.includes(p.brandSlug));
+    }
+    if (priceRange.min)
+      list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
+    if (priceRange.max)
+      list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
+    return list;
+  }, [products, activeFilters.brands, priceRange]);
+
+  const dynamicCategoriesWithCount = useMemo(() => {
+    return categories.map((cat) => ({
+      ...cat,
+      count: listForCategoryCount.filter((p) =>
+        p.categorySlugs?.includes(cat.slug),
+      ).length,
+    }));
+  }, [categories, listForCategoryCount]);
+
+  const listForBrandCount = useMemo(() => {
+    let list = [...products];
+    if (activeFilters.categories.length > 0) {
+      list = list.filter((p) =>
+        p.categorySlugs?.some((slug) =>
+          activeFilters.categories.includes(slug),
+        ),
+      );
+    }
+    if (priceRange.min)
+      list = list.filter((p) => p.rawPrice >= parseFloat(priceRange.min));
+    if (priceRange.max)
+      list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
+    return list;
+  }, [products, activeFilters.categories, priceRange]);
+
+  const dynamicBrandsWithCount = useMemo(() => {
+    return brands.map((brand) => ({
+      ...brand,
+      count: listForBrandCount.filter((p) => p.brandSlug === brand.slug).length,
+    }));
+  }, [brands, listForBrandCount]);
 
   if (router.isFallback)
     return (
@@ -554,6 +749,7 @@ export default function CategoryPage({
 
       <main className="pb-0 bg-white text-black font-sans min-h-screen">
         <Slider />
+        <Carousel />
 
         <section>
           <div className="title">
@@ -629,16 +825,17 @@ export default function CategoryPage({
               >
                 <FilterSidebar
                   activeFilters={activeFilters}
-                  setActiveFilters={setActiveFilters}
-                  dynamicBrands={brands}
-                  dynamicCategories={categories}
+                  setActiveFilters={handleSetActiveFilters}
+                  dynamicBrands={dynamicBrandsWithCount}
+                  dynamicCategories={dynamicCategoriesWithCount}
                   locale={locale}
                   priceRange={priceRange}
-                  setPriceRange={setPriceRange}
+                  setPriceRange={handleSetPriceRange}
                   sortBy={sortBy}
-                  setSortBy={setSortBy}
+                  setSortBy={handleSetSortBy}
                   isMobile={true}
                   onApply={handleMobileApply}
+                  onUserInteraction={() => setVisibleCount(12)}
                 />
               </motion.div>
             )}
@@ -646,20 +843,20 @@ export default function CategoryPage({
         </div>
 
         <section className="products-content flex flex-col md:flex-row">
-          {/* 🔥 移除 overflow-y-auto 與 max-h，讓高度隨收折自由伸縮，僅保留 sticky 讓它能隨畫面下滑 */}
           <aside className="hidden md:block w-[280px] lg:w-[320px] border-r border-gray-200 bg-white relative">
             <div className="sticky top-[100px] h-fit pb-10">
               <FilterSidebar
                 activeFilters={activeFilters}
-                setActiveFilters={setActiveFilters}
-                dynamicBrands={brands}
-                dynamicCategories={categories}
+                setActiveFilters={handleSetActiveFilters}
+                dynamicBrands={dynamicBrandsWithCount}
+                dynamicCategories={dynamicCategoriesWithCount}
                 locale={locale}
                 priceRange={priceRange}
-                setPriceRange={setPriceRange}
+                setPriceRange={handleSetPriceRange}
                 sortBy={sortBy}
-                setSortBy={setSortBy}
+                setSortBy={handleSetSortBy}
                 isMobile={false}
+                onUserInteraction={() => setVisibleCount(12)}
               />
             </div>
           </aside>
@@ -703,8 +900,11 @@ export default function CategoryPage({
                 </p>
                 <button
                   onClick={() => {
-                    setActiveFilters({ categories: [], brands: [] });
-                    setPriceRange({ min: "", max: "" });
+                    handleSetActiveFilters({ categories: [], brands: [] });
+                    handleSetPriceRange({ min: "", max: "" });
+                    sessionStorage.removeItem(
+                      `kesh_filters_${router.asPath.split("?")[0]}`,
+                    );
                   }}
                   className="mt-6 text-[11px] font-bold uppercase tracking-widest border-b border-gray-400 pb-1 hover:text-black hover:border-black transition-colors"
                 >
@@ -773,7 +973,6 @@ export async function getStaticProps({ params, locale }) {
         products: [],
         brands: [],
         categories: [],
-        initialFilter: { type: "all", value: null },
       },
       revalidate: 60,
     };
@@ -790,7 +989,7 @@ export async function getStaticProps({ params, locale }) {
       fetch(`${BACKEND_URL}/store/product-categories?limit=250`, fetchOptions),
       fetch(`${BACKEND_URL}/store/collections?limit=250`, fetchOptions),
       fetch(
-        `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection`,
+        `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection,*categories`,
         fetchOptions,
       ),
     ]);
@@ -817,7 +1016,10 @@ export async function getStaticProps({ params, locale }) {
         title: p.title || "",
         brand: p.collection?.title || "KÉSH de¹ Select",
         brandSlug: p.collection?.handle || "select",
-        categorySlug: p.categories?.[0]?.handle || "others",
+        categorySlugs:
+          p.categories && p.categories.length > 0
+            ? p.categories.map((c) => c.handle)
+            : ["others"],
         displayPrice: `${symbol}${Math.round(amount).toLocaleString()}`,
         rawPrice: amount,
         createdAt: p.created_at,
@@ -833,8 +1035,6 @@ export async function getStaticProps({ params, locale }) {
       name: c.name,
       metadata: c.metadata || {},
       slug: c.handle,
-      count: formattedProducts.filter((p) => p.categorySlug === c.handle)
-        .length,
     }));
 
     const brandsList = (colData.collections || []).map((c) => ({
@@ -842,19 +1042,7 @@ export async function getStaticProps({ params, locale }) {
       name: c.title,
       metadata: c.metadata || {},
       slug: c.handle,
-      count: formattedProducts.filter((p) => p.brandSlug === c.handle).length,
     }));
-
-    let initialFilter = { type: "all", value: null };
-    if (slug !== "all") {
-      if (brandsList.some((b) => b.slug === slug)) {
-        initialFilter = { type: "brand", value: slug };
-      } else if (categoriesList.some((c) => c.slug === slug)) {
-        initialFilter = { type: "category", value: slug };
-      } else {
-        return { notFound: true }; // 防呆
-      }
-    }
 
     return {
       props: {
@@ -862,7 +1050,6 @@ export async function getStaticProps({ params, locale }) {
         products: formattedProducts,
         brands: brandsList,
         categories: categoriesList,
-        initialFilter,
       },
       revalidate: 60,
     };
@@ -873,7 +1060,6 @@ export async function getStaticProps({ params, locale }) {
         products: [],
         brands: [],
         categories: [],
-        initialFilter: { type: "all", value: null },
       },
       revalidate: 60,
     };

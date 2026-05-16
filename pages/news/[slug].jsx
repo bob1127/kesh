@@ -213,13 +213,17 @@ export default function NewsDetail({ post, recentPosts }) {
           <div className="flex-1 w-full max-w-[700px]">
             <article
               ref={contentRef}
-              className="prose prose-h1:mt-8 prose-h1:mb-1 prose-h1:text-2xl prose-h1:text-stone-800 prose-stone max-w-none 
-              prose-p:text-[15px] prose-p:leading-[1] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-p:mb-1
-              prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-h2:mb-0 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:pb-4 prose-h2:border-b prose-h2:border-gray-100
-              prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide 
-              [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide 
-              prose-img:w-full prose-img:h-auto prose-img:mt-4 prose-img:mb-2 prose-img:rounded-lg prose-img:shadow-sm
-              prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline"
+              className="prose prose-stone max-w-none 
+  prose-p:text-[15px] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-p:my-0
+  prose-h1:mt-8 prose-h1:mb-2 prose-h1:text-2xl prose-h1:text-stone-800 
+  prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-h2:mb-0 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:pb-4 prose-h2:border-b prose-h2:border-gray-100
+  prose-h3:text-xl prose-h3:font-bold prose-h3:mt-4 prose-h3:mb-1 prose-h3:text-gray-800
+  prose-h4:text-lg prose-h4:font-bold prose-h4:mt-3 prose-h4:mb-1 prose-h4:text-gray-800
+  prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide 
+  [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide 
+  prose-img:w-full prose-img:h-auto prose-img:mt-4 prose-img:mb-2 prose-img:rounded-lg prose-img:shadow-sm
+  prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline
+  [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-lg [&_iframe]:my-6 [&_iframe]:shadow-md"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
             <div className="flex justify-end mt-16">
@@ -351,17 +355,6 @@ export async function getStaticProps({ params, locale }) {
     const currentPostRaw = allPosts.find((p) => p.slug === slug);
     if (!currentPostRaw) return { notFound: true };
 
-    // 🚨 終極監視器 1 號：印出後端吐出來的「完整」資料
-    console.log(`\n===========================================`);
-    console.log(
-      `📍 [前台 Storefront 監視器] 正在編譯文章: ${slug} | 語系: ${currentLang}`,
-    );
-    console.log(
-      `📦 後端傳來的完整文章資料:`,
-      JSON.stringify(currentPostRaw, null, 2),
-    );
-    console.log(`===========================================\n`);
-
     const isEn = currentLang === "en";
     const isKo = currentLang === "ko";
 
@@ -395,14 +388,6 @@ export async function getStaticProps({ params, locale }) {
       raw_updated_at: currentPostRaw.updated_at || currentPostRaw.created_at,
       image: currentPostRaw.thumbnail || "/images/placeholder.jpg",
     };
-
-    // 🚨 終極監視器 2 號：印出經過判斷後，準備丟給畫面的資料
-    if (isKo) {
-      console.log(
-        `🔎 [前台判斷結果] 韓文標題是否成功替換？ ->`,
-        formattedPost.title,
-      );
-    }
 
     const recentPostsRaw = allPosts
       .filter((p) => p.id !== currentPostRaw.id)
