@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 
 import HeroSlider from "../../components/HeroSlider";
+// 🔥 引入全站統一的價格計算工具
+import { getCorrectAmount } from "@/lib/price";
 
 // --- 通用摺疊組件 ---
 const GenericAccordion = ({
@@ -814,10 +816,10 @@ export async function getStaticProps({ params, locale }) {
       variantPrices.find(
         (p) => p.currency_code?.toLowerCase() === targetCurrency,
       ) || variantPrices[0];
+
+    // 🔥 使用全域統一的價格計算工具
     let amount = priceObj
-      ? priceObj.amount > 1000000
-        ? priceObj.amount / 100
-        : priceObj.amount
+      ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
       : 0;
 
     const productWeight =

@@ -17,6 +17,9 @@ import Slider from "../../components/Slider.jsx";
 import Carousel from "../../components/EmblaCarousel06/index.jsx";
 import { ChevronDown, Search, X, Filter } from "lucide-react";
 
+// 🔥 引入全站統一的價格計算工具
+import { getCorrectAmount } from "@/lib/price";
+
 // --- 🛍️ 商品卡片組件 ---
 const ProductCard = ({ product, locale, index }) => {
   const metaLang = locale === "zh-TW" ? "zh" : locale;
@@ -352,7 +355,7 @@ const FilterSidebar = ({
           onClick={resetFilters}
           className="w-full py-4 mt-4 text-[10px] font-bold tracking-[0.25em] border border-black text-black hover:bg-black hover:text-white transition-all uppercase rounded-none"
         >
-          {t("清除所有篩選", "Clear Filters", "필터 초기화")}
+          {t("清除所有篩選", "Clear Filters", "필表 初期化")}
         </button>
       )}
     </div>
@@ -430,7 +433,7 @@ const CompanyLocation = () => {
   );
 };
 
-// --- 🔥 主頁面: 動態分類列表頁 ([slug].jsx) ---
+// --- 🔥 主頁面元件 ---
 export default function CategoryPage({ products, brands, categories }) {
   const router = useRouter();
   const { locale, asPath } = router;
@@ -457,9 +460,6 @@ export default function CategoryPage({ products, brands, categories }) {
   const prevFiltersRef = useRef("");
   const [loadedPath, setLoadedPath] = useState(null);
 
-  // ==========================================
-  // 🔥 防呆包裝器：只有使用者手動點擊才重置數量
-  // ==========================================
   const handleSetActiveFilters = (action) => {
     setActiveFilters(action);
     setVisibleCount(12);
@@ -473,9 +473,6 @@ export default function CategoryPage({ products, brands, categories }) {
     setVisibleCount(12);
   };
 
-  // ==========================================
-  // 🔥 1. 關閉瀏覽器預設滾動，並記錄離開時的 Y 軸
-  // ==========================================
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -499,13 +496,9 @@ export default function CategoryPage({ products, brands, categories }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [asPath]);
 
-  // ==========================================
-  // 🔥 2. 終極淨化初始化 (無視 initialFilter，直接攔截 URL 計算)
-  // ==========================================
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
 
-    // 🔥 從網址列硬核抓取 slug，無視 Next.js 生命週期的延遲！
     const currentSlug = router.query.slug;
     const currentPath = router.asPath.split("?")[0];
 
@@ -529,7 +522,6 @@ export default function CategoryPage({ products, brands, categories }) {
         console.error("Failed to parse filters", e);
       }
     } else {
-      // 💡 找不到存檔時，【自己】去比對這個 slug 是屬於品牌還是分類，保證 100% 準確！
       const defaultFilters = { categories: [], brands: [] };
       if (currentSlug && currentSlug !== "all") {
         if (categories.some((c) => c.slug === currentSlug)) {
@@ -552,7 +544,6 @@ export default function CategoryPage({ products, brands, categories }) {
 
     setLoadedPath(currentPath);
 
-    // 智慧輪詢滾動 (防跳躍設計)
     const savedScroll = sessionStorage.getItem(`kesh_scroll_${currentPath}`);
     if (savedScroll) {
       const targetY = parseInt(savedScroll, 10);
@@ -571,9 +562,6 @@ export default function CategoryPage({ products, brands, categories }) {
     isReady.current = true;
   }, [router.isReady, router.query.slug, router.asPath, categories, brands]);
 
-  // ==========================================
-  // 🔥 3. 監聽變更並儲存狀態至 SessionStorage
-  // ==========================================
   useEffect(() => {
     const currentPath = router.asPath.split("?")[0];
     if (loadedPath !== currentPath) return;
@@ -592,9 +580,6 @@ export default function CategoryPage({ products, brands, categories }) {
     loadedPath,
   ]);
 
-  // ==========================================
-  // 🔥 4. 使用者動作重置檢視數量
-  // ==========================================
   useEffect(() => {
     const currentPath = router.asPath.split("?")[0];
     if (loadedPath !== currentPath) return;
@@ -753,7 +738,7 @@ export default function CategoryPage({ products, brands, categories }) {
 
         <section>
           <div className="title">
-            <div className="py-10 px-6 md:px-10 bg-[#fafafa]">
+            <div className="py-12 px-6 md:px-10 bg-[#fafafa]">
               <nav className="text-[11px] font-medium text-gray-400 tracking-widest uppercase mb-6 flex items-center gap-2">
                 <Link href="/" className="hover:text-black transition-colors">
                   Home
@@ -986,8 +971,15 @@ export async function getStaticProps({ params, locale }) {
     const fetchOptions = { headers, cache: "no-store" };
 
     const [catRes, colRes, pRes] = await Promise.all([
-      fetch(`${BACKEND_URL}/store/product-categories?limit=250`, fetchOptions),
-      fetch(`${BACKEND_URL}/store/collections?limit=250`, fetchOptions),
+      // 🔥 這裡已經補上 fields 了，所以多語系與排序功能沒問題！
+      fetch(
+        `${BACKEND_URL}/store/product-categories?limit=250&fields=id,name,handle,metadata,rank`,
+        fetchOptions,
+      ),
+      fetch(
+        `${BACKEND_URL}/store/collections?limit=250&fields=id,title,handle,metadata,rank`,
+        fetchOptions,
+      ),
       fetch(
         `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection,*categories`,
         fetchOptions,
@@ -1004,10 +996,9 @@ export async function getStaticProps({ params, locale }) {
         variantPrices.find(
           (pr) => pr.currency_code?.toLowerCase() === targetCurrency,
         ) || variantPrices[0];
+
       let amount = priceObj
-        ? priceObj.amount > 1000000
-          ? priceObj.amount / 100
-          : priceObj.amount
+        ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
         : 0;
 
       return {
@@ -1037,12 +1028,30 @@ export async function getStaticProps({ params, locale }) {
       slug: c.handle,
     }));
 
+    categoriesList.sort((a, b) => {
+      const rankA =
+        a.metadata?.rank !== undefined ? Number(a.metadata.rank) : 999;
+      const rankB =
+        b.metadata?.rank !== undefined ? Number(b.metadata.rank) : 999;
+      if (rankA === rankB) return (a.name || "").localeCompare(b.name || "");
+      return rankA - rankB;
+    });
+
     const brandsList = (colData.collections || []).map((c) => ({
       id: c.id,
       name: c.title,
       metadata: c.metadata || {},
       slug: c.handle,
     }));
+
+    brandsList.sort((a, b) => {
+      const rankA =
+        a.metadata?.rank !== undefined ? Number(a.metadata.rank) : 999;
+      const rankB =
+        b.metadata?.rank !== undefined ? Number(b.metadata.rank) : 999;
+      if (rankA === rankB) return (a.name || "").localeCompare(b.name || "");
+      return rankA - rankB;
+    });
 
     return {
       props: {

@@ -17,6 +17,9 @@ import Slider from "../../components/Slider.jsx";
 import Carousel from "../../components/EmblaCarousel06/index.jsx";
 import { ChevronDown, Search, X, Filter } from "lucide-react";
 
+// 🔥 引入全站統一的價格計算工具
+import { getCorrectAmount } from "@/lib/price";
+
 // --- 🛍️ 商品卡片組件 ---
 const ProductCard = ({ product, locale, index }) => {
   const metaLang = locale === "zh-TW" ? "zh" : locale;
@@ -114,7 +117,7 @@ const FilterSection = ({ title, children, defaultOpen = true }) => {
   );
 };
 
-// --- 🏷️ 現代化版 FilterSidebar ---
+// --- 批發過濾側邊欄 ---
 const FilterSidebar = ({
   activeFilters,
   setActiveFilters,
@@ -352,7 +355,7 @@ const FilterSidebar = ({
           onClick={resetFilters}
           className="w-full py-4 mt-4 text-[10px] font-bold tracking-[0.25em] border border-black text-black hover:bg-black hover:text-white transition-all uppercase rounded-none"
         >
-          {t("清除所有篩選", "Clear Filters", "필터 초기화")}
+          {t("清除所有篩選", "Clear Filters", "필表 초기화")}
         </button>
       )}
     </div>
@@ -430,8 +433,8 @@ const CompanyLocation = () => {
   );
 };
 
-// --- 🔥 主頁面: 分類列表頁 (index.jsx) ---
-export default function CategoryOverview({ products, brands, categories }) {
+// --- 🔥 主頁面元件 ---
+export default function CategoryPage({ products, brands, categories }) {
   const router = useRouter();
   const { locale, asPath } = router;
   const metaLang = locale === "zh-TW" ? "zh" : locale;
@@ -457,9 +460,6 @@ export default function CategoryOverview({ products, brands, categories }) {
   const prevFiltersRef = useRef("");
   const [loadedPath, setLoadedPath] = useState(null);
 
-  // ==========================================
-  // 🔥 防呆包裝器：只有使用者手動點擊才重置數量
-  // ==========================================
   const handleSetActiveFilters = (action) => {
     setActiveFilters(action);
     setVisibleCount(12);
@@ -473,9 +473,6 @@ export default function CategoryOverview({ products, brands, categories }) {
     setVisibleCount(12);
   };
 
-  // ==========================================
-  // 🔥 1. 關閉瀏覽器預設滾動，並記錄離開時的 Y 軸
-  // ==========================================
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -499,13 +496,14 @@ export default function CategoryOverview({ products, brands, categories }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [asPath]);
 
-  // ==========================================
-  // 🔥 2. 初始化與還原 SessionStorage，智慧滾動還原
-  // ==========================================
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!router.isReady || typeof window === "undefined") return;
 
-    const savedState = sessionStorage.getItem(`kesh_filters_${asPath}`);
+    const currentSlug = router.query.slug;
+    const currentPath = router.asPath.split("?")[0];
+
+    const savedState = sessionStorage.getItem(`kesh_filters_${currentPath}`);
+
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
@@ -525,6 +523,14 @@ export default function CategoryOverview({ products, brands, categories }) {
       }
     } else {
       const defaultFilters = { categories: [], brands: [] };
+      if (currentSlug && currentSlug !== "all") {
+        if (categories.some((c) => c.slug === currentSlug)) {
+          defaultFilters.categories = [currentSlug];
+        } else if (brands.some((b) => b.slug === currentSlug)) {
+          defaultFilters.brands = [currentSlug];
+        }
+      }
+
       setActiveFilters(defaultFilters);
       setPriceRange({ min: "", max: "" });
       setSortBy("newest");
@@ -536,18 +542,16 @@ export default function CategoryOverview({ products, brands, categories }) {
       });
     }
 
-    // ✅ 宣告這頁的狀態已經「乾淨載入」，放行存檔功能
-    setLoadedPath(asPath);
+    setLoadedPath(currentPath);
 
-    // 🔥 智慧輪詢滾動：等待 DOM 長高後再滾過去
-    const savedScroll = sessionStorage.getItem(`kesh_scroll_${asPath}`);
+    const savedScroll = sessionStorage.getItem(`kesh_scroll_${currentPath}`);
     if (savedScroll) {
       const targetY = parseInt(savedScroll, 10);
       let attempts = 0;
       const tryScroll = () => {
         if (document.body.scrollHeight >= targetY || attempts > 20) {
           window.scrollTo({ top: targetY, behavior: "instant" });
-          sessionStorage.removeItem(`kesh_scroll_${asPath}`);
+          sessionStorage.removeItem(`kesh_scroll_${currentPath}`);
         } else {
           attempts++;
           setTimeout(tryScroll, 50);
@@ -556,26 +560,30 @@ export default function CategoryOverview({ products, brands, categories }) {
       tryScroll();
     }
     isReady.current = true;
-  }, [asPath]);
+  }, [router.isReady, router.query.slug, router.asPath, categories, brands]);
 
-  // ==========================================
-  // 🔥 3. 監聽變更並儲存狀態至 SessionStorage
-  // ==========================================
   useEffect(() => {
-    if (loadedPath !== asPath) return;
+    const currentPath = router.asPath.split("?")[0];
+    if (loadedPath !== currentPath) return;
 
     const stateToSave = { activeFilters, priceRange, sortBy, visibleCount };
     sessionStorage.setItem(
-      `kesh_filters_${asPath}`,
+      `kesh_filters_${currentPath}`,
       JSON.stringify(stateToSave),
     );
-  }, [activeFilters, priceRange, sortBy, visibleCount, asPath, loadedPath]);
+  }, [
+    activeFilters,
+    priceRange,
+    sortBy,
+    visibleCount,
+    router.asPath,
+    loadedPath,
+  ]);
 
-  // ==========================================
-  // 🔥 4. 只有當過濾條件「真正被使用者改變」時，才重置顯示數量為 12
-  // ==========================================
   useEffect(() => {
-    if (loadedPath !== asPath) return;
+    const currentPath = router.asPath.split("?")[0];
+    if (loadedPath !== currentPath) return;
+
     const currentFiltersString = JSON.stringify({
       activeFilters,
       priceRange,
@@ -589,7 +597,7 @@ export default function CategoryOverview({ products, brands, categories }) {
       setVisibleCount(12);
       prevFiltersRef.current = currentFiltersString;
     }
-  }, [activeFilters, priceRange, sortBy, loadedPath, asPath]);
+  }, [activeFilters, priceRange, sortBy, loadedPath, router.asPath]);
 
   const handleMobileApply = () => {
     setIsMobileFilterOpen(false);
@@ -678,16 +686,51 @@ export default function CategoryOverview({ products, brands, categories }) {
     }));
   }, [brands, listForBrandCount]);
 
+  if (router.isFallback)
+    return (
+      <div className="min-h-screen flex items-center justify-center tracking-widest uppercase">
+        Loading...
+      </div>
+    );
+
   const displayedProducts = finalProducts.slice(0, visibleCount);
 
-  const isFiltered =
-    activeFilters.categories.length > 0 || activeFilters.brands.length > 0;
-  const titleDisplay = isFiltered ? "Filtered Results" : tAllProducts;
+  const getFilterDisplayName = () => {
+    if (
+      activeFilters.categories.length === 1 &&
+      activeFilters.brands.length === 0
+    ) {
+      const c = categories.find((x) => x.slug === activeFilters.categories[0]);
+      return c
+        ? c.metadata?.[`name_${metaLang}`] || c.name
+        : activeFilters.categories[0];
+    }
+    if (
+      activeFilters.brands.length === 1 &&
+      activeFilters.categories.length === 0
+    ) {
+      const b = brands.find((x) => x.slug === activeFilters.brands[0]);
+      return b
+        ? b.metadata?.[`name_${metaLang}`] || b.name
+        : activeFilters.brands[0];
+    }
+    if (
+      activeFilters.categories.length === 0 &&
+      activeFilters.brands.length === 0
+    ) {
+      return tAllProducts;
+    }
+    return "Filtered Results";
+  };
+
+  // 🔥 關鍵修正：修正原本 titleDisplay 未定義的 Typo，與變數一致
+  const displayTitle = getFilterDisplayName();
+  const pageTitle = `${displayTitle} | KÉSH de¹`;
 
   return (
     <>
       <Head>
-        <title>Shop | KÉSH de¹</title>
+        <title>{pageTitle}</title>
       </Head>
 
       <main className="pb-0 bg-white text-black font-sans min-h-screen">
@@ -697,8 +740,9 @@ export default function CategoryOverview({ products, brands, categories }) {
         <section>
           <div className="title">
             <div className="py-12 px-6 md:px-10 bg-[#fafafa]">
+              {/* 🔥 關鍵修正：此處原本打錯成 {titleDisplay} 導致崩潰 */}
               <h1 className="text-3xl md:text-5xl font-light tracking-wide uppercase text-gray-900">
-                {titleDisplay}
+                {displayTitle}
               </h1>
               <p className="mt-4 text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">
                 {finalProducts.length} Items
@@ -826,7 +870,9 @@ export default function CategoryOverview({ products, brands, categories }) {
                   onClick={() => {
                     handleSetActiveFilters({ categories: [], brands: [] });
                     handleSetPriceRange({ min: "", max: "" });
-                    sessionStorage.removeItem(`kesh_filters_${asPath}`);
+                    sessionStorage.removeItem(
+                      `kesh_filters_${router.asPath.split("?")[0]}`,
+                    );
                   }}
                   className="mt-6 text-[11px] font-bold uppercase tracking-widest border-b border-gray-400 pb-1 hover:text-black hover:border-black transition-colors"
                 >
@@ -843,8 +889,10 @@ export default function CategoryOverview({ products, brands, categories }) {
   );
 }
 
-export async function getStaticProps({ locale }) {
+export async function getStaticProps({ params, locale }) {
+  const slug = params?.slug || "all";
   const currentLang = locale || "zh-TW";
+
   const targetCurrency =
     currentLang === "en" ? "usd" : currentLang === "ko" ? "krw" : "twd";
   const symbol =
@@ -854,6 +902,17 @@ export async function getStaticProps({ locale }) {
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
 
+  if (!BACKEND_URL || !API_KEY) {
+    return {
+      props: {
+        products: [],
+        brands: [],
+        categories: [],
+      },
+      revalidate: 60,
+    };
+  }
+
   try {
     const headers = {
       "x-publishable-api-key": API_KEY,
@@ -862,8 +921,15 @@ export async function getStaticProps({ locale }) {
     const fetchOptions = { headers, cache: "no-store" };
 
     const [catRes, colRes, pRes] = await Promise.all([
-      fetch(`${BACKEND_URL}/store/product-categories?limit=250`, fetchOptions),
-      fetch(`${BACKEND_URL}/store/collections?limit=250`, fetchOptions),
+      // 🔥 關鍵修正：加上 fields 參數強抓 metadata，否則側邊欄多語系和 rank 排序會完全破圖失效！
+      fetch(
+        `${BACKEND_URL}/store/product-categories?limit=250&fields=id,name,handle,metadata,rank`,
+        fetchOptions,
+      ),
+      fetch(
+        `${BACKEND_URL}/store/collections?limit=250&fields=id,title,handle,metadata,rank`,
+        fetchOptions,
+      ),
       fetch(
         `${BACKEND_URL}/store/products?limit=250&fields=id,title,handle,thumbnail,metadata,created_at,*variants,*variants.prices,*collection,*categories`,
         fetchOptions,
@@ -880,10 +946,9 @@ export async function getStaticProps({ locale }) {
         variantPrices.find(
           (pr) => pr.currency_code?.toLowerCase() === targetCurrency,
         ) || variantPrices[0];
+
       let amount = priceObj
-        ? priceObj.amount > 1000000
-          ? priceObj.amount / 100
-          : priceObj.amount
+        ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
         : 0;
 
       return {
@@ -913,12 +978,30 @@ export async function getStaticProps({ locale }) {
       slug: c.handle,
     }));
 
+    categoriesList.sort((a, b) => {
+      const rankA =
+        a.metadata?.rank !== undefined ? Number(a.metadata.rank) : 999;
+      const rankB =
+        b.metadata?.rank !== undefined ? Number(b.metadata.rank) : 999;
+      if (rankA === rankB) return (a.name || "").localeCompare(b.name || "");
+      return rankA - rankB;
+    });
+
     const brandsList = (colData.collections || []).map((c) => ({
       id: c.id,
       name: c.title,
       metadata: c.metadata || {},
       slug: c.handle,
     }));
+
+    brandsList.sort((a, b) => {
+      const rankA =
+        a.metadata?.rank !== undefined ? Number(a.metadata.rank) : 999;
+      const rankB =
+        b.metadata?.rank !== undefined ? Number(b.metadata.rank) : 999;
+      if (rankA === rankB) return (a.name || "").localeCompare(b.name || "");
+      return rankA - rankB;
+    });
 
     return {
       props: {
@@ -930,6 +1013,14 @@ export async function getStaticProps({ locale }) {
       revalidate: 60,
     };
   } catch (error) {
-    return { props: { products: [], brands: [], categories: [] } };
+    return {
+      props: {
+        ...(await serverSideTranslations(currentLang, ["common"])),
+        products: [],
+        brands: [],
+        categories: [],
+      },
+      revalidate: 60,
+    };
   }
 }

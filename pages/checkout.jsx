@@ -21,6 +21,8 @@ import Image from "next/image";
 
 // 🔥 引入全球國家、州、城市資料庫套件
 import { State, City } from "country-state-city";
+// 🔥 引入全域統一的價格計算工具
+import { getCorrectAmount } from "@/lib/price";
 
 // ==========================================
 // 內建台灣縣市區域資料庫
@@ -495,6 +497,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const isProcessing = useRef(false);
   const isTapPaySetup = useRef(false);
+  const medusaCartRef = useRef(null); // 紀錄剛建好的購物車 ID
+
   const [showAtmPopup, setShowAtmPopup] = useState(false);
   const [atmData, setAtmData] = useState({
     bankCode: "",
@@ -541,7 +545,7 @@ export default function CheckoutPage() {
     }, 0);
   }, [cartItems]);
 
-  // 🔥 關鍵修正：總金額動態抓取對應語系的幣別與數值
+  // 前端總計僅供畫面顯示用 (安全無虞，不送出給後端扣款)
   const total = useMemo(() => {
     return cartItems.reduce((acc, item) => {
       let currentRawPrice =
@@ -633,9 +637,7 @@ export default function CheckoutPage() {
         try {
           const res = await fetch("https://open.er-api.com/v6/latest/USD");
           const data = await res.json();
-          if (data.rates && data.rates.KRW) {
-            setExchangeRate(data.rates.KRW);
-          }
+          if (data.rates && data.rates.KRW) setExchangeRate(data.rates.KRW);
         } catch (error) {
           console.warn("⚠️ 匯率 API 抓取失敗", error);
         }
@@ -724,10 +726,118 @@ export default function CheckoutPage() {
     });
   };
 
-  const executeCheckout = async (paypalOrderId = null) => {
-    if (isProcessing.current) return;
-    isProcessing.current = true;
+  // ==========================================
+  // 🚨 資安核心重構：先建立 Medusa 購物車，不信任前端加法
+  // ==========================================
+  const prepareMedusaCart = async () => {
+    const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+    const backendUrl =
+      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+    const token = localStorage.getItem("medusa_auth_token");
+    const headers = {
+      "Content-Type": "application/json",
+      "x-publishable-api-key": PUBLISHABLE_API_KEY,
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
 
+    const regionRes = await fetch(`${backendUrl}/store/regions`, { headers });
+    const regions = (await regionRes.json()).regions;
+    const targetRegion =
+      regions.find((r) =>
+        r.countries.some((c) => c.iso_2 === formData.country.toLowerCase()),
+      ) || regions[0];
+
+    const stateName =
+      formData.country === "TW"
+        ? formData.city
+        : State.getStateByCodeAndCountry(formData.city, formData.country)
+            ?.name || formData.city;
+
+    // 1. 建立購物車與填入地址
+    const cartRes = await fetch(`${backendUrl}/store/carts`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        region_id: targetRegion.id,
+        email: formData.email,
+        metadata: {
+          payment_method: formData.paymentMethod,
+          remark: formData.remark,
+        },
+        shipping_address: {
+          first_name: formData.name,
+          phone: formData.phone,
+          province: stateName,
+          city: formData.district,
+          address_1: formData.street,
+          country_code: formData.country.toLowerCase(),
+        },
+      }),
+    });
+    const cartData = await cartRes.json();
+    const cartId = cartData.cart.id;
+
+    // 2. 塞入商品 (防禦缺貨幽靈訂單)
+    for (const item of cartItems) {
+      const currentVariantId = item.variantId || item.variant_id;
+      if (!currentVariantId) throw new Error(`商品「${item.title}」資料異常`);
+
+      const lineItemRes = await fetch(
+        `${backendUrl}/store/carts/${cartId}/line-items`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            variant_id: currentVariantId,
+            quantity: item.quantity,
+          }),
+        },
+      );
+
+      if (!lineItemRes.ok) {
+        const errData = await lineItemRes.json();
+        throw new Error(
+          `商品「${item.title}」無法結帳。\n原因：${errData.message || "可能庫存不足"}`,
+        );
+      }
+    }
+
+    // 3. 設定物流
+    const shipOptRes = await fetch(
+      `${backendUrl}/store/shipping-options?cart_id=${cartId}`,
+      { headers },
+    );
+    const shipOptData = await shipOptRes.json();
+    if (shipOptData.shipping_options?.length > 0) {
+      const matchedOption = shipOptData.shipping_options.find(
+        (opt) => opt.name === shippingInfo.name,
+      );
+      const selectedOptionId = matchedOption
+        ? matchedOption.id
+        : shipOptData.shipping_options[0].id;
+      await fetch(`${backendUrl}/store/carts/${cartId}/shipping-methods`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ option_id: selectedOptionId }),
+      });
+    }
+
+    // 4. 返回完整購物車資訊 (包含權威級的官方總計)
+    const finalCartRes = await fetch(`${backendUrl}/store/carts/${cartId}`, {
+      headers,
+    });
+    const finalCartData = await finalCartRes.json();
+
+    return finalCartData.cart;
+  };
+
+  // ==========================================
+  // 後端安全結帳呼叫 (TapPay / PayPal 驗證)
+  // ==========================================
+  const executeCheckout = async (
+    paypalOrderId = null,
+    preCreatedCartId = null,
+  ) => {
     if (
       !formData.name ||
       !formData.email ||
@@ -745,6 +855,7 @@ export default function CheckoutPage() {
       let prime = "";
       const TPDirect = window.TPDirect;
 
+      // TapPay 必須在建立購物車前先驗證卡片
       if (formData.paymentMethod === "CREDIT_CARD") {
         if (TPDirect.card.getTappayFieldsStatus().canGetPrime === false)
           throw new Error(t("checkout.alert.cardError", "信用卡資訊有誤"));
@@ -765,101 +876,23 @@ export default function CheckoutPage() {
         prime = paypalOrderId;
       }
 
+      // 如果還沒有購物車 (TapPay 流程)，此時建立
+      let cartId = preCreatedCartId;
+      if (!cartId) {
+        const cart = await prepareMedusaCart();
+        cartId = cart.id;
+      }
+
       const PUBLISHABLE_API_KEY =
         process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-      const token = localStorage.getItem("medusa_auth_token");
+      const backendUrl =
+        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
       const headers = {
         "Content-Type": "application/json",
         "x-publishable-api-key": PUBLISHABLE_API_KEY,
       };
+      const token = localStorage.getItem("medusa_auth_token");
       if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const backendUrl =
-        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-
-      const regionRes = await fetch(`${backendUrl}/store/regions`, { headers });
-      const regions = (await regionRes.json()).regions;
-      const targetRegion =
-        regions.find((r) =>
-          r.countries.some((c) => c.iso_2 === formData.country.toLowerCase()),
-        ) || regions[0];
-      const activeRegionId = targetRegion.id;
-
-      const stateName =
-        formData.country === "TW"
-          ? formData.city
-          : State.getStateByCodeAndCountry(formData.city, formData.country)
-              ?.name || formData.city;
-
-      const cartRes = await fetch(`${backendUrl}/store/carts`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          region_id: activeRegionId,
-          email: formData.email,
-          metadata: {
-            payment_method: formData.paymentMethod,
-            remark: formData.remark,
-          },
-          shipping_address: {
-            first_name: formData.name,
-            phone: formData.phone,
-            province: stateName,
-            city: formData.district,
-            address_1: formData.street,
-            country_code: formData.country.toLowerCase(),
-          },
-        }),
-      });
-
-      const cartData = await cartRes.json();
-      const cartId = cartData.cart.id;
-
-      for (const item of cartItems) {
-        const currentVariantId = item.variantId || item.variant_id;
-        if (!currentVariantId)
-          throw new Error(`商品「${item.title}」資料異常，找不到變體 ID。`);
-
-        const lineItemRes = await fetch(
-          `${backendUrl}/store/carts/${cartId}/line-items`,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify({
-              variant_id: currentVariantId,
-              quantity: item.quantity,
-            }),
-          },
-        );
-
-        if (!lineItemRes.ok) {
-          const errData = await lineItemRes.json();
-          throw new Error(
-            `商品「${item.title}」加入失敗。\n系統回報：${errData.message || "未知錯誤"}`,
-          );
-        }
-      }
-
-      const shipOptRes = await fetch(
-        `${backendUrl}/store/shipping-options?cart_id=${cartId}`,
-        { headers },
-      );
-      const shipOptData = await shipOptRes.json();
-
-      if (shipOptData.shipping_options?.length > 0) {
-        const matchedOption = shipOptData.shipping_options.find(
-          (opt) => opt.name === shippingInfo.name,
-        );
-        const selectedOptionId = matchedOption
-          ? matchedOption.id
-          : shipOptData.shipping_options[0].id;
-
-        await fetch(`${backendUrl}/store/carts/${cartId}/shipping-methods`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({ option_id: selectedOptionId }),
-        });
-      }
 
       const customCheckoutRes = await fetch(
         `${backendUrl}/store/tappay-checkout`,
@@ -942,9 +975,7 @@ export default function CheckoutPage() {
         </AnimatePresence>
 
         <div className="flex flex-col-reverse lg:flex-row">
-          {/* ======================= */}
           {/* 左側：填寫資料與付款區塊 */}
-          {/* ======================= */}
           <div className="w-full lg:w-[55%] px-6 py-10 lg:px-20 lg:py-16">
             <div className="max-w-[700px] mx-auto">
               <Link
@@ -1287,7 +1318,6 @@ export default function CheckoutPage() {
                                 "PayPal / Apple Pay / Google Pay",
                               )}
                             </span>
-                            {/* 🔥 支援的信用卡/支付圖示 */}
                             <div className="flex flex-wrap items-center gap-2">
                               <img
                                 src="/images/svg/paypal-svgrepo-com.svg"
@@ -1346,42 +1376,69 @@ export default function CheckoutPage() {
                                   }
                                   return actions.resolve();
                                 }}
-                                createOrder={(data, actions) => {
-                                  let finalAmountValue = Math.max(
-                                    1,
-                                    Math.round(total + shippingInfo.cost),
-                                  );
+                                // 🔥 安全升級：先在 Medusa 建立訂單取得官方金額，才允許 PayPal 扣款
+                                createOrder={async (data, actions) => {
+                                  if (isProcessing.current)
+                                    return actions.reject();
+                                  isProcessing.current = true;
 
-                                  if (isKRW) {
-                                    finalAmountValue = (
-                                      finalAmountValue / exchangeRate
-                                    ).toFixed(2);
-                                  } else {
-                                    finalAmountValue =
-                                      finalAmountValue.toString();
-                                  }
+                                  try {
+                                    const cart = await prepareMedusaCart();
+                                    medusaCartRef.current = cart.id;
 
-                                  return actions.order.create({
-                                    purchase_units: [
-                                      {
-                                        amount: {
-                                          currency_code: paypalCurrency,
-                                          value: finalAmountValue,
+                                    // 取出後端官方總計金額 (例如 342574)
+                                    let finalAmountValue = getCorrectAmount(
+                                      cart.total,
+                                      cart.region.currency_code,
+                                    );
+
+                                    // 跨幣別轉換 (如 KRW -> USD給PayPal扣款)
+                                    if (isKRW) {
+                                      finalAmountValue = (
+                                        finalAmountValue / exchangeRate
+                                      ).toFixed(2);
+                                    } else {
+                                      finalAmountValue =
+                                        finalAmountValue.toFixed(2);
+                                    }
+
+                                    return actions.order.create({
+                                      purchase_units: [
+                                        {
+                                          amount: {
+                                            currency_code: paypalCurrency,
+                                            value: finalAmountValue,
+                                          },
+                                          description: `KÉSH de¹ Order (Cart: ${cart.id})`,
                                         },
-                                        description: isKRW
-                                          ? `Converted from KRW (Rate 1:${Math.round(exchangeRate)})`
-                                          : "",
-                                      },
-                                    ],
-                                  });
+                                      ],
+                                    });
+                                  } catch (error) {
+                                    alert(
+                                      error.message ||
+                                        "建立購物車失敗，請稍後再試。",
+                                    );
+                                    isProcessing.current = false;
+                                    return actions.reject();
+                                  }
                                 }}
                                 onApprove={async (data, actions) => {
                                   try {
-                                    await executeCheckout(data.orderID);
+                                    // 將 PayPal OrderID 與剛建好的 Medusa CartID 送給後端雙重驗證
+                                    await executeCheckout(
+                                      data.orderID,
+                                      medusaCartRef.current,
+                                    );
                                   } catch (error) {
                                     console.error("PayPal 錯誤:", error);
-                                    alert("付款失敗，請重新嘗試");
+                                    alert("付款驗證失敗，請重新嘗試");
                                   }
+                                }}
+                                onCancel={() => {
+                                  isProcessing.current = false;
+                                }}
+                                onError={() => {
+                                  isProcessing.current = false;
                                 }}
                               />
                             </div>
@@ -1394,7 +1451,13 @@ export default function CheckoutPage() {
                   {formData.paymentMethod !== "PAYPAL" && (
                     <button
                       type="button"
-                      onClick={() => executeCheckout(null)}
+                      onClick={() => {
+                        if (isProcessing.current) return;
+                        isProcessing.current = true;
+                        executeCheckout(null).finally(
+                          () => (isProcessing.current = false),
+                        );
+                      }}
                       disabled={loading || isProcessing.current}
                       className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.2em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
@@ -1414,7 +1477,6 @@ export default function CheckoutPage() {
           {/* ======================= */}
           {/* 右側：訂單摘要區塊 */}
           {/* ======================= */}
-          {/* 🔥 解決高度截斷：使用 h-[calc(100vh-64px)] 確保完美滑動且不被切掉 */}
           <div className="w-full lg:w-[45%] bg-[#fafafa] px-6 py-10 lg:px-14 lg:py-10 border-l border-gray-100 lg:sticky lg:top-16 lg:h-[calc(100vh-64px)] lg:overflow-y-auto">
             <div className="max-w-[400px] mx-auto lg:mx-0">
               <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] mb-8 border-b border-gray-200 pb-2">
@@ -1428,12 +1490,9 @@ export default function CheckoutPage() {
                     item.image ||
                     (item.images && item.images[0]) ||
                     "";
-
-                  // 🔥 動態抓取當前語系的標題翻譯
                   const displayTitle =
                     item.metadata?.[`title_${metaLang}`] || item.title;
 
-                  // 🔥 動態計算商品單價
                   let currentRawPrice =
                     item.rawPrice ||
                     parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
@@ -1474,7 +1533,7 @@ export default function CheckoutPage() {
                         </div>
                         <div className="flex flex-col pr-4">
                           <h3 className="text-sm font-medium text-gray-800 line-clamp-2 leading-snug">
-                            {displayTitle} {/* ✅ 替換為動態語系標題 */}
+                            {displayTitle}
                           </h3>
                           <p className="text-xs text-gray-400 mt-1">
                             Weight: {item.variant?.weight || item.weight || 0}g
@@ -1483,8 +1542,7 @@ export default function CheckoutPage() {
                       </div>
                       <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
                         {symbol}
-                        {currentRawPrice.toLocaleString()}{" "}
-                        {/* ✅ 動態顯示單價 */}
+                        {currentRawPrice.toLocaleString()}
                       </span>
                     </div>
                   );

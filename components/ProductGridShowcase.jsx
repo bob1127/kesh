@@ -8,6 +8,9 @@ import { useTranslation } from "next-i18next";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
+// 🔥 引入全站統一的價格計算工具
+import { getCorrectAmount } from "@/lib/price";
+
 export default function ProductGridShowcase() {
   const router = useRouter();
   const { t } = useTranslation("common");
@@ -31,9 +34,10 @@ export default function ProductGridShowcase() {
 
   const limit = 8;
   const containerRef = useRef(null);
+  const isReady = useRef(false); // 用於防止初始雙重抓取
 
   // ==========================================
-  // 🔍 1. 抓取分類 (高效能版：解決被截斷與 N+1 問題)
+  // 🔍 1. 抓取分類 (高效能版)
   // ==========================================
   useEffect(() => {
     const fetchValidCollections = async () => {
@@ -44,7 +48,6 @@ export default function ProductGridShowcase() {
       const headers = API_KEY ? { "x-publishable-api-key": API_KEY } : {};
 
       try {
-        // 🔥 優化點 1：先一次性抓取所有商品，提取出「真正有商品」的 collection_id
         const prodRes = await fetch(
           `${BACKEND_URL}/store/products?limit=250&fields=id,collection_id`,
           { headers },
@@ -52,14 +55,12 @@ export default function ProductGridShowcase() {
         if (!prodRes.ok) return;
         const prodData = await prodRes.json();
 
-        // 利用 Set 確保 ID 不重複，提升比對效能
         const activeCollectionIds = new Set(
           (prodData.products || [])
             .filter((p) => p.collection_id)
             .map((p) => p.collection_id),
         );
 
-        // 🔥 優化點 2：抓取系列時加上 limit=250，避免預設 10 筆吃掉 CHANEL
         const colRes = await fetch(
           `${BACKEND_URL}/store/collections?limit=250`,
           { headers },
@@ -67,7 +68,6 @@ export default function ProductGridShowcase() {
         if (!colRes.ok) return;
         const colData = await colRes.json();
 
-        // 將擁有商品的分類篩選出來
         const validCollections = (colData.collections || [])
           .filter((col) => activeCollectionIds.has(col.id))
           .map((col) => ({
@@ -85,12 +85,17 @@ export default function ProductGridShowcase() {
     };
 
     fetchValidCollections();
-  }, [locale, metaLang, t]);
+  }, [metaLang, t]);
 
   // ==========================================
-  // 🛍️ 2. 抓取商品 (支援多語系內容與智能幣別)
+  // 🛍️ 2. 抓取商品 (支援自訂數量，用於還原狀態)
   // ==========================================
-  const fetchProducts = async (currentOffset, tabId, isLoadMore = false) => {
+  const fetchProducts = async (
+    currentOffset,
+    tabId,
+    isLoadMore = false,
+    customFetchLimit = limit,
+  ) => {
     const BACKEND_URL =
       process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
       "https://kesh-backend-production.up.railway.app";
@@ -100,8 +105,7 @@ export default function ProductGridShowcase() {
       if (isLoadMore) setIsLoadingMore(true);
       else setIsLoading(true);
 
-      // 🔥 關鍵修改：加入 &order=-created_at 讓最新發布的商品排在最前面
-      let targetUrl = `${BACKEND_URL}/store/products?limit=${limit}&offset=${currentOffset}&order=-created_at&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`;
+      let targetUrl = `${BACKEND_URL}/store/products?limit=${customFetchLimit}&offset=${currentOffset}&order=-created_at&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`;
       if (tabId !== "all") {
         targetUrl += `&collection_id[]=${tabId}`;
       }
@@ -114,19 +118,17 @@ export default function ProductGridShowcase() {
       const data = await res.json();
 
       const formattedProducts = (data.products || []).map((p) => {
-        // 💰 智能幣別配對
         const variantPrices = p.variants?.[0]?.prices || [];
         let priceObj =
           variantPrices.find(
             (pr) => pr.currency_code?.toLowerCase() === targetCurrency,
           ) || variantPrices[0];
+
+        // 🔥 套用我們剛寫好的全站價格統一邏輯
         let amount = priceObj
-          ? priceObj.amount > 1000000
-            ? priceObj.amount / 100
-            : priceObj.amount
+          ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
           : 0;
 
-        // 🌍 智能商品標題配對 (抓取 metadata)
         const localizedTitle = p.metadata?.[`title_${metaLang}`] || p.title;
 
         return {
@@ -144,8 +146,8 @@ export default function ProductGridShowcase() {
         setProducts(formattedProducts);
       }
 
-      setHasMore(data.count > currentOffset + limit);
-      setOffset(currentOffset + limit);
+      setHasMore(data.count > currentOffset + customFetchLimit);
+      setOffset(currentOffset + customFetchLimit); // 紀錄當前總共載入了多少商品
     } catch (error) {
       console.error("載入商品失敗:", error);
     } finally {
@@ -154,9 +156,113 @@ export default function ProductGridShowcase() {
     }
   };
 
+  // ==========================================
+  // 🧠 3. 智慧狀態還原 (返回上一頁時執行)
+  // ==========================================
   useEffect(() => {
-    fetchProducts(0, activeTab, false);
-  }, [activeTab, targetCurrency, metaLang]);
+    if (!router.isReady || typeof window === "undefined") return;
+
+    // 關閉瀏覽器原生的捲動還原，由我們手動接管
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    const currentPath = router.asPath.split("?")[0];
+    const savedState = sessionStorage.getItem(`kesh_grid_state_${currentPath}`);
+
+    let initTab = "all";
+    let initOffset = limit;
+
+    // 如果有存檔，就把之前存的 Tab 和已載入的數量抓出來
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.activeTab) initTab = parsed.activeTab;
+        if (parsed.offset) initOffset = parsed.offset;
+      } catch (e) {
+        console.error("Failed to parse saved grid state", e);
+      }
+    }
+
+    setActiveTab(initTab);
+
+    // 一次性把之前載入的所有商品抓回來 (例如之前載了 24 個，這次就直接抓 24 個)
+    fetchProducts(0, initTab, false, initOffset).then(() => {
+      // 資料抓完後，智慧捲動回先前的 Y 軸位置
+      const savedScroll = sessionStorage.getItem(
+        `kesh_grid_scroll_${currentPath}`,
+      );
+      if (savedScroll) {
+        const targetY = parseInt(savedScroll, 10);
+        let attempts = 0;
+        const tryScroll = () => {
+          if (document.body.scrollHeight >= targetY || attempts > 20) {
+            window.scrollTo({ top: targetY, behavior: "instant" });
+          } else {
+            attempts++;
+            setTimeout(tryScroll, 50); // 每 50ms 嘗試一次，等待圖片撐開高度
+          }
+        };
+        tryScroll();
+      }
+    });
+
+    isReady.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.asPath]);
+
+  // ==========================================
+  // 💾 4. 自動存檔機制 (當使用者操作時紀錄)
+  // ==========================================
+  // 4a. 存檔 Tab 與載入數量
+  useEffect(() => {
+    if (!isReady.current || typeof window === "undefined") return;
+    const currentPath = router.asPath.split("?")[0];
+    sessionStorage.setItem(
+      `kesh_grid_state_${currentPath}`,
+      JSON.stringify({ activeTab, offset }),
+    );
+  }, [activeTab, offset, router.asPath]);
+
+  // 4b. 存檔捲動位置 (防抖動優化)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let scrollTimeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const currentPath = router.asPath.split("?")[0];
+        sessionStorage.setItem(
+          `kesh_grid_scroll_${currentPath}`,
+          window.scrollY.toString(),
+        );
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [router.asPath]);
+
+  // 4c. 當語系或幣別改變時，依照目前的 offset 重新抓取 (但不重置畫面位置)
+  const prevLangRef = useRef(metaLang);
+  useEffect(() => {
+    if (!isReady.current) return;
+    if (prevLangRef.current !== metaLang) {
+      fetchProducts(0, activeTab, false, offset || limit);
+      prevLangRef.current = metaLang;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metaLang, targetCurrency]);
+
+  // ==========================================
+  // 🖱️ 5. 切換分類 Tab 處理
+  // ==========================================
+  const handleTabClick = (tabId) => {
+    if (activeTab === tabId) return; // 避免重複點擊
+    setActiveTab(tabId);
+    // 切換分類時，重新從 0 開始抓取預設數量的商品
+    fetchProducts(0, tabId, false, limit);
+  };
 
   // ==========================================
   // ✨ GSAP Fade Up 動畫
@@ -187,7 +293,6 @@ export default function ProductGridShowcase() {
         <div className="w-full pb-8 flex flex-col items-center justify-center text-center">
           <div className="mb-6">
             <h2 className="text-4xl md:text-5xl lg:text-[54px] font-extrabold tracking-widest flex items-start justify-center gap-1 mb-2">
-              {/* 🔥 全面使用 showcase 獨立前綴 */}
               {t("showcase.title", "CURATION")}
               <span className="text-[11px] lg:text-[13px] font-bold mt-2 tracking-normal uppercase">
                 {t("showcase.sub_title", "(STYLE)")}
@@ -209,7 +314,7 @@ export default function ProductGridShowcase() {
             {collections.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className={`text-xs md:text-sm font-bold tracking-[0.15em] uppercase transition-all duration-300 relative pb-2 
                   ${activeTab === tab.id ? "text-black" : "text-gray-400 hover:text-gray-700"}`}
               >

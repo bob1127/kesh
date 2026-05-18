@@ -13,6 +13,7 @@ import {
   Mail,
   Globe,
   ChevronRight,
+  ChevronDown,
   Loader2,
   X,
   FileText,
@@ -29,6 +30,9 @@ export const SlideTabsExample = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // 🔥 控制手機版分類/品牌下拉選單的狀態
+  const [mobileExpanded, setMobileExpanded] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -49,6 +53,12 @@ export const SlideTabsExample = () => {
   const navRef = useRef(null);
   const router = useRouter();
   const { t } = useTranslation("common");
+
+  // 🔥 動態多語系判斷邏輯
+  const metaLang = router.locale === "zh-TW" ? "zh" : router.locale;
+  const getLocalizedName = (item) => {
+    return item.metadata?.[`name_${metaLang}`] || item.name;
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -103,31 +113,63 @@ export const SlideTabsExample = () => {
         if (API_KEY) headers["x-publishable-api-key"] = API_KEY;
 
         const [catsRes, colRes] = await Promise.all([
+          // 🔥 確保有把 rank 欄位抓回來
           fetch(
-            `${BACKEND_URL}/store/product-categories?fields=id,name,handle,metadata&limit=100`,
+            `${BACKEND_URL}/store/product-categories?fields=id,name,handle,metadata,rank&limit=100`,
             { headers },
           ).then((res) => res.json()),
+          // 🔥 把 collections 的 fields 也加上 rank，確保品牌拖拉排序正常
           fetch(
-            `${BACKEND_URL}/store/collections?fields=id,title,handle,metadata&limit=100`,
+            `${BACKEND_URL}/store/collections?fields=id,title,handle,metadata,rank&limit=100`,
             { headers },
           ).then((res) => res.json()),
         ]);
 
+        // ==========================================
+        // 🔥 商品類別 (Categories) 依照 Rank 排序並保留 metadata
+        // ==========================================
+        let sortedCategories = catsRes.product_categories || [];
+        sortedCategories.sort((a, b) => {
+          const rankA = typeof a.rank === "number" ? a.rank : 999;
+          const rankB = typeof b.rank === "number" ? b.rank : 999;
+          if (rankA === rankB)
+            return (a.name || "").localeCompare(b.name || "");
+          return rankA - rankB;
+        });
+
         setCategoriesChildren(
-          (catsRes.product_categories || []).map((cat) => ({
+          sortedCategories.map((cat) => ({
             id: cat.id,
             name: cat.name,
             slug: cat.handle,
             image: cat.metadata?.image_url || cat.metadata?.Image_url || null,
+            metadata: cat.metadata || {}, // 保留 metadata 以供多語系抓取
           })),
         );
 
+        // ==========================================
+        // 🔥 精選品牌 (Collections) 依照 Metadata Rank 排序並保留 metadata
+        // ==========================================
+        let sortedBrands = colRes.collections || [];
+        sortedBrands.sort((a, b) => {
+          const rankA =
+            a.metadata?.rank !== undefined ? Number(a.metadata.rank) : 999;
+          const rankB =
+            b.metadata?.rank !== undefined ? Number(b.metadata.rank) : 999;
+
+          if (rankA === rankB) {
+            return (a.title || "").localeCompare(b.title || "");
+          }
+          return rankA - rankB;
+        });
+
         setBrandChildren(
-          (colRes.collections || []).map((col) => ({
+          sortedBrands.map((col) => ({
             id: col.id,
             name: col.title,
             slug: col.handle,
             image: col.metadata?.image_url || col.metadata?.Image_url || null,
+            metadata: col.metadata || {}, // 保留 metadata 以供多語系抓取
           })),
         );
       } catch (error) {
@@ -194,15 +236,11 @@ export const SlideTabsExample = () => {
     setIsMenuOpen(false);
   };
 
-  // ==========================================
-  // 🔥 關鍵核心：導航淨化器 (清除目標頁面的快取)
-  // ==========================================
   const handleMenuClick = (targetPath) => {
     if (typeof window !== "undefined") {
       sessionStorage.removeItem(`kesh_filters_${targetPath}`);
       sessionStorage.removeItem(`kesh_scroll_${targetPath}`);
 
-      // 防呆：如果是點擊 /category，連帶清除 /category/all 的可能記憶
       if (targetPath === "/category" || targetPath === "/category/all") {
         sessionStorage.removeItem(`kesh_filters_/category/all`);
         sessionStorage.removeItem(`kesh_scroll_/category/all`);
@@ -212,13 +250,14 @@ export const SlideTabsExample = () => {
     }
     setOpenMega("none");
     setIsMenuOpen(false);
+    setMobileExpanded(""); // 點擊後順便收起手機下拉
   };
 
   const navLinks = [
     {
       key: "categories",
       label: t("navbar.categories") || "產品類別",
-      href: "/category/all", // 確保指到動態路由
+      href: "/category/all",
       hasMega: true,
     },
     {
@@ -585,8 +624,9 @@ export const SlideTabsExample = () => {
                                     </span>
                                   )}
                                 </div>
+                                {/* 🔥 電腦版：渲染翻譯後的產品類別名稱 */}
                                 <span className="text-sm font-bold tracking-widest text-gray-700 group-hover:text-[#ef4628] transition-colors text-center uppercase">
-                                  {cat.name}
+                                  {getLocalizedName(cat)}
                                 </span>
                               </Link>
                             </li>
@@ -633,8 +673,9 @@ export const SlideTabsExample = () => {
                                     </span>
                                   )}
                                 </div>
+                                {/* 🔥 電腦版：渲染翻譯後的精選品牌名稱 */}
                                 <span className="text-sm font-bold tracking-widest text-gray-700 group-hover:text-[#ef4628] transition-colors text-center uppercase">
-                                  {brand.name}
+                                  {getLocalizedName(brand)}
                                 </span>
                               </Link>
                             </li>
@@ -705,13 +746,70 @@ export const SlideTabsExample = () => {
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {navLinks.map((link) => (
                   <div key={link.key}>
-                    <Link
-                      href={link.href}
-                      onClick={() => handleMenuClick(link.href)}
-                      className="block text-sm font-bold tracking-widest uppercase hover:text-[#ef4628] transition-colors"
-                    >
-                      {link.label}
-                    </Link>
+                    {link.hasMega ? (
+                      <div className="flex flex-col">
+                        <button
+                          onClick={() =>
+                            setMobileExpanded(
+                              mobileExpanded === link.key ? "" : link.key,
+                            )
+                          }
+                          className="flex justify-between items-center w-full text-sm font-bold tracking-widest uppercase hover:text-[#ef4628] transition-colors"
+                        >
+                          {link.label}
+                          <ChevronDown
+                            size={16}
+                            className={`transform transition-transform ${
+                              mobileExpanded === link.key ? "rotate-180" : ""
+                            }`}
+                          />
+                        </button>
+                        <AnimatePresence>
+                          {mobileExpanded === link.key && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pt-4 pb-2 pl-4 flex flex-col gap-4 border-l-2 border-gray-100 ml-2 mt-2">
+                                <Link
+                                  href={link.href}
+                                  onClick={() => handleMenuClick(link.href)}
+                                  className="text-xs font-bold text-gray-400 hover:text-[#ef4628] uppercase tracking-widest"
+                                >
+                                  {t("mega.view_all") || "查看全部"} &rarr;
+                                </Link>
+                                {(link.key === "categories"
+                                  ? categoriesChildren
+                                  : brandChildren
+                                ).map((child) => (
+                                  <Link
+                                    key={child.id}
+                                    href={`/category/${child.slug}`}
+                                    onClick={() =>
+                                      handleMenuClick(`/category/${child.slug}`)
+                                    }
+                                    className="text-[13px] font-medium text-gray-600 hover:text-[#ef4628] uppercase tracking-wider"
+                                  >
+                                    {/* 🔥 手機版：渲染翻譯後的名稱 */}
+                                    {getLocalizedName(child)}
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        onClick={() => handleMenuClick(link.href)}
+                        className="block text-sm font-bold tracking-widest uppercase hover:text-[#ef4628] transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </div>
                 ))}
               </div>
