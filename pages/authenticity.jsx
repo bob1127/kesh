@@ -44,8 +44,19 @@ export default function Authenticity() {
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
+
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:title" content={pageTitle} key="ogtitle" />
+        <meta property="og:description" content={pageDesc} key="ogdesc" />
+        <meta property="og:url" content="https://www.kesh-de1.com/authenticity" key="ogurl" />
+        <meta property="og:image" content="https://www.kesh-de1.com/default-og-image.jpg" key="ogimage" />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={pageTitle} key="twtitle" />
+        <meta name="twitter:description" content={pageDesc} key="twdesc" />
+        <meta name="twitter:image" content="https://www.kesh-de1.com/default-og-image.jpg" key="twimage" />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}

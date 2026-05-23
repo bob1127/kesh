@@ -107,11 +107,17 @@ export default function NewsDetail({ post, recentPosts }) {
           <meta name="keywords" content={post.seo_keywords} />
         )}
 
-        <meta property="og:title" content={post.seo_title || post.title} />
-        <meta property="og:description" content={metaDesc} />
-        <meta property="og:image" content={post.image} />
-        <meta property="og:url" content={postUrl} />
-        <meta property="og:type" content="article" />
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="article" key="ogtype" />
+        <meta property="og:title" content={post.seo_title || post.title} key="ogtitle" />
+        <meta property="og:description" content={metaDesc} key="ogdesc" />
+        <meta property="og:image" content={post.image} key="ogimage" />
+        <meta property="og:url" content={postUrl} key="ogurl" />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={post.seo_title || post.title} key="twtitle" />
+        <meta name="twitter:description" content={metaDesc} key="twdesc" />
+        <meta name="twitter:image" content={post.image} key="twimage" />
 
         {post.structured_data && (
           <script

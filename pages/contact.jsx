@@ -90,12 +90,12 @@ export default function Contact() {
         <meta name="description" content={pageDesc} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* Open Graph (Facebook, LINE) */}
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={`${siteUrl}/contact`} />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content={`${siteUrl}/images/og-image.jpg`} />
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:title" content={pageTitle} key="ogtitle" />
+        <meta property="og:description" content={pageDesc} key="ogdesc" />
+        <meta property="og:url" content={`${siteUrl}/contact`} key="ogurl" />
+        <meta property="og:image" content={`${siteUrl}/default-og-image.jpg`} key="ogimage" />
 
         {/* Twitter Card (X) */}
         <meta name="twitter:card" content="summary_large_image" />

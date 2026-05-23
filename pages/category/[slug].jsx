@@ -434,7 +434,8 @@ const CompanyLocation = () => {
 };
 
 // --- 🔥 主頁面元件 ---
-export default function CategoryPage({ products, brands, categories }) {
+export default function CategoryPage({ products, brands, categories, currentPageName, currentSlug }) {
+  const { t } = useTranslation("common");
   const router = useRouter();
   const { locale, asPath } = router;
   const metaLang = locale === "zh-TW" ? "zh" : locale;
@@ -724,12 +725,105 @@ export default function CategoryPage({ products, brands, categories }) {
   };
 
   const displayTitle = getFilterDisplayName();
-  const pageTitle = `${displayTitle} | KÉSH de¹`;
+  const siteUrl = "https://www.kesh-de1.com";
+  const isAllPage = !currentSlug || currentSlug === "all";
+
+  // SEO strings computed directly from locale (reliable without i18next hydration dependency)
+  const SEO = {
+    "zh-TW": {
+      allTitle: "全部精品商品 | KÉSH de¹ 凱仕國際精品",
+      allDesc: "瀏覽 KÉSH de¹ 全系列二手精品商品，包含 Hermès、Chanel、Louis Vuitton、Dior 等頂級品牌，全系列 100% 正品保證、專業鑑定與品況分級。",
+      collDesc: (n) => `在 KÉSH de¹ 探索${n ? ` ${n} ` : ""}精選二手精品系列，每件商品皆經過專業鑑定，附鑑定文件與購買憑證，100% 正品保障。`,
+      siteName: "KÉSH de¹ 凱仕國際精品",
+      ogLocale: "zh_TW",
+    },
+    en: {
+      allTitle: "All Luxury Products | KÉSH de¹",
+      allDesc: "Browse KÉSH de¹'s complete collection of authenticated pre-owned luxury goods, including Hermès, Chanel, Louis Vuitton, Dior and more. 100% authentic, professionally graded.",
+      collDesc: (n) => `Browse our curated pre-owned luxury${n ? ` ${n}` : ""} collection at KÉSH de¹. All items 100% authentic and professionally graded.`,
+      siteName: "KÉSH de¹ Luxury Boutique",
+      ogLocale: "en_US",
+    },
+    ko: {
+      allTitle: "전체 명품 상품 | KÉSH de¹",
+      allDesc: "KÉSH de¹의 에르메스, 샤넬, 루이비통, 디올 등 정품 인증 중고 명품 전체 컬렉션을 둘러보세요. 모든 상품 100% 정품, 전문 감정 및 품황 분류.",
+      collDesc: (n) => `KÉSH de¹에서${n ? ` ${n}` : ""} 컬렉션을 둘러보세요. 모든 상품은 100% 정품 인증 및 전문 감정을 거쳤습니다.`,
+      siteName: "KÉSH de¹ 명품관",
+      ogLocale: "ko_KR",
+    },
+  };
+
+  const seo = SEO[locale] || SEO["zh-TW"];
+  const pageTitle = isAllPage
+    ? seo.allTitle
+    : `${currentPageName || displayTitle} | KÉSH de¹`;
+  const pageDesc = isAllPage
+    ? seo.allDesc
+    : seo.collDesc(currentPageName || "");
+  const ogLocale = seo.ogLocale;
+
+  // Use first available product image as og:image for richer social previews
+  const firstProductImg = products?.find((p) => p.image)?.image;
+  const ogImage = firstProductImg || `${siteUrl}/default-og-image.jpg`;
+
+  const canonicalUrl = `${siteUrl}/category/${currentSlug || "all"}`;
+
+  const collectionPageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: pageTitle,
+    description: pageDesc,
+    url: canonicalUrl,
+    publisher: {
+      "@type": "Organization",
+      name: seo.siteName,
+      url: siteUrl,
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      name: pageTitle,
+      itemListElement: products.slice(0, 12).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Product",
+          name: p.metadata?.[`title_${metaLang}`] || p.title,
+          url: `${siteUrl}/product/${p.slug}`,
+          image: p.image || ogImage,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: locale === "en" ? "USD" : locale === "ko" ? "KRW" : "TWD",
+            price: p.rawPrice,
+            availability: "https://schema.org/InStock",
+          },
+        },
+      })),
+    },
+  };
 
   return (
     <>
       <Head>
         <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <link rel="canonical" href={canonicalUrl} />
+
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:locale" content={ogLocale} key="oglocale" />
+        <meta property="og:title" content={pageTitle} key="ogtitle" />
+        <meta property="og:description" content={pageDesc} key="ogdesc" />
+        <meta property="og:url" content={canonicalUrl} key="ogurl" />
+        <meta property="og:image" content={ogImage} key="ogimage" />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={pageTitle} key="twtitle" />
+        <meta name="twitter:description" content={pageDesc} key="twdesc" />
+        <meta name="twitter:image" content={ogImage} key="twimage" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageJsonLd) }}
+        />
       </Head>
 
       <main className="pb-0 bg-white text-black font-sans min-h-screen">
@@ -1053,12 +1147,22 @@ export async function getStaticProps({ params, locale }) {
       return rankA - rankB;
     });
 
+    const metaLang = currentLang === "zh-TW" ? "zh" : currentLang;
+    const matchedCategory = categoriesList.find((c) => c.slug === slug);
+    const matchedBrand = brandsList.find((b) => b.slug === slug);
+    const matchedPage = matchedCategory || matchedBrand || null;
+    const currentPageName = matchedPage
+      ? matchedPage.metadata?.[`name_${metaLang}`] || matchedPage.name || slug
+      : slug;
+
     return {
       props: {
         ...(await serverSideTranslations(currentLang, ["common"])),
         products: formattedProducts,
         brands: brandsList,
         categories: categoriesList,
+        currentPageName: currentPageName,
+        currentSlug: slug,
       },
       revalidate: 60,
     };
@@ -1069,6 +1173,8 @@ export async function getStaticProps({ params, locale }) {
         products: [],
         brands: [],
         categories: [],
+        currentPageName: "",
+        currentSlug: "",
       },
       revalidate: 60,
     };

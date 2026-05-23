@@ -1,6 +1,13 @@
 # *
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /login
+Disallow: /register
+Disallow: /member
+Disallow: /cart
+Disallow: /checkout
 
 # Host
 Host: https://www.kesh-de1.com

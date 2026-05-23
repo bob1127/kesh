@@ -98,14 +98,19 @@ export default function About() {
       <Head>
         <title>{seo.title}</title>
         <meta name="description" content={seo.description} />
-        <meta property="og:title" content={seo.title} />
-        <meta property="og:description" content={seo.description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${siteUrl}/about`} />
-        <meta
-          property="og:image"
-          content="/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg"
-        />
+
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:title" content={seo.title} key="ogtitle" />
+        <meta property="og:description" content={seo.description} key="ogdesc" />
+        <meta property="og:url" content={`${siteUrl}/about`} key="ogurl" />
+        <meta property="og:image" content={`${siteUrl}/default-og-image.jpg`} key="ogimage" />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={seo.title} key="twtitle" />
+        <meta name="twitter:description" content={seo.description} key="twdesc" />
+        <meta name="twitter:image" content={`${siteUrl}/default-og-image.jpg`} key="twimage" />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

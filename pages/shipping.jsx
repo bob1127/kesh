@@ -26,14 +26,43 @@ export default function Shipping() {
 
   const pageTitle = t("shipping.seo_title");
   const pageDesc = t("shipping.seo_desc");
+  const siteUrl = "https://www.kesh-de1.com";
+
+  const shippingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: pageTitle,
+    description: pageDesc,
+    url: `${siteUrl}/shipping`,
+    publisher: {
+      "@type": "Organization",
+      name: t("layout.site_name"),
+      url: siteUrl,
+    },
+  };
 
   return (
     <ReactLenis root>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
+
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:title" content={pageTitle} key="ogtitle" />
+        <meta property="og:description" content={pageDesc} key="ogdesc" />
+        <meta property="og:url" content={`${siteUrl}/shipping`} key="ogurl" />
+        <meta property="og:image" content={`${siteUrl}/default-og-image.jpg`} key="ogimage" />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={pageTitle} key="twtitle" />
+        <meta name="twitter:description" content={pageDesc} key="twdesc" />
+        <meta name="twitter:image" content={`${siteUrl}/default-og-image.jpg`} key="twimage" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(shippingJsonLd) }}
+        />
       </Head>
 
       <div className="bg-white min-h-screen pt-32 pb-24 text-gray-900">

@@ -1,11 +1,9 @@
-"use client";
 import StickyColumns from "../../components/SwiperCarousel/SwiperCardHermes";
-
 import GsapText from "@/components/RevealText/index";
 import Link from "next/link";
 import Image from "next/image";
-import NewsCarousel from "../../components/EmblaCarouselFeatureCarousel/NewsCarousel"; // 檔案路徑依你的實際放置調整
-
+import Head from "next/head";
+import NewsCarousel from "../../components/EmblaCarouselFeatureCarousel/NewsCarousel";
 import React from "react";
 import { ReactLenis } from "@studio-freight/react-lenis";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,7 +11,11 @@ import { useEffect, useState } from "react";
 import Marquee from "react-fast-marquee";
 import Slider from "../../components/FullSlider/Slider";
 import FeatureCarousel from "../../components/EmblaCarouselFeatureCarousel/index";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 export default function Home() {
+  const { t } = useTranslation("common");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(null);
   const backgroundImages = [
@@ -28,8 +30,18 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [currentIndex]);
 
+  const pageTitle = t("brand_seo.hermes.title");
+  const pageDesc = t("brand_seo.hermes.description");
+
   return (
     <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <meta property="og:title" content={pageTitle} key="ogtitle" />
+        <meta property="og:description" content={pageDesc} key="ogdesc" />
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+      </Head>
       <main className="py-20">
         <section className="">
           <StickyColumns />
@@ -314,4 +326,12 @@ export default function Home() {
       </main>
     </>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || "zh-TW", ["common"])),
+    },
+  };
 }

@@ -155,11 +155,12 @@ export default function NewsPage({ posts }) {
           )}
         />
 
-        {/* 🔥 Open Graph (Facebook, Line 分享標籤) */}
-        <meta property="og:type" content="website" />
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="website" key="ogtype" />
         <meta
           property="og:title"
           content={t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}
+          key="ogtitle"
         />
         <meta
           property="og:description"

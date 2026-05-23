@@ -488,6 +488,7 @@ export default function CheckoutPage() {
     router.locale === "en" ? "US" : router.locale === "ko" ? "KR" : "TW";
 
   // 🌍 智慧幣別與語系判斷引擎
+  const currentLang = router.locale || "zh-TW";
   const targetCurrency =
     router.locale === "en" ? "usd" : router.locale === "ko" ? "krw" : "twd";
   const symbol =
@@ -528,6 +529,22 @@ export default function CheckoutPage() {
     }
   }, [router.locale]);
 
+  // 動態抓取匯率 (不論預設是否為 KRW，只要選了韓國就提早準備)
+  useEffect(() => {
+    if (formData.country === "KR" || defaultCountry === "KR") {
+      const fetchRate = async () => {
+        try {
+          const res = await fetch("https://open.er-api.com/v6/latest/USD");
+          const data = await res.json();
+          if (data.rates && data.rates.KRW) setExchangeRate(data.rates.KRW);
+        } catch (error) {
+          console.warn("⚠️ 匯率 API 抓取失敗", error);
+        }
+      };
+      fetchRate();
+    }
+  }, [formData.country, defaultCountry]);
+
   const availableStates = useMemo(() => {
     if (formData.country === "TW") return [];
     return State.getStatesOfCountry(formData.country);
@@ -545,29 +562,31 @@ export default function CheckoutPage() {
     }, 0);
   }, [cartItems]);
 
-  // 前端總計僅供畫面顯示用 (安全無虞，不送出給後端扣款)
+  // 🔥 前端總計顯示用：已改為全面套用 getCorrectAmount 工具
   const total = useMemo(() => {
     return cartItems.reduce((acc, item) => {
-      let currentRawPrice =
-        item.rawPrice ||
-        parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
-        0;
+      const prices = item.prices || item.variant?.prices || [];
+      const matchedPrice = prices.find(
+        (p) => p.currency_code?.toLowerCase() === targetCurrency,
+      );
 
-      if (item.prices && item.prices.length > 0) {
-        const matchedPrice = item.prices.find(
-          (p) => p.currency_code?.toLowerCase() === targetCurrency,
+      let currentRawPrice = 0;
+      if (matchedPrice) {
+        currentRawPrice = getCorrectAmount(
+          matchedPrice.amount,
+          matchedPrice.currency_code,
         );
-        if (matchedPrice) {
-          currentRawPrice =
-            matchedPrice.amount > 1000000
-              ? matchedPrice.amount / 100
-              : matchedPrice.amount;
-        }
+      } else {
+        currentRawPrice = item.rawPrice
+          ? item.rawPrice
+          : parseInt((item.price || "").toString().replace(/[^\d]/g, ""), 10) ||
+            0;
       }
       return acc + currentRawPrice * item.quantity;
     }, 0);
   }, [cartItems, targetCurrency]);
 
+  // 🔥 運費顯示計算：統一美金邏輯，韓國則自動乘上即時匯率
   const shippingInfo = useMemo(() => {
     if (formData.country === "TW")
       return {
@@ -577,74 +596,34 @@ export default function CheckoutPage() {
         sign: "NT$",
       };
 
-    if (formData.country === "US") {
-      if (totalWeight <= 500)
-        return {
-          cost: 45,
-          name: "DHL Express (0-0.5kg)",
-          currency: "USD",
-          sign: "$",
-        };
-      if (totalWeight <= 1500)
-        return {
-          cost: 65,
-          name: "DHL Express (0.5-1.5kg)",
-          currency: "USD",
-          sign: "$",
-        };
-      return {
-        cost: 90,
-        name: "DHL Express (1.5-3kg)",
-        currency: "USD",
-        sign: "$",
-      };
+    // 決定 DHL 的基礎美金定價與名稱
+    let usdCost = 45;
+    let tierName = "DHL Express (0-0.5kg)";
+    if (totalWeight > 500 && totalWeight <= 1500) {
+      usdCost = 65;
+      tierName = "DHL Express (0.5-1.5kg)";
+    } else if (totalWeight > 1500) {
+      usdCost = 90;
+      tierName = "DHL Express (1.5-3kg)";
     }
 
     if (formData.country === "KR") {
-      if (totalWeight <= 500)
-        return {
-          cost: 35000,
-          name: "DHL Express (0-0.5kg)",
-          currency: "KRW",
-          sign: "₩",
-        };
-      if (totalWeight <= 1500)
-        return {
-          cost: 48000,
-          name: "DHL Express (0.5-1.5kg)",
-          currency: "KRW",
-          sign: "₩",
-        };
       return {
-        cost: 65000,
-        name: "DHL Express (1.5-3kg)",
+        cost: Math.round(usdCost * exchangeRate),
+        name: tierName,
         currency: "KRW",
         sign: "₩",
       };
     }
 
+    // 預設 (包含 US 等全球其他地區)
     return {
-      cost: 45,
-      name: "DHL Express (0-0.5kg)",
+      cost: usdCost,
+      name: tierName,
       currency: "USD",
       sign: "$",
     };
-  }, [formData.country, totalWeight, t]);
-
-  useEffect(() => {
-    if (shippingInfo.currency === "KRW") {
-      const fetchRate = async () => {
-        try {
-          const res = await fetch("https://open.er-api.com/v6/latest/USD");
-          const data = await res.json();
-          if (data.rates && data.rates.KRW) setExchangeRate(data.rates.KRW);
-        } catch (error) {
-          console.warn("⚠️ 匯率 API 抓取失敗", error);
-        }
-      };
-      fetchRate();
-    }
-  }, [shippingInfo.currency]);
+  }, [formData.country, totalWeight, t, exchangeRate]);
 
   useEffect(() => {
     if (defaultCountry !== "TW") {
@@ -1490,23 +1469,41 @@ export default function CheckoutPage() {
                     item.image ||
                     (item.images && item.images[0]) ||
                     "";
-                  const displayTitle =
-                    item.metadata?.[`title_${metaLang}`] || item.title;
 
-                  let currentRawPrice =
-                    item.rawPrice ||
-                    parseInt(String(item.price).replace(/[^\d]/g, ""), 10) ||
-                    0;
-                  if (item.prices && item.prices.length > 0) {
-                    const matchedPrice = item.prices.find(
-                      (p) => p.currency_code?.toLowerCase() === targetCurrency,
+                  // 🔥 深層名稱抓取防呆
+                  const baseProduct =
+                    item.variant?.product || item.product || item;
+                  const meta = baseProduct.metadata || item.metadata || {};
+                  let displayTitle = meta[`title_${metaLang}`];
+
+                  if (currentLang === "zh-TW" && !displayTitle) {
+                    displayTitle =
+                      meta["title_zh-TW"] ||
+                      meta["title_tw"] ||
+                      baseProduct.title;
+                  }
+                  displayTitle =
+                    displayTitle || baseProduct.title || item.title;
+
+                  // 🔥 統一價格計算
+                  const prices = item.prices || item.variant?.prices || [];
+                  const matchedPrice = prices.find(
+                    (p) => p.currency_code?.toLowerCase() === targetCurrency,
+                  );
+
+                  let currentRawPrice = 0;
+                  if (matchedPrice) {
+                    currentRawPrice = getCorrectAmount(
+                      matchedPrice.amount,
+                      matchedPrice.currency_code,
                     );
-                    if (matchedPrice) {
-                      currentRawPrice =
-                        matchedPrice.amount > 1000000
-                          ? matchedPrice.amount / 100
-                          : matchedPrice.amount;
-                    }
+                  } else {
+                    currentRawPrice = item.rawPrice
+                      ? item.rawPrice
+                      : parseInt(
+                          (item.price || "").toString().replace(/[^\d]/g, ""),
+                          10,
+                        ) || 0;
                   }
 
                   return (
@@ -1542,7 +1539,7 @@ export default function CheckoutPage() {
                       </div>
                       <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
                         {symbol}
-                        {currentRawPrice.toLocaleString()}
+                        {Math.round(currentRawPrice).toLocaleString()}
                       </span>
                     </div>
                   );
@@ -1553,7 +1550,7 @@ export default function CheckoutPage() {
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>{t("checkout.subtotal", "Subtotal")}</span>
                   <span>
-                    {symbol} {total.toLocaleString()}
+                    {symbol} {Math.round(total).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
@@ -1562,7 +1559,7 @@ export default function CheckoutPage() {
                     {totalWeight}g)
                   </span>
                   <span>
-                    {symbol} {shippingInfo.cost.toLocaleString()}
+                    {symbol} {Math.round(shippingInfo.cost).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-lg pt-3 border-t border-gray-100">
@@ -1570,7 +1567,8 @@ export default function CheckoutPage() {
                     {t("checkout.total", "TOTAL")}
                   </span>
                   <span>
-                    {symbol} {(total + shippingInfo.cost).toLocaleString()}
+                    {symbol}{" "}
+                    {Math.round(total + shippingInfo.cost).toLocaleString()}
                   </span>
                 </div>
               </div>

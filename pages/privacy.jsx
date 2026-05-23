@@ -30,11 +30,43 @@ export default function PrivacyPolicy() {
   const currentLocale = localeMap[router.locale] || "zh-TW";
   const currentDate = new Date().toLocaleDateString(currentLocale);
 
+  const siteUrl = "https://www.kesh-de1.com";
+
+  const privacyJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: pageInfo.seo_title,
+    description: pageInfo.seo_desc,
+    url: `${siteUrl}/privacy`,
+    publisher: {
+      "@type": "Organization",
+      name: t("layout.site_name"),
+      url: siteUrl,
+    },
+  };
+
   return (
     <>
       <Head>
         <title>{pageInfo.seo_title}</title>
         <meta name="description" content={pageInfo.seo_desc} />
+
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:title" content={pageInfo.seo_title} key="ogtitle" />
+        <meta property="og:description" content={pageInfo.seo_desc} key="ogdesc" />
+        <meta property="og:url" content={`${siteUrl}/privacy`} key="ogurl" />
+        <meta property="og:image" content={`${siteUrl}/default-og-image.jpg`} key="ogimage" />
+
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={pageInfo.seo_title} key="twtitle" />
+        <meta name="twitter:description" content={pageInfo.seo_desc} key="twdesc" />
+        <meta name="twitter:image" content={`${siteUrl}/default-og-image.jpg`} key="twimage" />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(privacyJsonLd) }}
+        />
       </Head>
 
       <div className="max-w-4xl mx-auto px-4 py-12 md:py-20 text-gray-800 font-sans mt-16">

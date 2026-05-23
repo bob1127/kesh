@@ -7,9 +7,9 @@ import Marquee from "react-marquee-slider";
 import https from "https";
 import useEmblaCarousel from "embla-carousel-react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-// 其他原本首頁的元件
 import CollectionShowcase from "@/components/ProductGridShowcase";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 import HeroSlider from "../components/Slider/Slider";
 import ParallaxImage from "../components/ParallaxImage";
 import Gallery from "../components/ImageTextSlider";
@@ -19,7 +19,8 @@ import HeroCarousel from "../components/HeroCarousel";
 import { ParallaxProvider, Parallax } from "react-scroll-parallax";
 
 export default function Home({ featuredProducts }) {
-  const { t } = useTranslation("common"); // 🔥 加入這行
+  const { t } = useTranslation("common");
+  const { locale } = useRouter();
   // --- 1. 頁面滾動特效 ---
   const scrollRef = useRef(null);
   const { scrollY } = useScroll({
@@ -66,14 +67,11 @@ export default function Home({ featuredProducts }) {
     return str.length > limit ? str.substring(0, limit) + "..." : str;
   };
 
-  // --- SEO 設定 (更新重點) ---
-  const siteUrl = "https://www.kesh-de1.com"; // 修正為無結尾斜線，方便拼接
-  const siteTitle =
-    "KÉSH de¹ 凱仕國際精品 | Luxury & Pre-Owned Designer Handbags";
-  const siteDescription =
-    "涵蓋 Hermès Birkin、Kelly、Chanel Classic Flap、2.55、Louis Vuitton Speedy、Neverfull、Dior Lady Dior、Saddle、Celine Triomphe、Loewe Puzzle、Gucci Jackie 1961 等經典系列。及專屬尋款服務。";
-
-  // 社群預覽圖
+  const siteUrl = "https://www.kesh-de1.com";
+  const siteTitle = t("home.seo.title");
+  const siteDescription = t("home.seo.description");
+  const siteName = t("layout.site_name");
+  const ogLocale = t("layout.og_locale");
   const ogImage = `${siteUrl}/images/logo/KESH Logo.png`;
 
   const jsonLd = {
@@ -82,7 +80,7 @@ export default function Home({ featuredProducts }) {
       {
         "@type": "Organization",
         url: siteUrl,
-        name: "KÉSH de¹ 凱仕國際精品",
+        name: siteName,
         logo: {
           "@type": "ImageObject",
           url: ogImage,
@@ -99,18 +97,17 @@ export default function Home({ featuredProducts }) {
         <meta name="description" content={siteDescription} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* Open Graph (FB, LINE) */}
-        <meta property="og:title" content={siteTitle} />
-        <meta property="og:description" content={siteDescription} />
-        <meta property="og:url" content={siteUrl} />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content={ogImage} />
+        <meta property="og:locale" content={ogLocale} key="oglocale" />
+        <meta property="og:title" content={siteTitle} key="ogtitle" />
+        <meta property="og:description" content={siteDescription} key="ogdesc" />
+        <meta property="og:url" content={siteUrl} key="ogurl" />
+        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:image" content={ogImage} key="ogimage" />
 
-        {/* Twitter Card (X) */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={siteTitle} />
-        <meta name="twitter:description" content={siteDescription} />
-        <meta name="twitter:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={siteTitle} key="twtitle" />
+        <meta name="twitter:description" content={siteDescription} key="twdesc" />
+        <meta name="twitter:image" content={ogImage} key="twimage" />
 
         <script
           type="application/ld+json"

@@ -20,7 +20,7 @@ function MyApp({ Component, pageProps }) {
     <>
       {/* 🔥 2. 透過 next/script 載入 Tawk.to */}
       {/* 使用 lazyOnload 策略，確保不會阻擋網頁主要畫面的渲染 */}
-      <Script id="tawk-to" strategy="lazyOnload">
+      {/* <Script id="tawk-to" strategy="lazyOnload">
         {`
           var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
           (function(){
@@ -32,7 +32,7 @@ function MyApp({ Component, pageProps }) {
           s0.parentNode.insertBefore(s1,s0);
           })();
         `}
-      </Script>
+      </Script> */}
 
       {/* 原有的 Provider 與佈局 */}
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>

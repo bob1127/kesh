@@ -1,10 +1,11 @@
-// 注意：如果是 Pages Router，這裡不需要 "use client"
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
-import https from "https"; // 用於後端 agent
+import https from "https";
 import { motion } from "framer-motion";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 // Components
 import StickyColumns from "../../components/SwiperCarousel/SwiperCardChanel";
@@ -13,6 +14,7 @@ import NewsCarousel from "../../components/EmblaCarouselFeatureCarousel/NewsCaro
 import FeatureCarousel from "../../components/EmblaCarouselFeatureCarousel/index";
 
 export default function Home({ chanelProducts }) {
+  const { t } = useTranslation("common");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(null);
 
@@ -29,12 +31,15 @@ export default function Home({ chanelProducts }) {
     return () => clearInterval(timer);
   }, [currentIndex]);
 
-  // --- SEO JSON-LD ---
+  const siteUrl = "https://www.kesh-de1.com";
+  const pageTitle = t("brand_seo.chanel.title");
+  const pageDesc = t("brand_seo.chanel.description");
+
   const jsonLdWebSite = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "KÉSH de¹ 凱仕國際精品",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.cieman.com.tw",
+    name: t("layout.site_name"),
+    url: siteUrl,
   };
 
   const jsonLdItemList = {
@@ -65,11 +70,11 @@ export default function Home({ chanelProducts }) {
   return (
     <>
       <Head>
-        <title>KÉSH de¹ 凱仕國際精品 | Chanel, Hermes, LV 二手精品買賣</title>
-        <meta
-          name="description"
-          content="KÉSH de¹ 專營 Chanel、Hermès、Louis Vuitton 等國際精品買賣、 專業鑑定。精選香奈兒 CF、Boy、19 包款，100% 正品保證。"
-        />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDesc} />
+        <meta property="og:title" content={pageTitle} key="ogtitle" />
+        <meta property="og:description" content={pageDesc} key="ogdesc" />
+        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
@@ -344,7 +349,8 @@ export default function Home({ chanelProducts }) {
 }
 
 // --- 🔥 後端邏輯：SSG + ISR ---
-export async function getStaticProps() {
+export async function getStaticProps({ locale }) {
+  const currentLang = locale || "zh-TW";
   const WC_URL = process.env.WC_SITE_URL;
   const CK = process.env.WC_CONSUMER_KEY;
   const CS = process.env.WC_CONSUMER_SECRET;
@@ -392,13 +398,19 @@ export async function getStaticProps() {
 
     return {
       props: {
+        ...(await serverSideTranslations(currentLang, ["common"])),
         chanelProducts: formattedProducts,
       },
-      // ISR: 每 60 秒更新一次
       revalidate: 60,
     };
   } catch (error) {
     console.error("Home Data Fetch Error:", error);
-    return { props: { chanelProducts: [] }, revalidate: 60 };
+    return {
+      props: {
+        ...(await serverSideTranslations(currentLang, ["common"])),
+        chanelProducts: [],
+      },
+      revalidate: 60,
+    };
   }
 }

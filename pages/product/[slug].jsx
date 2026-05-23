@@ -154,29 +154,38 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const tReport = isEn ? "Condition Report" : isKo ? "상태 보고서" : "品況報告";
 
   // ==========================================
-  // 🔥 Google 官方四大電商結構化資料 滿血版 (多語系優化)
+  // SEO — computed directly from locale (no i18next dependency for meta tags)
   // ==========================================
   const siteUrl =
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
   const currentUrl = `${siteUrl}${router.asPath}`;
 
+  // Locale-aware title: use explicit metadata SEO title if set, else build smart format
+  const brandPrefix = isEn ? "Pre-Owned" : isKo ? "중고" : "二手";
   const seoTitle = product.seoTitle
     ? `${product.seoTitle} | KÉSH de¹`
-    : `${product.title} | ${product.brand} | KÉSH de¹`;
+    : `${brandPrefix} ${product.brand} ${product.title} | KÉSH de¹`;
 
   const seoDesc =
     product.seoDesc ||
     product.description?.substring(0, 160).replace(/<[^>]+>/g, "") ||
-    product.title;
+    (isEn
+      ? `Authenticated pre-owned ${product.brand} ${product.title}. 100% genuine, professionally graded at KÉSH de¹.`
+      : isKo
+        ? `정품 인증 중고 ${product.brand} ${product.title}. KÉSH de¹에서 전문 감정, 100% 정품 보장.`
+        : `正品保證 ${product.brand} ${product.title}，KÉSH de¹ 專業鑑定，100% 二手精品。`);
 
-  const defaultKeyword = isEn
-    ? "Pre-owned Luxury"
-    : isKo
-      ? "중고 명품"
-      : "二手精品";
-  const seoKeywords =
-    product.seoKeywords ||
-    `${product.brand}, ${product.title}, ${defaultKeyword}, KESH`;
+  // Rich locale-specific keyword fallback
+  const seoKeywords = product.seoKeywords || (
+    isEn
+      ? `${product.brand}, ${product.title}, pre-owned luxury, designer handbag, authentic ${product.brand}, buy used luxury bag, KÉSH de¹, Taiwan luxury boutique`
+      : isKo
+        ? `${product.brand}, ${product.title}, 중고 명품, 명품 핸드백, 정품 ${product.brand}, 중고 명품 구매, KÉSH de¹, 대만 명품관`
+        : `${product.brand}, ${product.title}, 二手精品, 精品包包, 正品${product.brand}, 二手名牌包, KÉSH de¹, 台中精品, 凱仕國際精品`
+  );
+
+  // og:locale directly from router.locale (avoids i18next hydration issue)
+  const ogLocale = isEn ? "en_US" : isKo ? "ko_KR" : "zh_TW";
 
   const ogImage =
     product.thumbnail ||
@@ -327,6 +336,21 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     });
   }
 
+  // BreadcrumbList — locale-aware breadcrumb for Google SERP display
+  const breadcrumbHome = isEn ? "Home" : isKo ? "홈" : "首頁";
+  const breadcrumbProducts = isEn ? "Products" : isKo ? "상품" : "商品";
+  const brandPageUrl = `${siteUrl}/brand/${product.brand.toLowerCase().replace(/\s+/g, "-")}`;
+
+  schemaGraph.push({
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: breadcrumbHome, item: siteUrl },
+      { "@type": "ListItem", position: 2, name: breadcrumbProducts, item: `${siteUrl}/category` },
+      { "@type": "ListItem", position: 3, name: product.brand, item: brandPageUrl },
+      { "@type": "ListItem", position: 4, name: product.title, item: currentUrl },
+    ],
+  });
+
   const jsonLd = {
     "@context": "https://schema.org/",
     "@graph": schemaGraph,
@@ -338,7 +362,9 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         <title key="title">{seoTitle}</title>
         <meta name="description" content={seoDesc} key="desc" />
         <meta name="keywords" content={seoKeywords} key="keywords" />
+        <link rel="canonical" href={currentUrl} />
 
+        <meta property="og:locale" content={ogLocale} key="oglocale" />
         <meta property="og:type" content="product" key="ogtype" />
         <meta property="og:title" content={seoTitle} key="ogtitle" />
         <meta property="og:description" content={seoDesc} key="ogdesc" />
@@ -680,12 +706,20 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   <HeroSlider
                     carouselSlides={[
                       {
-                        title: "嚴選品質保證",
+                        title: isEn
+                          ? "Curated Quality Assurance"
+                          : isKo
+                            ? "엄선된 품질 보증"
+                            : "嚴選品質保證",
                         image:
                           "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251124_7.jpg",
                       },
                       {
-                        title: "支援專業真品鑑定",
+                        title: isEn
+                          ? "Professional Authentication"
+                          : isKo
+                            ? "전문 정품 감정"
+                            : "支援專業真品鑑定",
                         image:
                           "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251124_8.jpg",
                       },
@@ -702,52 +736,14 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                   exit={{ opacity: 0 }}
                   className="max-w-4xl mx-auto text-[14px] leading-8 text-gray-700 space-y-8"
                 >
-                  {product.careInfo ? (
-                    <div>
-                      <h3 className="text-base font-bold mb-4 text-black tracking-widest border-b border-gray-100 pb-2">
-                        {tCare}
-                      </h3>
-                      {/* 同理加上 break-words 確保安全 */}
-                      <p className="whitespace-pre-wrap break-words">
-                        {product.careInfo}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      <div>
-                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                          日常清潔與保養
-                        </h3>
-                        <p>
-                          建議每次使用後，使用乾淨、柔軟的乾布輕輕擦拭皮件表面，去除灰塵與輕微汙垢。若遇較頑固汙漬，請使用精品專用的皮革清潔劑，切勿使用酒精、含有漂白成分或強烈化學物質的溶劑，以免破壞皮革天然的防護層與色澤。
-                        </p>
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                          防潮與遇水處理
-                        </h3>
-                        <p>
-                          精品皮件請盡量避免接觸水分、雨水及濕氣。若不慎淋濕，請立即以乾淨的吸水軟布將水分「輕壓」吸乾（切勿來回摩擦），隨後放置於陰涼通風處自然陰乾。絕對禁止使用吹風機熱風吹乾或直接曝曬於陽光下，否則極易造成皮革硬化、龜裂或變形。
-                        </p>
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                          正確的收納方式
-                        </h3>
-                        <p>
-                          皮件長期不使用時，請在包包或皮夾內部塞入適量的「無酸紙」或乾淨的軟布以支撐原有的包型，避免產生不可逆的摺痕。接著將其放入品牌專屬的防塵袋中，存放於通風乾燥、避免陽光直射的環境。建議定期將皮件取出通風，防止發霉。
-                        </p>
-                      </div>
-                      <div>
-                        <h3 className="text-base font-bold mb-2 text-black tracking-widest border-b border-gray-100 pb-2">
-                          五金配件維護
-                        </h3>
-                        <p>
-                          包款上的拉鍊、鎖扣等金屬五金，容易因接觸空氣、汗水或化妝品而產生氧化或失去光澤。保養時僅需使用乾燥的纖維軟布輕輕擦拭即可。請避免五金接觸香水、化妝品或護手霜等化學物質，以延長鍍層的壽命與閃耀度。
-                        </p>
-                      </div>
-                    </>
-                  )}
+                  <div>
+                    <h3 className="text-base font-bold mb-4 text-black tracking-widest border-b border-gray-100 pb-2">
+                      {tCare}
+                    </h3>
+                    <p className="whitespace-pre-wrap break-words">
+                      {product.careInfo || finalCareInfo}
+                    </p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -836,21 +832,32 @@ export async function getStaticProps({ params, locale }) {
     const localizedDesc =
       rawProduct.metadata?.[`desc_${metaLang}`] || rawProduct.description;
 
-    // SEO 智慧多語系
+    // SEO — only use explicit metadata values; component builds smart fallback
     const finalSeoTitle =
       rawProduct.metadata?.[`seo_title_${metaLang}`] ||
       (metaLang === "zh" ? rawProduct.metadata?.seo_title : null) ||
-      localizedTitle;
+      ""; // empty → component builds locale-aware default title
 
     const finalSeoDesc =
       rawProduct.metadata?.[`seo_description_${metaLang}`] ||
       (metaLang === "zh" ? rawProduct.metadata?.seo_description : null) ||
-      localizedDesc;
+      ""; // empty → component builds locale-aware default description
+
+    const brandName = rawProduct.collection?.title || "";
+    const productTitle = localizedTitle || rawProduct.title || "";
+
+    // Rich locale-specific keyword fallback built at build time
+    const baseKeywords = {
+      zh: `${brandName}, ${productTitle}, 二手精品, 精品包包, 正品保證, 名牌手袋, KÉSH de¹, 台中精品, 凱仕國際精品`,
+      en: `${brandName}, ${productTitle}, pre-owned luxury, designer handbag, authentic ${brandName}, buy luxury bag, KÉSH de¹, Taiwan luxury boutique`,
+      ko: `${brandName}, ${productTitle}, 중고 명품, 명품 핸드백, 정품 ${brandName}, 중고 명품 구매, KÉSH de¹, 대만 명품관`,
+    };
 
     const finalSeoKeywords =
       rawProduct.metadata?.[`seo_keywords_${metaLang}`] ||
       rawProduct.metadata?.seo_keywords ||
-      "";
+      baseKeywords[metaLang] ||
+      baseKeywords.zh;
 
     const product = {
       id: rawProduct.id || "",
