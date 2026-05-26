@@ -68,7 +68,7 @@ export const SlideTabsExample = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 🔥 守門員 2.0：完美解決「上一頁」語系跑掉
+  // 語系 Cookie：以「目前網址語系」為準，不要把 /ko、/en 強制導回舊 Cookie
   useEffect(() => {
     if (!mounted) return;
 
@@ -79,16 +79,31 @@ export const SlideTabsExample = () => {
       return null;
     };
 
-    const savedLocale = getCookie("NEXT_LOCALE");
+    const setCookie = (name, val) => {
+      document.cookie = `${name}=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    };
 
-    if (savedLocale && savedLocale !== router.locale) {
+    const savedLocale = getCookie("NEXT_LOCALE");
+    const currentLocale = router.locale;
+    const path = router.asPath || "";
+
+    // 網址已明確是 /ko 或 /en：更新 Cookie，不要 redirect 離開
+    if (path.startsWith("/ko") || path.startsWith("/en")) {
+      if (currentLocale && savedLocale !== currentLocale) {
+        setCookie("NEXT_LOCALE", currentLocale);
+      }
+      return;
+    }
+
+    // 僅在繁中主站路徑（無前綴）且 Cookie 與目前語系不一致時，才同步一次
+    if (savedLocale && savedLocale !== currentLocale) {
       router.replace(
         { pathname: router.pathname, query: router.query },
         undefined,
         { locale: savedLocale },
       );
     }
-  }, [router.locale, router.pathname, router.query, mounted]);
+  }, [router.locale, router.pathname, router.query, router.asPath, mounted]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

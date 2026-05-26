@@ -13,14 +13,23 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
-  // 💡 關鍵修復：尊重訪客手動操作的 Cookie！
-  // 只要系統發現使用者有自己的語系 Cookie，Middleware 就「放行不管」，交給前端去處理。
-  // 這樣就能避免伺服器強制把按「上一頁」的訪客轉回舊網址，解決了卡死的無窮迴圈。
+  // 使用者手動開啟 /ko 或 /en（網址已指定語系）→ 尊重網址，不要用 IP 改寫
+  const urlLocale = req.nextUrl.locale;
+  if (urlLocale === 'ko' || urlLocale === 'en') {
+    const response = NextResponse.next();
+    response.cookies.set('NEXT_LOCALE', urlLocale, {
+      path: '/',
+      maxAge: 31536000,
+    });
+    return response;
+  }
+
+  // 已有語系 Cookie 時放行（避免與前端語系切換衝突）
   if (req.cookies.has('NEXT_LOCALE')) {
     return NextResponse.next();
   }
 
-  // 2. 只有「第一次來的新訪客」，才進行 IP 國家判斷與自動分流
+  // 2. 只有「第一次來的新訪客」且未指定 /en、/ko，才依 IP 分流
   const country = req.geo?.country || req.headers.get('x-vercel-ip-country');
   
   // 本機開發時沒有國家資料，直接放行
