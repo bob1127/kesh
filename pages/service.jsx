@@ -18,6 +18,7 @@ export default function TermsOfService() {
   // 從多語系檔案中讀取資料 (使用 returnObjects)
   const seoTitle = t("terms.seo_title");
   const seoDesc = t("terms.seo_desc");
+  const seoKeywords = t("terms.seo_keywords");
   const pageTag = t("terms.page_tag");
   const pageTitle = t("terms.page_title");
   const pageSubtitle = t("terms.page_subtitle");
@@ -61,8 +62,9 @@ export default function TermsOfService() {
   return (
     <ReactLenis root>
       <Head>
-        <title>{seoTitle}</title>
-        <meta name="description" content={seoDesc} />
+        <title key="title">{seoTitle}</title>
+        <meta name="description" content={seoDesc} key="description" />
+        <meta name="keywords" content={seoKeywords} key="keywords" />
       </Head>
 
       <div className="bg-white min-h-screen pt-32 pb-24 text-gray-900">

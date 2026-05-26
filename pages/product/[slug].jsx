@@ -19,6 +19,11 @@ import "swiper/css/thumbs";
 
 import { useCart } from "@/components/context/CartContext";
 import {
+  buildProductSeoTitle,
+  buildProductSeoDescription,
+  buildProductSeoKeywords,
+} from "@/lib/product-seo";
+import {
   Star,
   ChevronDown,
   Plus,
@@ -36,12 +41,346 @@ import HeroSlider from "../../components/HeroSlider";
 // 🔥 引入全站統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
 
+const isHtmlContent = (text) =>
+  typeof text === "string" && /<[a-z][\s\S]*>/i.test(text.trim());
+
+const isQuestionLine = (line) => {
+  const t = line.trim();
+  if (!t) return false;
+  if (/^(Q|Ｑ|問)[：:]/i.test(t)) return true;
+  if (/[？?]$/.test(t)) return true;
+  if (/^(\d+[\.\)、]|[（(]\d+[)）])\s*.+[？?]$/.test(t)) return true;
+  return false;
+};
+
+const cleanQuestionLine = (line) =>
+  line
+    .trim()
+    .replace(/^(Q|Ｑ|問)[：:]\s*/i, "")
+    .replace(/^(\d+[\.\)、]|[（(]\d+[)）])\s*/, "")
+    .trim();
+
+/** Medusa FAQ：Q:/A:、Ｑ：/Ａ：、或「問句？＋下一行起為回答」 */
+function parseFaqContent(text) {
+  if (!text || typeof text !== "string") return { items: [], footer: "" };
+  const trimmed = text.trim();
+  if (!trimmed) return { items: [], footer: "" };
+
+  if (/Q:|Ｑ：/i.test(trimmed) && /A:|Ａ：/i.test(trimmed)) {
+    const items = trimmed
+      .split(/Q:|Ｑ：/i)
+      .filter(Boolean)
+      .map((part) => {
+        const [q, ...aArr] = part.split(/A:|Ａ：/i);
+        if (!q?.trim() || aArr.length === 0) return null;
+        return {
+          question: q.trim(),
+          answer: aArr.join("A:").trim(),
+        };
+      })
+      .filter(Boolean);
+    if (items.length) return { items, footer: "" };
+  }
+
+  const blocks = trimmed
+    .split(/\n{2,}/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  if (blocks.length >= 2) {
+    const blockItems = [];
+    let pendingQ = null;
+    const orphan = [];
+
+    for (const block of blocks) {
+      const firstLine = block.split(/\r?\n/)[0]?.trim() || block;
+      if (isQuestionLine(firstLine) && !block.includes("\n")) {
+        if (pendingQ) orphan.push(pendingQ);
+        pendingQ = cleanQuestionLine(firstLine);
+        continue;
+      }
+      if (pendingQ) {
+        blockItems.push({ question: pendingQ, answer: block });
+        pendingQ = null;
+      } else if (isQuestionLine(firstLine)) {
+        const lines = block
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
+        const q = cleanQuestionLine(lines[0]);
+        const a = lines.slice(1).join("\n").trim();
+        if (q && a) blockItems.push({ question: q, answer: a });
+      } else {
+        orphan.push(block);
+      }
+    }
+    if (pendingQ) orphan.push(pendingQ);
+    if (blockItems.length >= 1) {
+      return { items: blockItems, footer: orphan.join("\n\n").trim() };
+    }
+  }
+
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length >= 2) {
+    const items = [];
+    let question = null;
+    const answerLines = [];
+    const footerLines = [];
+
+    const flush = () => {
+      if (question && answerLines.length) {
+        items.push({
+          question,
+          answer: answerLines.join("\n").trim(),
+        });
+      }
+      question = null;
+      answerLines.length = 0;
+    };
+
+    for (const line of lines) {
+      if (isQuestionLine(line)) {
+        flush();
+        question = cleanQuestionLine(line);
+      } else if (question) {
+        answerLines.push(line);
+      } else {
+        footerLines.push(line);
+      }
+    }
+    flush();
+
+    if (items.length >= 1) {
+      return { items, footer: footerLines.join("\n").trim() };
+    }
+  }
+
+  const inlineMatches = [
+    ...trimmed.matchAll(
+      /([^？?\n]+[？?])\s*([\s\S]*?)(?=\s*[^？?\n]+[？?]|$)/g,
+    ),
+  ];
+  if (inlineMatches.length >= 2) {
+    const items = inlineMatches
+      .map((m) => ({
+        question: m[1].trim(),
+        answer: m[2].trim(),
+      }))
+      .filter((item) => item.question && item.answer);
+    if (items.length >= 2) return { items, footer: "" };
+  }
+
+  if (inlineMatches.length === 1 && inlineMatches[0][2]?.trim()) {
+    return {
+      items: [
+        {
+          question: inlineMatches[0][1].trim(),
+          answer: inlineMatches[0][2].trim(),
+        },
+      ],
+      footer: "",
+    };
+  }
+
+  return { items: [], footer: trimmed };
+}
+
+/** 日式組版：內文基礎字級與行高 */
+const BODY_TEXT =
+  "text-[14.5px] md:text-[15px] text-stone-600 leading-[1.95] tracking-[0.035em] break-words [text-rendering:optimizeLegibility]";
+
+const ACCORDION_PROSE =
+  `${BODY_TEXT} ` +
+  "[&_p]:mb-[1.15em] [&_p:last-child]:mb-0 [&_p]:leading-[1.95] " +
+  "[&_ul]:my-[0.85em] [&_ul]:space-y-[0.65em] [&_ul]:pl-0 [&_ul]:list-none " +
+  "[&_ol]:my-[0.85em] [&_ol]:space-y-[0.65em] [&_ol]:pl-[1.25em] [&_ol]:leading-[1.9] " +
+  "[&_li]:leading-[1.9] [&_strong]:font-semibold [&_strong]:text-stone-800 " +
+  "[&_h3]:text-[15px] [&_h3]:font-semibold [&_h3]:text-stone-900 [&_h3]:mb-2 " +
+  "[&_h4]:text-[14.5px] [&_h4]:font-semibold [&_h4]:text-stone-900 [&_h4]:mb-2";
+
+const FAQ_ANSWER = `${BODY_TEXT} whitespace-pre-wrap`;
+
+const SECTION_TITLE =
+  "text-[13px] font-semibold text-stone-900 tracking-[0.05em] mb-2.5";
+
+/** 【標題】分段（付款、運送、保養等後台常見格式） */
+function parseBracketSections(text) {
+  if (!text?.includes("【")) return null;
+  const sections = [];
+  const regex = /【([^】]+)】\s*([\s\S]*?)(?=【|$)/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    const body = match[2].trim();
+    if (match[1] || body) {
+      sections.push({ title: match[1].trim(), body });
+    }
+  }
+  return sections.length ? sections : null;
+}
+
+const isListLine = (line) =>
+  /^[・•●○▪\-*]\s/.test(line) || /^\d+[\.\)、]\s/.test(line);
+
+function ProseBlock({ text }) {
+  const sections = parseBracketSections(text);
+  if (sections) {
+    return (
+      <div className="space-y-6">
+        {sections.map((sec, i) => (
+          <div key={i}>
+            {sec.title ? (
+              <p className={SECTION_TITLE}>{sec.title}</p>
+            ) : null}
+            <ProseBlock text={sec.body} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  const paragraphs = text.split(/\n{2,}|\r\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  if (paragraphs.length > 1) {
+    return (
+      <div className="space-y-5">
+        {paragraphs.map((para, i) => (
+          <ProseBlock key={i} text={para} />
+        ))}
+      </div>
+    );
+  }
+
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length >= 2 && lines.every(isListLine)) {
+    return (
+      <ul className="space-y-2.5 list-none m-0 p-0">
+        {lines.map((line, i) => (
+          <li key={i} className={`flex gap-2.5 ${BODY_TEXT}`}>
+            <span className="text-[#ef4628]/70 shrink-0 mt-[0.55em] text-[8px] leading-none">
+              ●
+            </span>
+            <span>{line.replace(/^[・•●○▪\-*]\s*|\d+[\.\)、]\s*/, "")}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (lines.length >= 2) {
+    return (
+      <div className="space-y-3">
+        {lines.map((line, i) => (
+          <p key={i} className={BODY_TEXT}>
+            {line}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
+  return <p className={`${BODY_TEXT} whitespace-pre-wrap`}>{text}</p>;
+}
+
+/** 常見問題：Q 標記 + 層級分明（無左側直線） */
+function FaqItemBlock({ question, answer, index }) {
+  return (
+    <article
+      className={index > 0 ? "pt-6 mt-6 border-t border-stone-100/90" : "pt-0.5"}
+    >
+      <div className="flex gap-3 md:gap-3.5">
+        <span
+          className="flex-shrink-0 mt-[2px] w-7 h-7 rounded-full border border-[#ef4628]/35 text-[#ef4628] text-[11px] font-bold flex items-center justify-center leading-none select-none"
+          aria-hidden
+        >
+          Q
+        </span>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-[15px] md:text-[15.5px] font-semibold text-stone-900 leading-[1.75] tracking-[0.03em]">
+            {question}
+          </h4>
+          <p className={`mt-3 md:mt-3.5 ${FAQ_ANSWER}`}>{answer}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function FaqAccordionBody({ content }) {
+  const trimmed = typeof content === "string" ? content.trim() : "";
+
+  if (isHtmlContent(trimmed)) {
+    return (
+      <div
+        className={ACCORDION_PROSE}
+        dangerouslySetInnerHTML={{ __html: trimmed }}
+      />
+    );
+  }
+
+  const { items, footer } = parseFaqContent(trimmed);
+
+  if (items.length > 0) {
+    return (
+      <div>
+        {items.map((item, i) => (
+          <FaqItemBlock
+            key={i}
+            index={i}
+            question={item.question}
+            answer={item.answer}
+          />
+        ))}
+        {footer ? (
+          <div className="mt-7 pt-5 border-t border-stone-100/90">
+            <ProseBlock text={footer} />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return <ProseBlock text={trimmed} />;
+}
+
+const AccordionBody = ({ content, variant = "default" }) => {
+  if (content == null || content === "") return null;
+
+  if (variant === "faq") {
+    return <FaqAccordionBody content={content} />;
+  }
+
+  if (typeof content !== "string") {
+    return <div className={ACCORDION_PROSE}>{content}</div>;
+  }
+
+  const trimmed = content.trim();
+
+  if (isHtmlContent(trimmed)) {
+    return (
+      <div
+        className={ACCORDION_PROSE}
+        dangerouslySetInnerHTML={{ __html: trimmed }}
+      />
+    );
+  }
+
+  return <ProseBlock text={trimmed} />;
+};
+
+const AccordionContentPanel = ({ children }) => (
+  <div className="mt-2 pt-1 pb-1 md:pt-2">
+    {children}
+  </div>
+);
+
 // --- 通用摺疊組件 ---
 const GenericAccordion = ({
   title,
   children,
   icon: Icon,
   isOpenDefault = false,
+  variant = "default",
 }) => {
   const [isOpen, setIsOpen] = useState(isOpenDefault);
 
@@ -53,7 +392,7 @@ const GenericAccordion = ({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex justify-between items-center text-left group focus:outline-none"
       >
-        <h3 className="text-[13px] font-bold uppercase tracking-widest flex items-center gap-2 group-hover:text-[#ef4628] transition-colors">
+        <h3 className="text-[13px] font-bold uppercase tracking-[0.12em] flex items-center gap-2 group-hover:text-[#ef4628] transition-colors">
           {Icon && <Icon size={16} className="text-[#ef4628]" />}
           {title}
         </h3>
@@ -61,17 +400,18 @@ const GenericAccordion = ({
           <ChevronDown size={14} className="text-gray-400" />
         </motion.div>
       </button>
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="pt-4 text-[14.5px] text-stone-900  leading-[25px] tracking-widest whitespace-pre-wrap break-words">
-              {children}
-            </div>
+            <AccordionContentPanel>
+              <AccordionBody content={children} variant={variant} />
+            </AccordionContentPanel>
           </motion.div>
         )}
       </AnimatePresence>
@@ -160,29 +500,34 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
   const currentUrl = `${siteUrl}${router.asPath}`;
 
-  // Locale-aware title: use explicit metadata SEO title if set, else build smart format
-  const brandPrefix = isEn ? "Pre-Owned" : isKo ? "중고" : "二手";
-  const seoTitle = product.seoTitle
-    ? `${product.seoTitle} | KÉSH de¹`
-    : `${brandPrefix} ${product.brand} ${product.title} | KÉSH de¹`;
+  const currentLocale = isEn ? "en" : isKo ? "ko" : "zh-TW";
 
-  const seoDesc =
-    product.seoDesc ||
-    product.description?.substring(0, 160).replace(/<[^>]+>/g, "") ||
-    (isEn
-      ? `Authenticated pre-owned ${product.brand} ${product.title}. 100% genuine, professionally graded at KÉSH de¹.`
-      : isKo
-        ? `정품 인증 중고 ${product.brand} ${product.title}. KÉSH de¹에서 전문 감정, 100% 정품 보장.`
-        : `正品保證 ${product.brand} ${product.title}，KÉSH de¹ 專業鑑定，100% 二手精品。`);
+  const seoTitle = buildProductSeoTitle({
+    brand: product.brand,
+    title: product.title,
+    condition: product.condition,
+    locale: currentLocale,
+    customTitle: product.seoTitle || "",
+  });
 
-  // Rich locale-specific keyword fallback
-  const seoKeywords = product.seoKeywords || (
-    isEn
-      ? `${product.brand}, ${product.title}, pre-owned luxury, designer handbag, authentic ${product.brand}, buy used luxury bag, KÉSH de¹, Taiwan luxury boutique`
-      : isKo
-        ? `${product.brand}, ${product.title}, 중고 명품, 명품 핸드백, 정품 ${product.brand}, 중고 명품 구매, KÉSH de¹, 대만 명품관`
-        : `${product.brand}, ${product.title}, 二手精品, 精品包包, 正品${product.brand}, 二手名牌包, KÉSH de¹, 台中精品, 凱仕國際精品`
-  );
+  const seoDesc = buildProductSeoDescription({
+    brand: product.brand,
+    title: product.title,
+    condition: product.condition,
+    subtitle: product.subtitle,
+    description: product.description,
+    locale: currentLocale,
+    customDesc: product.seoDesc || "",
+  });
+
+  const seoKeywords = buildProductSeoKeywords({
+    brand: product.brand,
+    title: product.title,
+    condition: product.condition,
+    subtitle: product.subtitle,
+    locale: currentLocale,
+    customKeywords: product.seoKeywords || "",
+  });
 
   // og:locale directly from router.locale (avoids i18next hydration issue)
   const ogLocale = isEn ? "en_US" : isKo ? "ko_KR" : "zh_TW";
@@ -345,9 +690,24 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: breadcrumbHome, item: siteUrl },
-      { "@type": "ListItem", position: 2, name: breadcrumbProducts, item: `${siteUrl}/category` },
-      { "@type": "ListItem", position: 3, name: product.brand, item: brandPageUrl },
-      { "@type": "ListItem", position: 4, name: product.title, item: currentUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: breadcrumbProducts,
+        item: `${siteUrl}/category`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.brand,
+        item: brandPageUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: product.title,
+        item: currentUrl,
+      },
     ],
   });
 
@@ -643,7 +1003,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                 <GenericAccordion title={tShipping} icon={Truck}>
                   {product.shippingInfo}
                 </GenericAccordion>
-                <GenericAccordion title={tFAQ} icon={HelpCircle}>
+                <GenericAccordion title={tFAQ} icon={HelpCircle} variant="faq">
                   {product.faqInfo}
                 </GenericAccordion>
               </div>
@@ -847,17 +1207,25 @@ export async function getStaticProps({ params, locale }) {
     const productTitle = localizedTitle || rawProduct.title || "";
 
     // Rich locale-specific keyword fallback built at build time
-    const baseKeywords = {
-      zh: `${brandName}, ${productTitle}, 二手精品, 精品包包, 正品保證, 名牌手袋, KÉSH de¹, 台中精品, 凱仕國際精品`,
-      en: `${brandName}, ${productTitle}, pre-owned luxury, designer handbag, authentic ${brandName}, buy luxury bag, KÉSH de¹, Taiwan luxury boutique`,
-      ko: `${brandName}, ${productTitle}, 중고 명품, 명품 핸드백, 정품 ${brandName}, 중고 명품 구매, KÉSH de¹, 대만 명품관`,
-    };
+    const conditionMeta =
+      rawProduct.metadata?.[`condition_${metaLang}`] ||
+      rawProduct.metadata?.condition_zh ||
+      "";
+    const subtitleMeta =
+      rawProduct.metadata?.[`subtitle_${metaLang}`] ||
+      rawProduct.subtitle ||
+      "";
 
     const finalSeoKeywords =
       rawProduct.metadata?.[`seo_keywords_${metaLang}`] ||
       rawProduct.metadata?.seo_keywords ||
-      baseKeywords[metaLang] ||
-      baseKeywords.zh;
+      buildProductSeoKeywords({
+        brand: brandName,
+        title: productTitle,
+        condition: conditionMeta,
+        subtitle: subtitleMeta,
+        locale: currentLang === "zh-TW" ? "zh-TW" : currentLang,
+      });
 
     const product = {
       id: rawProduct.id || "",

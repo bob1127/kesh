@@ -17,6 +17,14 @@ import FullSlider from "../components/HeroSlideContact/page";
 import Scroll from "../components/Scroll";
 import HeroCarousel from "../components/HeroCarousel";
 import { ParallaxProvider, Parallax } from "react-scroll-parallax";
+import {
+  SITE_URL,
+  LOCALES,
+  DEFAULT_LOCALE,
+  getLocalizedUrl,
+  getOgLocale,
+  buildHomePageJsonLd,
+} from "@/lib/sitelinks-seo";
 
 export default function Home({ featuredProducts }) {
   const { t } = useTranslation("common");
@@ -67,51 +75,89 @@ export default function Home({ featuredProducts }) {
     return str.length > limit ? str.substring(0, limit) + "..." : str;
   };
 
-  const siteUrl = "https://www.kesh-de1.com";
   const siteTitle = t("home.seo.title");
   const siteDescription = t("home.seo.description");
   const siteName = t("layout.site_name");
-  const ogLocale = t("layout.og_locale");
-  const ogImage = `${siteUrl}/images/logo/KESH Logo.png`;
+  const siteDescriptionGlobal = t("layout.site_description");
+  const keywords = t("home.seo.keywords");
+  const ogLocale = getOgLocale(locale);
+  const canonicalUrl = getLocalizedUrl(SITE_URL, locale, "/");
+  const ogImage = `${SITE_URL}/default-og-image.jpg`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        url: siteUrl,
-        name: siteName,
-        logo: {
-          "@type": "ImageObject",
-          url: ogImage,
-        },
-        description: siteDescription,
-      },
-    ],
-  };
+  const jsonLd = buildHomePageJsonLd({
+    locale,
+    siteUrl: SITE_URL,
+    siteName,
+    siteDescription: siteDescriptionGlobal,
+    homeTitle: siteTitle,
+    homeDescription: siteDescription,
+    keywords,
+  });
 
   return (
     <>
       <Head>
-        <title>{siteTitle}</title>
-        <meta name="description" content={siteDescription} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title key="title">{siteTitle}</title>
+        <meta name="description" content={siteDescription} key="description" />
+        <meta name="keywords" content={keywords} key="keywords" />
+        <meta name="author" content="KÉSH de¹ Boutique" key="author" />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+          key="robots"
+        />
+        <link rel="canonical" href={canonicalUrl} key="canonical" />
+
+        {LOCALES.map((loc) => (
+          <link
+            key={`hreflang-${loc}`}
+            rel="alternate"
+            hrefLang={loc}
+            href={getLocalizedUrl(SITE_URL, loc, "/")}
+          />
+        ))}
+        <link
+          rel="alternate"
+          hrefLang="x-default"
+          href={getLocalizedUrl(SITE_URL, DEFAULT_LOCALE, "/")}
+          key="hreflang-x-default"
+        />
 
         <meta property="og:locale" content={ogLocale} key="oglocale" />
+        {LOCALES.filter((loc) => loc !== locale).map((loc) => (
+          <meta
+            key={`og-alt-${loc}`}
+            property="og:locale:alternate"
+            content={
+              loc === "zh-TW" ? "zh_TW" : loc === "en" ? "en_US" : "ko_KR"
+            }
+          />
+        ))}
+        <meta property="og:type" content="website" key="ogtype" />
         <meta property="og:title" content={siteTitle} key="ogtitle" />
         <meta property="og:description" content={siteDescription} key="ogdesc" />
-        <meta property="og:url" content={siteUrl} key="ogurl" />
-        <meta property="og:type" content="website" key="ogtype" />
+        <meta property="og:url" content={canonicalUrl} key="ogurl" />
+        <meta property="og:site_name" content={siteName} key="ogsitename" />
         <meta property="og:image" content={ogImage} key="ogimage" />
+        <meta
+          property="og:image:secure_url"
+          content={ogImage}
+          key="ogimagesecure"
+        />
 
         <meta name="twitter:card" content="summary_large_image" key="twcard" />
         <meta name="twitter:title" content={siteTitle} key="twtitle" />
-        <meta name="twitter:description" content={siteDescription} key="twdesc" />
+        <meta
+          name="twitter:description"
+          content={siteDescription}
+          key="twdesc"
+        />
         <meta name="twitter:image" content={ogImage} key="twimage" />
 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          key="home-jsonld"
         />
       </Head>
       <HeroCarousel />

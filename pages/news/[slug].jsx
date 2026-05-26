@@ -7,6 +7,13 @@ import { useRouter } from "next/router";
 // 🔥 引入多語系翻譯需要的套件
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import {
+  buildArticleJsonLd,
+  fetchProductsForArticle,
+  getArticleUrl,
+  getOgLocale,
+  stripHtml,
+} from "@/lib/news-article-seo";
 
 // --- 1. 推薦閱讀組件 ---
 const RecentJournalCard = ({ post, t }) => (
@@ -37,9 +44,10 @@ const RecentJournalCard = ({ post, t }) => (
 );
 
 // --- 🔥 主頁面: News 內頁 ---
-export default function NewsDetail({ post, recentPosts }) {
+export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) {
   const router = useRouter();
   const { t } = useTranslation("common");
+  const locale = router.locale || "zh-TW";
   const [headings, setHeadings] = useState([]);
   const contentRef = useRef(null);
 
@@ -74,61 +82,102 @@ export default function NewsDetail({ post, recentPosts }) {
 
   const siteUrl =
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
-  const postUrl = `${siteUrl}/${router.locale === "zh-TW" ? "" : router.locale + "/"}news/${post.slug}`;
+  const postUrl = getArticleUrl(siteUrl, locale, post.slug);
+  const metaTitle = post.seo_title || `${post.title} | KÉSH de¹ Journal`;
   const metaDesc =
-    post.seo_description || post.excerpt?.replace(/<[^>]+>/g, "");
+    post.seo_description || stripHtml(post.excerpt) || post.title;
+  const ogLocale = getOgLocale(locale);
+  const locales = ["zh-TW", "en", "ko"];
 
-  const schemaBreadcrumb = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: t("nav.home", "Home"),
-        item: siteUrl,
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: t("nav.news", "Journal"),
-        item: `${siteUrl}/news`,
-      },
-      { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
-    ],
-  };
+  const getLocalizedUrl = (loc) => getArticleUrl(siteUrl, loc, post.slug);
+
+  const jsonLd = buildArticleJsonLd({
+    post,
+    locale,
+    siteUrl,
+    relatedProducts,
+    labels: {
+      home: t("nav.home", "Home"),
+      news: t("nav.news", "Journal"),
+      siteName: t("layout.site_name"),
+      siteDescription: t("layout.site_description"),
+    },
+  });
 
   return (
     <>
       <Head>
-        <title>{post.seo_title || `${post.title} | KÉSH de¹ Journal`}</title>
-        <meta name="description" content={metaDesc} />
+        <title key="title">{metaTitle}</title>
+        <meta name="description" content={metaDesc} key="desc" />
         {post.seo_keywords && (
-          <meta name="keywords" content={post.seo_keywords} />
+          <meta name="keywords" content={post.seo_keywords} key="keywords" />
         )}
+        <meta name="author" content="KÉSH de¹ 凱仕國際精品" key="author" />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1"
+          key="robots"
+        />
+        <link rel="canonical" href={postUrl} key="canonical" />
 
-        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        {locales.map((loc) => (
+          <link
+            key={loc}
+            rel="alternate"
+            hrefLang={loc}
+            href={getLocalizedUrl(loc)}
+          />
+        ))}
+        <link
+          rel="alternate"
+          hrefLang="x-default"
+          href={getLocalizedUrl("zh-TW")}
+          key="hreflang-default"
+        />
+
+        <meta property="og:locale" content={ogLocale} key="oglocale" />
+        {locales
+          .filter((loc) => loc !== locale)
+          .map((loc) => (
+            <meta
+              key={`og-alt-${loc}`}
+              property="og:locale:alternate"
+              content={getOgLocale(loc)}
+            />
+          ))}
         <meta property="og:type" content="article" key="ogtype" />
-        <meta property="og:title" content={post.seo_title || post.title} key="ogtitle" />
+        <meta property="og:site_name" content={t("layout.site_name")} key="ogsite" />
+        <meta property="og:title" content={metaTitle} key="ogtitle" />
         <meta property="og:description" content={metaDesc} key="ogdesc" />
         <meta property="og:image" content={post.image} key="ogimage" />
+        <meta property="og:image:secure_url" content={post.image} key="ogimagesecure" />
         <meta property="og:url" content={postUrl} key="ogurl" />
 
+        <meta property="article:published_time" content={post.raw_created_at} key="pubtime" />
+        <meta property="article:modified_time" content={post.raw_updated_at} key="modtime" />
+        <meta property="article:author" content="KÉSH de¹" key="articleauthor" />
+        <meta
+          property="article:section"
+          content={t("news.category", "News")}
+          key="articlesection"
+        />
+        {post.seo_keywords?.split(/[,，、]/).map((kw, i) => (
+          <meta
+            key={`tag-${i}`}
+            property="article:tag"
+            content={kw.trim()}
+          />
+        ))}
+
         <meta name="twitter:card" content="summary_large_image" key="twcard" />
-        <meta name="twitter:title" content={post.seo_title || post.title} key="twtitle" />
+        <meta name="twitter:title" content={metaTitle} key="twtitle" />
         <meta name="twitter:description" content={metaDesc} key="twdesc" />
         <meta name="twitter:image" content={post.image} key="twimage" />
 
-        {post.structured_data && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: post.structured_data }}
-          />
-        )}
-
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          key="jsonld-graph"
         />
       </Head>
 
@@ -376,11 +425,28 @@ export async function getStaticProps({ params, locale }) {
       return valZh || "";
     };
 
+    const localizedContent = getLocalizedField(currentPostRaw, "content");
+
+    const relatedProductsRaw = await fetchProductsForArticle(
+      localizedContent,
+      BACKEND_URL,
+      headers,
+    );
+    // Next.js getStaticProps：不可傳 undefined（僅允許 null 或省略）
+    const relatedProducts = relatedProductsRaw.map((p) => ({
+      ...p,
+      brand: p.brand ?? null,
+      price: p.price ?? null,
+      description: p.description ?? null,
+      thumbnail: p.thumbnail ?? null,
+      image: p.image ?? null,
+    }));
+
     const formattedPost = {
       id: currentPostRaw.id,
       slug: currentPostRaw.slug,
       title: getLocalizedField(currentPostRaw, "title"),
-      content: getLocalizedField(currentPostRaw, "content"),
+      content: localizedContent,
       excerpt: getLocalizedField(currentPostRaw, "excerpt"),
       seo_title: getLocalizedField(currentPostRaw, "seo_title"),
       seo_description: getLocalizedField(currentPostRaw, "seo_description"),
@@ -390,8 +456,10 @@ export async function getStaticProps({ params, locale }) {
       date: new Date(currentPostRaw.created_at)
         .toLocaleDateString("en-CA")
         .replace(/-/g, "."),
-      raw_created_at: currentPostRaw.created_at,
-      raw_updated_at: currentPostRaw.updated_at || currentPostRaw.created_at,
+      raw_created_at: new Date(currentPostRaw.created_at).toISOString(),
+      raw_updated_at: new Date(
+        currentPostRaw.updated_at || currentPostRaw.created_at,
+      ).toISOString(),
       image: currentPostRaw.thumbnail || "/images/placeholder.jpg",
     };
 
@@ -413,9 +481,10 @@ export async function getStaticProps({ params, locale }) {
       props: {
         post: formattedPost,
         recentPosts: formattedRecent,
+        relatedProducts,
         ...(await serverSideTranslations(currentLang, ["common"])),
       },
-      revalidate: 1,
+      revalidate: 60,
     };
   } catch (error) {
     console.error("Post detail error:", error);

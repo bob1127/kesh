@@ -26,6 +26,7 @@ export default function Shipping() {
 
   const pageTitle = t("shipping.seo_title");
   const pageDesc = t("shipping.seo_desc");
+  const pageKeywords = t("shipping.seo_keywords");
   const siteUrl = "https://www.kesh-de1.com";
 
   const shippingJsonLd = {
@@ -44,8 +45,9 @@ export default function Shipping() {
   return (
     <ReactLenis root>
       <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
+        <title key="title">{pageTitle}</title>
+        <meta name="description" content={pageDesc} key="description" />
+        <meta name="keywords" content={pageKeywords} key="keywords" />
 
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
         <meta property="og:type" content="website" key="ogtype" />

@@ -34,6 +34,7 @@ export default function Home({ chanelProducts }) {
   const siteUrl = "https://www.kesh-de1.com";
   const pageTitle = t("brand_seo.chanel.title");
   const pageDesc = t("brand_seo.chanel.description");
+  const pageKeywords = t("brand_seo.chanel.keywords");
 
   const jsonLdWebSite = {
     "@context": "https://schema.org",
@@ -72,6 +73,7 @@ export default function Home({ chanelProducts }) {
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
+        <meta name="keywords" content={pageKeywords} key="keywords" />
         <meta property="og:title" content={pageTitle} key="ogtitle" />
         <meta property="og:description" content={pageDesc} key="ogdesc" />
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />

@@ -727,32 +727,11 @@ export default function CategoryPage({ products, brands, categories }) {
   const displayTitle = getFilterDisplayName();
   const siteUrl = "https://www.kesh-de1.com";
 
-  // SEO strings computed directly from locale (reliable without i18next hydration dependency)
-  const SEO = {
-    "zh-TW": {
-      allTitle: "全部精品商品 | KÉSH de¹ 凱仕國際精品",
-      allDesc: "瀏覽 KÉSH de¹ 全系列二手精品商品，包含 Hermès、Chanel、Louis Vuitton、Dior 等頂級品牌，全系列 100% 正品保證、專業鑑定與品況分級。",
-      siteName: "KÉSH de¹ 凱仕國際精品",
-      ogLocale: "zh_TW",
-    },
-    en: {
-      allTitle: "All Luxury Products | KÉSH de¹",
-      allDesc: "Browse KÉSH de¹'s complete collection of authenticated pre-owned luxury goods, including Hermès, Chanel, Louis Vuitton, Dior and more. 100% authentic, professionally graded.",
-      siteName: "KÉSH de¹ Luxury Boutique",
-      ogLocale: "en_US",
-    },
-    ko: {
-      allTitle: "전체 명품 상품 | KÉSH de¹",
-      allDesc: "KÉSH de¹의 에르메스, 샤넬, 루이비통, 디올 등 정품 인증 중고 명품 전체 컬렉션을 둘러보세요. 모든 상품 100% 정품, 전문 감정 및 품황 분류.",
-      siteName: "KÉSH de¹ 명품관",
-      ogLocale: "ko_KR",
-    },
-  };
-
-  const seo = SEO[locale] || SEO["zh-TW"];
-  const pageTitle = seo.allTitle;
-  const pageDesc = seo.allDesc;
-  const ogLocale = seo.ogLocale;
+  const pageTitle = t("category.seo.all_title");
+  const pageDesc = t("category.seo.all_description");
+  const pageKeywords = t("category.seo.all_keywords");
+  const ogLocale = t("layout.og_locale");
+  const siteName = t("layout.site_name");
 
   // Use first available product image for richer social previews
   const firstProductImg = products?.find((p) => p.image)?.image;
@@ -768,7 +747,7 @@ export default function CategoryPage({ products, brands, categories }) {
     url: canonicalUrl,
     publisher: {
       "@type": "Organization",
-      name: seo.siteName,
+      name: siteName,
       url: siteUrl,
     },
     mainEntity: {
@@ -796,8 +775,9 @@ export default function CategoryPage({ products, brands, categories }) {
   return (
     <>
       <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
+        <title key="title">{pageTitle}</title>
+        <meta name="description" content={pageDesc} key="description" />
+        <meta name="keywords" content={pageKeywords} key="keywords" />
         <link rel="canonical" href={canonicalUrl} />
 
         <meta property="og:type" content="website" key="ogtype" />
@@ -826,7 +806,7 @@ export default function CategoryPage({ products, brands, categories }) {
           <div className="title">
             <div className="py-12 px-6 md:px-10 bg-[#fafafa]">
               {/* 🔥 關鍵修正：此處原本打錯成 {titleDisplay} 導致崩潰 */}
-              <h1 className="text-3xl md:text-5xl font-light tracking-wide uppercase text-gray-900">
+              <h1 className="text-[32px] md:text-[36px] font-normal tracking-wide uppercase">
                 {displayTitle}
               </h1>
               <p className="mt-4 text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">

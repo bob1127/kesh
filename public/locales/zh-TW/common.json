@@ -4,12 +4,13 @@
     "brand": "品牌館",
     "authenticity": "正品保證",
     "shipping": "全球配送",
-    "service": "",
     "news": "最新消息",
     "faq": "常見問題",
     "contact": "聯繫凱仕",
-    "about": "公司介紹",
-    "search": "搜尋..."
+    "about": "關於凱仕",
+    "search": "搜尋...",
+    "services": "精品服務",
+    "terms": "服務條款"
   },
   "lang": {
     "zh-TW": "繁體中文",
@@ -33,8 +34,13 @@
     "contact_title": "CONTACT US",
     "contact_btn": "聯繫我們",
     "seo": {
-      "title": "KÉSH de¹ 凱仕國際精品 | 精選名牌二手包・正品保證",
-      "description": "涵蓋 Hermès Birkin、Kelly、Chanel Classic Flap、2.55、Louis Vuitton Speedy、Neverfull、Dior Lady Dior、Saddle、Celine Triomphe、Loewe Puzzle 等經典系列，提供專屬尋款服務。"
+      "title": "KÉSH de¹ 凱仕國際精品｜全新、近全新與精選二手精品交易平台，提供精品銷售、代尋、收購、寄售代售、專業鑑定與全球配送服務。",
+      "description": "KÉSH de¹ 凱仕國際精品位於台中，嚴選 Hermès、Chanel、Louis Vuitton、Dior、Celine 等精品品牌，提供全新、近全新與精選二手精品販售、精品代尋、收購、寄售代售、專業鑑定與全球配送服務。",
+      "keywords": "凱仕國際精品, KÉSH de¹, 精品買賣, 全新精品, 近全新精品, 二手精品, 精品包包, 精品代尋, 精品收購, 精品寄售, 精品鑑定, 台中精品店, Chanel 精品, Hermès 精品, Louis Vuitton 精品",
+      "h1": "全新、近全新與精選二手精品交易平台",
+      "h2": "嚴選精品包款與配件｜專業鑑定｜全球配送｜精品代尋與收購服務",
+      "positioning": "KÉSH de¹ 凱仕國際精品｜全新、近全新與精選二手精品交易平台，提供精品銷售、代尋、收購、寄售代售、專業鑑定與全球配送服務。",
+      "tags": "全新精品、近全新精品、精選二手精品、精品買賣、精品代尋、精品收購、精品鑑定、全球配送、台中精品"
     }
   },
   "guarantees": {
@@ -85,8 +91,8 @@
     ]
   },
   "authenticity": {
-    "seo_title": "正品保證 | Authenticity & Standards",
-    "seo_desc": "於 KÉSH de¹ 購買之商品，皆經專業鑑定並附相關鑑定文件與購買憑證，終身正品保障。自購買日起兩年內，提供一次免費皮革基礎保養與清潔服務（不含五金零件及皮革修復或更換）。",
+    "seo_title": "精品真偽鑑定與正品保障｜雙鑑定師＋Entrupy 驗證｜KÉSH de¹",
+    "seo_desc": "KÉSH de¹ 凱仕國際精品堅持每件商品皆經雙鑑定師人工檢查與 Entrupy 科技驗證，出貨附專屬保證與鑑定紀錄，讓全新、近全新與精選二手精品交易更安心。",
     "page_title": "Authenticity & Standards",
     "page_subtitle": "正品保證與鑑定標準",
     "commitment_title": "我們對真實性的承諾",
@@ -111,26 +117,27 @@
     "care_list_2": "除外項目：不含五金零件拋光/更換、皮革破損修復、內裡更換或染色服務。",
     "care_list_3": "使用方式：請以客服LINE或線上表單提前預約，並將商品寄到指定地址。",
     "contact_desc": "若需了解商品狀態或保養細節，歡迎聯繫客服團隊。",
-    "contact_btn": "聯繫客服團隊"
+    "contact_btn": "聯繫客服團隊",
+    "seo_keywords": "精品鑑定, 精品真偽鑑定, Entrupy 鑑定, 精品正品保障, Chanel 鑑定, Hermès 鑑定, LV 鑑定, 二手精品鑑定, 精品包鑑定, 正品保證"
   },
   "footer": {
     "slogan_1": "A Value of Priority.",
     "slogan_2": "A Beginning of Dreams.",
-    "slogan_3": "Professional Authentication & Worldwide Shipping.",
+    "slogan_3": "全新、近全新與精選二手精品交易平台｜代尋・收購・寄售・鑑定・全球配送",
     "explore_title": "Explore",
     "support_title": "Support",
     "links": {
-      "about": "About 關於我們",
-      "services": " ",
-      "news": "News 最新消息",
-      "shop": "Shop 所有商品",
-      "": " ",
-      "authenticity": "Authenticity 正品保證",
-      "shipping": "Shipping 全球配送",
-      "faq": "FAQ 常見問題",
-      "contact": "Contact 聯絡我們",
-      "privacy": "Privacy Policy 隱私權政策",
-      "terms": "Terms of Service 服務條款"
+      "about": "關於我們",
+      "services": "精品服務",
+      "news": "最新消息",
+      "shop": "所有商品",
+      "note": "購物須知",
+      "authenticity": "正品保證",
+      "shipping": "全球配送",
+      "faq": "常見問題",
+      "contact": "聯絡我們",
+      "privacy": "隱私權政策",
+      "terms": "服務條款"
     },
     "contact_us": "Contact Us",
     "contact_desc_1": "若有任何商品諮詢或 需求，",
@@ -193,8 +200,8 @@
     "error_register_failed": "註冊失敗"
   },
   "shipping": {
-    "seo_title": "全球配送 | Worldwide Shipping",
-    "seo_desc": "提供全球配送服務，並依目的地國家規定辦理相關清關流程。我們致力於確保配送安全與效率。We provide international shipping. Documentation is prepared in accordance with destination regulations. Delivery is handled securely and efficiently.",
+    "seo_title": "全球精品配送服務｜台灣與海外安全寄送｜KÉSH de¹",
+    "seo_desc": "KÉSH de¹ 凱仕國際精品提供台灣本島與海外精品配送服務，合作黑貓宅急便、DHL、FedEx 等物流夥伴，並提供高價商品運送保障，讓精品安全送達您的手中。",
     "title": "Worldwide Shipping",
     "subtitle": "全球配送政策",
     "commitment_title": "配送承諾",
@@ -204,20 +211,72 @@
     "delivery_time_title": "Delivery Time 配送時效",
     "domestic_label": "Domestic",
     "domestic_title": "台灣本島配送",
-    "domestic_desc": "使用順豐速運保價配送服務寄出，並經完整包裝與出貨確認流程後安全交付。每一次配送，皆以高端精品交付標準嚴格把關。",
+    "domestic_desc": "約 1 - 3 個工作天 (黑貓宅急便/專人配送)",
     "intl_label": "International",
     "intl_title": "國際配送",
-    "intl_desc": "所有國際訂單皆使用 DHL Express 國際快捷配送，並提供保價寄送服務。實際配送時效將依不同國家地區與當地海關流程而有所差異。商品寄出後，將提供完整物流追蹤編號，方便顧客即時查詢配送進度與商品運送狀態。每件商品皆經妥善包裝與完整保護處理，確保高價精品於國際運送過程中的安全性與完整性。",
+    "intl_desc": "亞洲約 3-5 天 / 歐美約 5-10 天 (DHL/FedEx)",
     "insurance_title": "全額保險運送",
     "insurance_desc": "為確保高單價商品安全，所有寄出包裹皆投保全額運輸保險。若在運送過程中有任何遺失或損壞，將由保險公司與我們全權負責，保障您的資產安全。",
     "duties_title": "關稅說明 (Duties & Taxes)",
-    "duties_desc": "國際運送產生之進口關稅與當地稅費，需由收件人（買家）自行負擔。我們會依據法規如實申報，若您有特殊報關需求，請於下單前與客服聯繫確認。"
+    "duties_desc": "國際運送產生之進口關稅與當地稅費，需由收件人（買家）自行負擔。我們會依據法規如實申報，若您有特殊報關需求，請於下單前與客服聯繫確認。",
+    "seo_keywords": "精品配送, 全球配送, 國際精品寄送, 精品海外配送, DHL 精品配送, FedEx 精品配送, 台灣精品配送, 黑貓宅急便, 精品包寄送"
   },
   "services": {
     "seo": {
-      "title": " 專屬尋款 | Services",
-      "desc": "申請上述服務者須提供有效之雙重身分證明文件（身分證及第二證件，如健保卡、駕照或護照）以完成實名驗證。資料僅作身份驗證及法規遵循之用途，不另作他用。",
-      "keywords": "KESH de1"
+      "title": "精品服務｜精品代尋、收購、寄售代售與專業鑑定｜KÉSH de¹",
+      "desc": "KÉSH de¹ 凱仕國際精品提供全方位精品服務，包含指定款精品代尋、全新與近全新精品銷售、精品收購、寄售代售、專業真偽鑑定、售後保養與全球配送，協助收藏者安心買賣精品。",
+      "keywords": "精品服務, 精品代尋, 精品收購, 精品寄售, 精品代售, 精品鑑定, 精品保養, 精品清潔, 全新精品, 近全新精品, 二手精品買賣, 台中精品服務"
+    },
+    "page": {
+      "h1": "精品服務",
+      "h2": "",
+      "tags": "精品代尋、精品收購、精品寄售、精品代售、專業鑑定、精品保養、全球配送、台中精品服務",
+      "cta_title": "準備開始您的精品旅程？",
+      "cta_desc": "無論是尋找指定款式、出售閒置精品或委託代售，歡迎與 KÉSH de¹ 專業團隊聯繫。",
+      "cta_contact": "聯繫我們",
+      "cta_authenticity": "了解鑑定保障",
+      "blocks": [
+        {
+          "id": "retail-new",
+          "title": "全新／近全新精品販售",
+          "desc": "主打 Rank S、未使用、近全新與高成色精品商品，涵蓋 Hermès、Chanel、Louis Vuitton、Dior、Celine 等品牌包款與配件。"
+        },
+        {
+          "id": "retail-preowned",
+          "title": "精選二手精品販售",
+          "desc": "針對保存良好、具市場流通價值的精品進行鑑定、整理與上架，透明揭露品況與完整商品履歷。"
+        },
+        {
+          "id": "sourcing",
+          "title": "指定款精品代尋",
+          "desc": "協助尋找缺貨、限量、熱門或特定規格精品，透過全球買手網絡為您媒合理想款式。"
+        },
+        {
+          "id": "buyback",
+          "title": "精品收購／Trade-in",
+          "desc": "提供具競爭力的市場報價與透明流程，協助藏家快速變現或升級收藏。"
+        },
+        {
+          "id": "consignment",
+          "title": "精品寄售／代售",
+          "desc": "協助收藏者安全上架精品，透過官網與國際曝光觸及全球買家，成交後依約撥款。"
+        },
+        {
+          "id": "authentication",
+          "title": "專業真偽鑑定",
+          "desc": "雙鑑定師人工檢查結合 Entrupy 系統驗證，附鑑定文件與購買憑證，提供正品保障。"
+        },
+        {
+          "id": "care",
+          "title": "售後清潔保養",
+          "desc": "購買日起兩年內，憑購買證明可享一次免費基礎皮革清潔保養服務（不含五金拋光與皮革修復）。"
+        },
+        {
+          "id": "shipping",
+          "title": "全球配送",
+          "desc": "提供台灣本島與國際配送，合作 DHL、FedEx 等物流，高價商品全額保險運送。"
+        }
+      ]
     },
     "ui": {
       "header_title": "Our Services",
@@ -502,23 +561,25 @@
     }
   },
   "news": {
-    "page_title": "最新消息",
-    "page_subtitle": "探索 KÉSH de¹ 的品牌動態與精選文章",
-    "seo_title": "最新消息與品牌動態 | KÉSH de¹",
-    "seo_desc": "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
-    "badge_latest": "最新發佈",
+    "seo_title": "精品知識與品牌專欄｜精品收藏、市場行情與鑑定指南｜KÉSH de¹",
+    "seo_desc": "閱讀 KÉSH de¹ 凱仕國際精品專欄，掌握 Hermès、Chanel、Dior、Prada、LOEWE 等精品品牌故事、市場行情、保值分析、真偽鑑定與安全交易知識。",
+    "page_title": "Journal",
+    "page_subtitle": "最新消息與活動 / 時尚趨勢",
+    "updated": "更新時間 :",
+    "no_posts": "目前沒有最新消息。",
+    "footer_official": "KÉSH de¹ Official",
+    "footer_store": "前往線上商店",
+    "badge_latest": "最新消息",
     "badge_news": "新聞",
     "read_more": "閱讀更多",
     "view_details": "查看詳情",
-    "no_posts": "目前沒有任何文章發佈",
-    "updated": "最後更新",
-    "footer_official": "KÉSH de¹ 官方日誌",
-    "footer_store": "前往線上商店"
+    "seo_keywords": "精品知識, 精品專欄, 精品行情, 精品保值, Hermès 保值, Chanel 行情, Dior 包款, 二手精品指南, 精品鑑定教學, 精品安全交易"
   },
   "faq": {
     "seo": {
-      "title": "FAQ 常見問題｜KÉSH de¹ 凱仕國際精品 - 正品鑑定與服務",
-      "description": "彙整 KÉSH de¹ 常見問題。提供二手精品買賣、正品鑑定流程（S/A/B級）、手續費（20%）、國際運送與退換貨政策完整說明。安心選購 Hermès, Chanel, LV 等頂級精品。"
+      "title": "精品購買常見問題｜付款、退換貨、鑑定、寄售與配送 FAQ｜KÉSH de¹",
+      "description": "整理 KÉSH de¹ 凱仕國際精品常見問題，包含商品真偽、退換貨、訂單取消、發票、精品寄售代售、付款方式、國際配送、商品成色與會員制度，協助您安心購買精品。",
+      "keywords": "精品常見問題, 精品購買 FAQ, 二手精品退貨, 精品鑑定問題, 精品寄售問題, 精品付款方式, 精品配送問題, KÉSH FAQ"
     },
     "ui": {
       "title": "FAQ",
@@ -698,9 +759,10 @@
   },
   "contact": {
     "seo": {
-      "title": "聯絡我們 | Contact",
-      "description": "全新商品尋款、二手精品販售與閒置精品寄售。售前與售後服務，歡迎透過官方線上表單或電子郵件與我們聯繫。",
-      "schema_name": "聯絡 KÉSH de¹"
+      "title": "聯絡 KÉSH de¹ 凱仕國際精品｜精品詢問、代尋、收購與售後服務",
+      "description": "如需精品商品詢問、指定款代尋、精品收購 Trade-in、售後保養或其他服務，歡迎聯絡 KÉSH de¹ 凱仕國際精品。可透過線上表單、Email、LINE 或社群與我們聯繫。",
+      "schema_name": "聯絡 KÉSH de¹",
+      "keywords": "聯絡凱仕國際精品, 精品詢問, 精品代尋, 精品收購, Trade-in, 精品售後服務, 精品保養, KÉSH de¹ 聯絡方式, 台中精品店"
     },
     "left": {
       "title": "Contact Us",
@@ -737,10 +799,11 @@
   },
   "about": {
     "seo": {
-      "title": "關於我們 About Us | KÉSH de¹ 凱仕國際精品",
-      "description": "KÉSH de¹ 凱仕國際精品，專營 Hermès、Chanel 等國際頂級精品。每一件商品皆經兩位合格鑑定師人工鑑定，搭配 Entrupy 專業系統雙重驗證，提供最高級別的正品保障。",
+      "title": "關於 KÉSH de¹ 凱仕國際精品｜台中精品交易與專業鑑定平台",
+      "description": "認識 KÉSH de¹ 凱仕國際精品，合法登記於台中的精品交易平台，專營 Hermès、Chanel、Louis Vuitton、Dior、Loewe、Celine 等品牌，提供全新、近全新與精選二手精品銷售、指定款代尋、專業鑑定與全球配送服務。",
       "schema_name": "關於我們 - KÉSH de¹",
-      "schema_desc": "每一件商品，皆經兩位合格鑑定師人工鑑定，搭配 Entrupy 專業系統雙重驗證，通過層層把關，才會正式出貨。"
+      "schema_desc": "每一件商品，皆經兩位合格鑑定師人工鑑定，搭配 Entrupy 專業系統雙重驗證，通過層層把關，才會正式出貨。",
+      "keywords": "關於凱仕國際精品, KÉSH de¹, 台中精品店, 精品交易平台, 精品鑑定, 精品代尋, 全新精品, 二手精品, Hermès, Chanel, Dior, Louis Vuitton, Celine"
     },
     "ui": {
       "hero_subtitle": "About KÉSH de¹",
@@ -838,52 +901,48 @@
     ]
   },
   "checkout": {
-    "backToBag": "返回購物車",
-    "emptyBag": "您的購物車是空的",
-    "title": "結帳 (CHECKOUT)",
-    "customerInfo": "聯絡人資訊 (Customer Information)",
-    "securityNotice": "為確保配送與保價安全，請填寫正確完整資料",
-    "fullNamePlaceholder": "請填寫收件人完整姓名 (需與證件相符)",
-    "emailPlaceholder": "電子信箱 (必填)",
-    "emailUsage": "用途：訂單通知 / 出貨通知 / 驗證",
-    "phonePlaceholder": "聯絡電話 (必填) 例：0912-345-678",
-    "selectCity": "請選擇縣市",
-    "selectDistrict": "請選擇區域",
-    "stateProvince": "State / Province (州 / 省)",
-    "city": "City (城市)",
-    "streetPlaceholder": "詳細地址 (必填) 請填寫完整地址 (門牌、樓層、公司名稱)",
-    "remarkPlaceholder": "備註欄位 (如：指定收件時間、禮物包裝、低調出貨、報關需求)",
-    "shippingMethod": "運送方式 (Shipping Method)",
-    "shippingSecurityDesc": "您的訂單將由 KÉSH 專業團隊全程處理，確保安全與隱私",
-    "shippingDelivery": "宅配到府 (順豐速運)",
-    "shippingProtection": "商品將以專業防護包裝寄出，並提供完整物流追蹤",
-    "freeShipping": "NT$ 0 (全站免運)",
-    "payment": "付款方式 (Payment)",
-    "paymentSecurity1": "您的付款將透過 TapPay 國際級加密機制安全處理",
-    "paymentSecurity2": "信用卡資料由金流服務商代為處理，本網站不會儲存您的完整卡片資訊",
-    "creditCard": "信用卡付款",
-    "atmTransfer": "銀行轉帳 (ATM / Virtual Account Transfer)",
-    "paypal": "PayPal / Apple Pay",
-    "processing": "處理中...",
-    "completePurchase": "確認訂單並前往安全付款",
-    "orderSummary": "訂單摘要 (Order Summary)",
-    "subtotal": "小計",
-    "shipping": "運費",
-    "total": "總計",
-    "alert": {
-      "fillInfo": "請填寫完整的聯絡人與收件地址資訊！",
-      "cardError": "信用卡資訊填寫有誤！",
-      "atmError": "產生虛擬帳號失敗: 系統忙線中",
-      "success": "結帳大成功！"
+    "empty_cart": "購物車是空的",
+    "title": "結帳",
+    "subtitle": "KÉSH de¹ 安全付款 (PayUni)",
+    "contact_info": "聯絡資訊",
+    "email_placeholder": "電子郵件",
+    "shipping_method": "運送方式",
+    "home_delivery": "宅配（運費 NT$80）",
+    "cvs_delivery": "7-11 店到店（運費 NT$80）",
+    "cvs_store": "7-11 門市",
+    "btn_select_store": "選擇門市",
+    "store_label": "門市：",
+    "address_label": "地址：",
+    "btn_clear_store": "清除門市",
+    "no_store_selected": "尚未選擇門市，請點「選擇門市」",
+    "shipping_address": "收件地址",
+    "name_placeholder": "收件人姓名",
+    "phone_placeholder": "手機號碼",
+    "paypal_success": "PayPal 付款成功！訂單已建立。",
+    "cities": {
+      "taipei": "台北市",
+      "new_taipei": "新北市",
+      "taichung": "台中市",
+      "kaohsiung": "高雄市"
     },
-    "popup": {
-      "title": "訂單已建立",
-      "desc1": "您的訂單已成功建立。",
-      "desc2": "請透過實體 ATM 或網路銀行，於期限內完成轉帳。",
-      "bankCode": "銀行代碼",
-      "account": "轉帳帳號",
-      "deadline": "繳費期限",
-      "viewOrder": "查看訂單"
+    "address_home_req": "詳細地址（宅配必填）",
+    "address_cvs_opt": "宅配地址（選填）",
+    "postal_code": "郵遞區號",
+    "payment_method": "付款方式",
+    "btn_processing": "處理中...",
+    "btn_pay": "立即付款",
+    "order_summary": "訂單摘要",
+    "subtotal": "小計",
+    "shipping_fee": "運費",
+    "total": "總計",
+    "note_final_amount": "* 最終金額以建立 Woo 訂單後的計算結果為準",
+    "alerts": {
+      "missing_fields": "請填寫所有必填欄位",
+      "missing_home_address": "宅配請填寫詳細地址",
+      "missing_cvs_store": "請先選擇 7-11 門市",
+      "order_failed": "建立訂單失敗：",
+      "payuni_missing": "PayUni 缺少欄位：",
+      "system_error": "發生錯誤，請稍後再試"
     }
   },
   "order_lookup": {
@@ -913,11 +972,13 @@
   },
   "shopping_guide": {
     "page": {
-      "seo_title": "購物須知 | KÉSH de¹",
+      "seo_title": "購物須知 | KÉSH de¹ 凱仕國際精品",
       "title": "Shopping Guide",
       "subtitle_desktop": "Please read before buying",
       "subtitle_mobile": "購物須知與服務條款",
-      "footer_note": "Thank you for choosing kesh-de1"
+      "footer_note": "Thank you for choosing kesh-de1",
+      "seo_desc": "KÉSH de¹ 購物須知：訂單付款、正品保證條款、S/A/B 品況分級、退換貨政策與隱私說明。購買二手精品前請詳閱。",
+      "seo_keywords": "購物須知, 退換貨政策, 品況分級, 正品條款, 二手精品購買, KÉSH de¹, 凱仕國際精品"
     },
     "sections": [
       {
@@ -982,10 +1043,11 @@
   },
   "privacy": {
     "page": {
-      "seo_title": "隱私權政策 | KÉSH de¹ 凱仕國際精品",
-      "seo_desc": "KÉSH de¹ 凱仕國際精品 的隱私權政策說明。",
+      "seo_title": "隱私權政策｜會員資料、交易資料與精品服務資料保護｜KÉSH de¹",
+      "seo_desc": "KÉSH de¹ 凱仕國際精品重視會員與交易資料安全，隱私權政策說明個人資料、訂單資料、物流資料、精品代尋與服務資料的蒐集、使用與保護方式。",
       "title": "隱私權政策",
-      "last_updated": "最後更新日期："
+      "last_updated": "最後更新日期：",
+      "seo_keywords": "隱私權政策, 個資保護, 精品網站隱私權, 會員資料保護, 交易資料保護, KÉSH de¹ 隱私政策"
     },
     "sections": [
       {
@@ -1047,7 +1109,7 @@
       "instore_yes": "● 可預約現場鑑賞",
       "instore_no": "○ 僅限線上諮詢",
       "tab_details": "Details Info",
-      "tab_shipping": "清潔與保養建議",
+      "tab_shipping": "Shopping & Returns",
       "about_product": "關於",
       "material_desc": "頂級材質，觸感柔軟且耐磨。",
       "hardware_desc": "經典五金配件，增添高貴光澤。",
@@ -1069,23 +1131,21 @@
   },
   "cart": {
     "title": "購物車",
-    "product": "件商品",
     "continue_shopping": "繼續購物",
     "empty_message": "您的購物車目前是空的",
     "start_shopping": "開始購物",
+    "product": "商品",
     "quantity": "數量",
     "total": "總計",
     "remove_item": "移除商品",
-    "order_summary": "訂單摘要",
     "subtotal": "小計",
     "tax_shipping_note": "含稅。運費將於結帳步驟計算。",
-    "estimated_total": "預估總計",
-    "go_to_checkout": "前往結帳",
-    "secure_checkout_note": "安全結帳由 KÉSH de¹ 提供支援"
+    "secure_checkout_note": "安全結帳由 KÉSH de¹ 提供支援",
+    "go_to_checkout": "前往結帳"
   },
   "terms": {
-    "seo_title": "服務條款與政策 | KÉSH de¹ 凱仕國際精品",
-    "seo_desc": "感謝您選擇 KÉSH de¹。我們致力於提供透明、專業且值得信賴的精品購物體驗。為確保您擁有順暢且安心的交易流程，請於購物前詳閱以下服務條款。",
+    "seo_title": "服務條款與購物政策｜正品保障、付款、配送與退換貨｜KÉSH de¹",
+    "seo_desc": "查看 KÉSH de¹ 凱仕國際精品服務條款，包含正品保障、會員制度、付款方式、物流配送、退換貨政策、商品特性、退款流程、發票開立與交易合規說明。",
     "page_tag": "KÉSH de¹ Service Policies",
     "page_title": "服務條款與政策",
     "page_subtitle": "感謝您選擇 KÉSH de¹。我們致力於提供透明、專業且值得信賴的精品購物體驗。為確保您擁有順暢且安心的交易流程，請於購物前詳閱以下服務條款。",
@@ -1315,12 +1375,13 @@
           }
         ]
       }
-    ]
+    ],
+    "seo_keywords": "精品服務條款, 精品購物政策, 精品退換貨, 精品付款方式, 精品配送政策, 正品保障, 精品發票, 精品交易規範, KÉSH 條款"
   },
   "member": {
-    "title": "MY ACCOUNT (會員中心)",
+    "title": "會員中心",
     "subtitle": "管理您的訂單與個人資料",
-    "welcome": "Hi,",
+    "welcome": "歡迎回來",
     "tabs": {
       "dashboard": "帳戶總覽",
       "orders": "我的訂單",
@@ -1328,85 +1389,67 @@
       "settings": "帳號設定",
       "logout": "登出帳號"
     },
-    "orders": {
-      "title": "ORDER HISTORY (歷史訂單)",
-      "count": "筆訂單",
-      "empty": "您目前沒有任何訂單紀錄",
-      "shop_now": "開始購物",
-      "order_no": "Order No.",
-      "date": "Date",
-      "status": "Status",
-      "total": "Total",
-      "view": "View",
-      "close": "Close",
-      "purchased_items": "Purchased Items",
-      "qty": "Qty",
-      "shipping_details": "Shipping Details",
-      "recipient": "Recipient (收件人)",
-      "payment_method": "Payment Method",
-      "shipping_address": "Shipping Address (配送地址)",
-      "order_summary": "Order Summary",
-      "subtotal": "Subtotal",
-      "shipping": "Shipping",
-      "free": "免運費",
-      "credit_card": "線上刷卡 (Credit Card)",
-      "atm_transfer": "ATM 轉帳繳費"
+    "dashboard": {
+      "total_spent": "累積消費",
+      "completed_orders": "已完成訂單",
+      "pending_orders": "待處理訂單"
     },
-    "atm": {
-      "pending": "Pending Payment (待付款)",
-      "bank_code": "Bank Code (銀行代碼)",
-      "account": "Account (繳費帳號)",
-      "deadline": "Deadline (繳費期限)"
+    "orders": {
+      "empty": "目前沒有訂單",
+      "shop_now": "去逛逛",
+      "order_amount": "訂單金額",
+      "items": "件商品",
+      "view_details": "查看詳情",
+      "pay_now": "立即付款"
+    },
+    "addresses": {
+      "empty": "尚未設定收件地址",
+      "add_new": "新增地址"
+    },
+    "settings": {
+      "title": "個人資料",
+      "name": "姓名",
+      "email": "電子郵件",
+      "save": "儲存修改"
     },
     "status": {
       "pending": "待付款",
       "processing": "處理中",
       "completed": "已完成",
-      "canceled": "已取消"
-    }
-  },
-  "showcase": {
-    "title": "CURATION",
-    "sub_title": "(STYLE)",
-    "tag": "for MODERN ELEGANCE",
-    "desc": "探索 KÉSH de¹ 為您精心挑選的頂級精品。\n從經典雋永的傳世之作到現代俐落的都會風格，展現獨一無二的奢華品味。",
-    "buy_now": "BUY NOW",
-    "loading": "LOADING...",
-    "discover_more": "DISCOVER MORE",
-    "view_all": "全部商品",
-    "no_products": "該分類下目前沒有產品"
-  },
-  "layout": {
-    "site_title": "KÉSH de¹ 凱仕國際精品｜台中二手精品買賣",
-    "site_name": "KÉSH de¹ 凱仕國際精品",
-    "site_description": "KÉSH de¹ 凱仕國際精品位於台中，專營 Hermès、Chanel、Louis Vuitton、Dior 等國際精品品牌，提供二手精品買賣、專業鑑定與品況分級，僅販售 100% 正品。",
-    "keywords": "KÉSH de¹, 凱仕國際精品, 台中精品, 二手精品, Hermès, Chanel, Louis Vuitton, Dior, Gucci, Loewe, Celine, YSL, Goyard",
-    "og_locale": "zh_TW"
-  },
-  "brand_seo": {
-    "chanel": {
-      "title": "Chanel 二手精品 | KÉSH de¹ 凱仕國際精品",
-      "description": "精選香奈兒 Classic Flap、Boy、2.55、19 等經典包款，100% 正品保證，專業鑑定。"
-    },
-    "hermes": {
-      "title": "Hermès 二手精品 | KÉSH de¹ 凱仕國際精品",
-      "description": "精選愛馬仕 Birkin、Kelly、Constance 等稀有包款，正品保證，附完整鑑定文件。"
-    },
-    "lv": {
-      "title": "Louis Vuitton 二手精品 | KÉSH de¹ 凱仕國際精品",
-      "description": "精選路易威登 Speedy、Neverfull、Alma、Pochette 等經典包款，全數 100% 正品。"
-    },
-    "dior": {
-      "title": "Dior 二手精品 | KÉSH de¹ 凱仕國際精品",
-      "description": "精選迪奧 Lady Dior、Saddle、30 Montaigne 等精選包款，100% 正品，專業品況分級。"
+      "canceled": "已取消",
+      "unknown": "狀態未明"
     }
   },
   "category": {
     "seo": {
-      "all_title": "全部精品商品 | KÉSH de¹ 凱仕國際精品",
-      "all_description": "瀏覽 KÉSH de¹ 全系列二手精品商品，包含 Hermès、Chanel、Louis Vuitton、Dior 等頂級品牌，全系列 100% 正品保證、專業鑑定與品況分級。",
-      "collection_description": "在 KÉSH de¹ 探索精選二手精品系列，每件商品皆經過專業鑑定，附鑑定文件與購買憑證，100% 正品保障。",
+      "all_title": "精品商城｜全新、近全新與精選二手精品包款｜KÉSH de¹",
+      "all_description": "探索 KÉSH de¹ 凱仕國際精品嚴選商品，包含 Chanel、Hermès、Louis Vuitton、Dior、Celine 等品牌包款、皮件、飾品與配件。每件商品皆經專業鑑定，提供全新、近全新與精選二手精品選擇。",
+      "all_keywords": "精品商城, 精品包包, 全新精品包, 近全新精品包, 二手精品包, Chanel 包包, Hermès 包包, LV 包包, Dior 包包, Celine 包包, 精品皮件, 精品飾品",
+      "collection_description": "在 KÉSH de¹ 探索{{name}}精選二手系列，每件皆經專業鑑定，附鑑定文件，100% 正品保障。",
+      "collection_keywords": "{{name}}, 二手精品, KÉSH de¹, 凱仕國際精品, 正品保證, 專業鑑定",
       "og_image_alt": "KÉSH de¹ 精品商品系列"
+    }
+  },
+  "brand_seo": {
+    "chanel": {
+      "title": "Chanel 香奈兒二手精品 | KÉSH de¹ 凱仕國際精品",
+      "description": "精選 Chanel Classic Flap、Boy、2.55、19 等經典包款。KÉSH de¹ 雙重鑑定、100% 正品保證，附完整鑑定文件與品況分級。",
+      "keywords": "二手Chanel, 香奈兒二手包, Classic Flap, Boy Chanel, 2.55, KÉSH de¹, 凱仕國際精品, 正品鑑定"
+    },
+    "hermes": {
+      "title": "Hermès 愛馬仕二手精品 | KÉSH de¹ 凱仕國際精品",
+      "description": "精選 Hermès Birkin、Kelly、Constance 等稀有包款。KÉSH de¹ 專業鑑定、正品保證，附 Entrupy 驗證與完整購買憑證。",
+      "keywords": "二手Hermès, 愛馬仕二手, Birkin, Kelly, Constance, KÉSH de¹, 凱仕國際精品, 稀有愛馬仕"
+    },
+    "lv": {
+      "title": "Louis Vuitton 路易威登二手精品 | KÉSH de¹",
+      "description": "精選 LV Speedy、Neverfull、Alma、Capucines 等經典包款。KÉSH de¹ 100% 正品、專業品況分級與全球配送。",
+      "keywords": "二手LV, 路易威登二手, Speedy, Neverfull, Alma, KÉSH de¹, 凱仕國際精品, 正品LV"
+    },
+    "dior": {
+      "title": "Dior 迪奧二手精品 | KÉSH de¹ 凱仕國際精品",
+      "description": "精選 Dior Lady Dior、Saddle、30 Montaigne 等包款。KÉSH de¹ 專業鑑定、透明品況、100% 正品保障。",
+      "keywords": "二手Dior, 迪奧二手包, Lady Dior, Saddle, 30 Montaigne, KÉSH de¹, 凱仕國際精品"
     }
   }
 }

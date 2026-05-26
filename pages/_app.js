@@ -1,15 +1,15 @@
 // pages/_app.js
-import "../src/globals.css"; 
+import "../src/globals.css";
 import { NextUIProvider } from "@nextui-org/react";
 import { appWithTranslation } from "next-i18next";
-import { GoogleOAuthProvider } from '@react-oauth/google'; 
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import Script from "next/script"; // 🔥 1. 引入 next/script
 
 import { AuthProvider } from "../components/AuthProvider";
-import { UserProvider } from "../components/context/UserContext"; 
-import { CartProvider } from "../components/context/CartContext"; 
+import { UserProvider } from "../components/context/UserContext";
+import { CartProvider } from "../components/context/CartContext";
 
-import Layout from "./Layout"; 
+import Layout from "./Layout";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 

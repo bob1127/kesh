@@ -8,8 +8,10 @@
     "news": "최신 소식",
     "faq": "자주 묻는 질문",
     "contact": "문의하기",
-    "about": "회사 소개",
-    "search": "검색..."
+    "about": "소개",
+    "search": "검색...",
+    "services": "명품 서비스",
+    "terms": "이용약관"
   },
   "lang": {
     "zh-TW": "繁體中文",
@@ -33,8 +35,13 @@
     "contact_title": "CONTACT US",
     "contact_btn": "문의하기",
     "seo": {
-      "title": "KÉSH de¹ | 정품 중고 명품 핸드백",
-      "description": "에르메스 버킨·켈리, 샤넬 클래식 플랩·2.55, 루이비통 스피디·네버풀, 디올 레이디 디올·새들, 셀린느 트리옹프, 로에베 퍼즐 등 정품 인증 중고 명품을 만나보세요. 개인 소싱 서비스도 제공합니다."
+      "title": "KÉSH de¹ | 신품·준신품·엄선 중고 명품 플랫폼",
+      "description": "대만 타이중 KÉSH de¹. 에르메스, 샤넬, 루이비통, 디올, 셀린느 등 신품·준신품·엄선 중고 판매, 구매 대행, 매입, 위탁, 감정 및 전 세계 배송.",
+      "keywords": "KÉSH de¹, 명품 매매, 신품 명품, 준신품, 중고 명품, 명품 백, 구매 대행, 명품 매입, 위탁 판매, 명품 감정, 타이중 명품점",
+      "h1": "신품·준신품·엄선 중고 명품 플랫폼",
+      "h2": "엄선 명품 백·액세서리｜전문 감정｜글로벌 배송｜구매 대행·매입",
+      "positioning": "KÉSH de¹｜신품·준신품·엄선 중고 명품 플랫폼. 판매·대행·매입·위탁·감정·배송 서비스.",
+      "tags": "신품 명품, 준신품, 엄선 중고, 명품 매매, 구매 대행, 매입, 감정, 배송"
     }
   },
   "guarantees": {
@@ -85,8 +92,8 @@
     ]
   },
   "authenticity": {
-    "seo_title": "정품 보증 | Authenticity & Standards",
-    "seo_desc": "KÉSH de¹에서 구매한 모든 제품은 전문 감정을 거치며 감정 서류와 구매 영수증이 첨부되어 평생 정품을 보장합니다. 구매일로부터 2년 이내에 1회 무료 기본 가죽 관리 및 클리닝 서비스를 제공합니다.",
+    "seo_title": "정품 보증 및 감정 기준 | KÉSH de¹",
+    "seo_desc": "KÉSH de¹ 모든 상품은 2인 감정사 검수와 Entrupy AI 검증을 거치며, 감정 서류와 영수증이 제공됩니다. 평생 정품 보장, 구매 2년 내 1회 무료 가죽 케어.",
     "page_title": "Authenticity & Standards",
     "page_subtitle": "정품 보증 및 감정 기준",
     "commitment_title": "진품에 대한 우리의 약속",
@@ -111,7 +118,8 @@
     "care_list_2": "제외 항목: 하드웨어 폴리싱/교체, 가죽 찢어짐 복원, 안감 교체 또는 염색 서비스는 포함되지 않습니다.",
     "care_list_3": "이용 방법: 고객센터 LINE 또는 온라인 양식으로 사전 예약 후, 지정된 주소로 상품을 발송해 주시기 바랍니다.",
     "contact_desc": "상품 상태 또는 관리 세부 사항에 대해 알고 싶으시면 언제든지 고객센터 팀에 문의해 주세요.",
-    "contact_btn": "고객센터 문의"
+    "contact_btn": "고객센터 문의",
+    "seo_keywords": "정품 보증, 명품 감정, Entrupy, 에르메스 감정, 샤넬 감정, KÉSH de¹, 중고 명품 진품, 평생 보증"
   },
   "footer": {
     "slogan_1": "우선순위의 가치.",
@@ -193,8 +201,8 @@
     "error_register_failed": "회원가입 실패"
   },
   "shipping": {
-    "seo_title": "전 세계 배송 | Worldwide Shipping",
-    "seo_desc": "KÉSH de¹은 전 세계 배송 서비스를 제공합니다. 도착 국가의 규정에 따라 통관 절차를 진행하며, 안전하고 효율적인 배송을 위해 최선을 다합니다.",
+    "seo_title": "전 세계 배송 정책 | KÉSH de¹",
+    "seo_desc": "KÉSH de¹은 대만 국내 배송 및 DHL 국제 배송을 제공합니다. 재고 상품 24–48시간 출고, 전액 보험 배송, 목적지별 통관 서류 지원.",
     "title": "Worldwide Shipping",
     "subtitle": "전 세계 배송 정책",
     "commitment_title": "배송 약속",
@@ -204,20 +212,72 @@
     "delivery_time_title": "배송 소요 시간 (Delivery Time)",
     "domestic_label": "Domestic (Taiwan)",
     "domestic_title": "대만 본섬 배송",
-    "domestic_desc": "스카프는 SF 익스프레스의 보험 배송 서비스를 통해 발송되며, 철저한 포장 및 출고 확인 절차를 거쳐 안전하게 전달됩니다. 모든 배송은 고급 명품 배송 기준에 따라 엄격하게 관리됩니다.",
+    "domestic_desc": "약 1-3 영업일 소요 (블랙캣 익스프레스 / 전담 배송)",
     "intl_label": "International",
     "intl_title": "국제 배송",
-    "intl_desc": "모든 국제 주문은 DHL Express 국제 특급 배송 서비스를 이용하며, 보험 배송 서비스를 제공합니다. 실제 배송 소요 시간은 국가 및 지역, 현지 통관 절차에 따라 달라질 수 있습니다. 상품 발송 후, 고객님께서 배송 진행 상황과 상품 상태를 실시간으로 확인하실 수 있도록 상세한 배송 추적 번호를 제공해 드립니다. 모든 상품은 고가의 명품이 국제 배송 과정에서 안전하고 무사히 도착할 수 있도록 꼼꼼하게 포장하고 철저히 보호 처리됩니다.",
+    "intl_desc": "아시아 약 3-5일 / 유럽 및 미주 약 5-10일 (DHL/FedEx)",
     "insurance_title": "전액 보험 배송",
     "insurance_desc": "고가 상품의 안전을 보장하기 위해 발송되는 모든 패키지에는 전액 운송 보험이 가입되어 있습니다. 배송 중 분실이나 훼손이 발생할 경우 보험사와 당사가 전적으로 책임지며 고객님의 자산을 안전하게 보호합니다.",
     "duties_title": "관세 안내 (Duties & Taxes)",
-    "duties_desc": "국제 배송 시 발생하는 수입 관세 및 현지 세금은 수취인(구매자)이 부담해야 합니다. 관련 법규에 따라 정직하게 신고하며, 특별한 통관 요청이 있는 경우 주문 전 고객 센터에 문의해 주시기 바랍니다."
+    "duties_desc": "국제 배송 시 발생하는 수입 관세 및 현지 세금은 수취인(구매자)이 부담해야 합니다. 관련 법규에 따라 정직하게 신고하며, 특별한 통관 요청이 있는 경우 주문 전 고객 센터에 문의해 주시기 바랍니다.",
+    "seo_keywords": "전 세계 배송, DHL 명품 배송, 국제 핸드백 배송, 대만 배송, 보험 배송, KÉSH de¹, 중고 명품 배송"
   },
   "services": {
     "seo": {
-      "title": "매입・위탁・보상 판매・구매 대행 | Services",
-      "desc": "서비스 신청자는 실명 인증을 위해 두 가지 유효한 신분증을 제공해야 합니다. 정보는 신원 확인 및 법적 준수 목적으로만 사용됩니다.",
-      "keywords": "명품 매입, 중고 가방 위탁, 구매 대행, 에르메스 대행, 샤넬 매입, 보상 판매, KESH de1"
+      "title": "명품 서비스｜구매 대행·매입·위탁·감정｜KÉSH de¹",
+      "desc": "KÉSH de¹ 명품 서비스: 지정 모델 구매 대행, 신품·준신품 판매, 매입, 위탁, Entrupy 감정, 사후 케어 및 전 세계 배송.",
+      "keywords": "명품 서비스, 구매 대행, 명품 매입, 위탁 판매, 명품 감정, 가죽 케어, 신품 명품, 준신품, 중고 명품, 타이중 명품"
+    },
+    "page": {
+      "h1": "명품 서비스",
+      "h2": "",
+      "tags": "구매 대행, 매입, 위탁, 감정, 케어, 배송, 타이중 명품 서비스",
+      "cta_title": "시작할 준비가 되셨나요?",
+      "cta_desc": "구매 대행, 매입, 위탁, 상품 문의는 언제든 연락주세요.",
+      "cta_contact": "문의하기",
+      "cta_authenticity": "정품 보증 안내",
+      "blocks": [
+        {
+          "id": "retail-new",
+          "title": "신품·준신품 판매",
+          "desc": "S급·미사용·준신품 등 에르메스, 샤넬, LV, 디올, 셀린느 백·액세서리."
+        },
+        {
+          "id": "retail-preowned",
+          "title": "엄선 중고 명품",
+          "desc": "감정·정리·상세 품황 공개 후 판매하는 보존 상태 우수 명품."
+        },
+        {
+          "id": "sourcing",
+          "title": "지정 모델 구매 대행",
+          "desc": "품절·한정·특정 스펙 모델을 글로벌 네트워크로 섭외."
+        },
+        {
+          "id": "buyback",
+          "title": "매입·보상 판매",
+          "desc": "경쟁력 있는 시세와 투명한 절차로 빠른 현금화 지원."
+        },
+        {
+          "id": "consignment",
+          "title": "위탁·대행 판매",
+          "desc": "안전한 상품 등록과 글로벌 노출, 판매 후 정산."
+        },
+        {
+          "id": "authentication",
+          "title": "전문 정품 감정",
+          "desc": "2인 감정사 + Entrupy 검증, 감정 서류·영수증 제공."
+        },
+        {
+          "id": "care",
+          "title": "사후 클리닝·케어",
+          "desc": "구매 2년 내 1회 무료 기본 가죽 케어(일부 제외)."
+        },
+        {
+          "id": "shipping",
+          "title": "전 세계 배송",
+          "desc": "대만·해외 DHL·FedEx 등, 고가 상품 전액 보험."
+        }
+      ]
     },
     "ui": {
       "header_title": "Our Services",
@@ -502,23 +562,25 @@
     }
   },
   "news": {
-    "page_title": "새로운 소식",
-    "page_subtitle": "KÉSH de¹의 브랜드 소식 및 엄선된 아티클을 만나보세요",
-    "seo_title": "새로운 소식 & 브랜드 업데이트 | KÉSH de¹",
-    "seo_desc": "KÉSH de¹ 명품관의 최신 뉴스, 특별 이벤트 정보 및 전문적인 중고 명품 관리 지식을 확인해 보세요.",
+    "seo_title": "저널 및 소식 | KÉSH de¹ 명품관",
+    "seo_desc": "KÉSH de¹ 브랜드 소식, 명품 케어 가이드, 감정 팁 및 에르메스·샤넬·루이비통 시장 인사이트를 읽어보세요.",
+    "page_title": "Journal",
+    "page_subtitle": "뉴스 및 이벤트 / 패션 트렌드",
+    "updated": "업데이트 :",
+    "no_posts": "현재 등록된 뉴스가 없습니다.",
+    "footer_official": "KÉSH de¹ Official",
+    "footer_store": "온라인 스토어로 이동",
     "badge_latest": "최신 뉴스",
     "badge_news": "뉴스",
-    "read_more": "더 보기",
-    "view_details": "자세히 보기",
-    "no_posts": "현재 등록된 게시물이 없습니다",
-    "updated": "최근 업데이트",
-    "footer_official": "KÉSH de¹ 공식 저널",
-    "footer_store": "온라인 스토어 바로가기"
+    "read_more": "자세히 보기",
+    "view_details": "상세 보기",
+    "seo_keywords": "명품 뉴스, 핸드백 케어, 에르메스 정보, 샤넬 관리, KÉSH de¹ 저널, 중고 명품 블로그"
   },
   "faq": {
     "seo": {
-      "title": "FAQ | KÉSH de¹ - 정품 감정 및 위탁 판매 서비스",
-      "description": "KÉSH de¹ 자주 묻는 질문. 중고 명품 거래, 정품 감정 절차(S/A/B 등급), 위탁 수수료(20%), 국제 배송 및 반품 정책에 대한 완전한 가이드. 에르메스, 샤넬, LV 등을 안심하고 쇼핑하세요."
+      "title": "자주 묻는 질문 FAQ | KÉSH de¹",
+      "description": "KÉSH de¹ FAQ: 정품 감정, S/A/B 품황 등급, 20% 수수료, 국제 배송, 반품 및 결제 안내. 에르메스·샤넬·루이비통 중고 명품을 안심하고 구매하세요.",
+      "keywords": "FAQ, 자주 묻는 질문, 정품 감정, 품황 등급, 국제 배송, 반품 정책, KÉSH de¹, 에르메스 중고, 샤넬"
     },
     "ui": {
       "title": "FAQ",
@@ -698,9 +760,10 @@
   },
   "contact": {
     "seo": {
-      "title": "문의하기 | KÉSH de¹",
-      "description": "신상품 구매 대행, 중고 명품 판매 및 위탁 서비스. 구매 전 문의 및 사후 서비스는 공식 온라인 양식이나 이메일을 통해 연락해 주시기 바랍니다.",
-      "schema_name": "KÉSH de¹ 문의하기"
+      "title": "문의하기 | KÉSH de¹ | 타이중 부티크 & 온라인",
+      "description": "KÉSH de¹ 문의: 구매 대행, 중고 매입·판매, 위탁 및 상품 상담. 공식 양식, 이메일, LINE으로 연락하세요. 구매 전·후 모두 지원합니다.",
+      "schema_name": "KÉSH de¹ 문의하기",
+      "keywords": "KÉSH de¹ 문의, 타이중 명품 부티크, 구매 대행, 위탁 판매, LINE 상담, 명품 고객센터"
     },
     "left": {
       "title": "Contact Us",
@@ -737,10 +800,11 @@
   },
   "about": {
     "seo": {
-      "title": "회사 소개 About Us | KÉSH de¹ Luxury",
-      "description": "KÉSH de¹는 에르메스, 샤넬 등 세계적인 명품을 전문으로 취급합니다. 모든 제품은 두 명의 공인 감정사가 수작업으로 감정하고 엔트루피 시스템으로 교차 검증하여 최고 수준의 정품 보장을 제공합니다.",
+      "title": "KÉSH de¹ 소개 | 정품 중고 명품 부티크",
+      "description": "KÉSH de¹는 대만 타이중의 신뢰할 수 있는 명품 플랫폼입니다. 에르메스·샤넬·루이비통·디올 중고 명품, 이중 감정, Entrupy 검증, 투명한 품황 분류.",
       "schema_name": "회사 소개 - KÉSH de¹",
-      "schema_desc": "모든 상품은 배송 전 공인 감정사와 엔트루피 시스템을 통해 엄격한 다단계 감정을 거칩니다."
+      "schema_desc": "모든 상품은 배송 전 공인 감정사와 엔트루피 시스템을 통해 엄격한 다단계 감정을 거칩니다.",
+      "keywords": "KÉSH de¹ 소개, 타이중 명품, 중고 명품 감정, Entrupy, 브랜드 스토리, 명품 리셀"
     },
     "ui": {
       "hero_subtitle": "About KÉSH de¹",
@@ -838,52 +902,48 @@
     ]
   },
   "checkout": {
-    "backToBag": "장바구니로 돌아가기",
-    "emptyBag": "장바구니가 비어 있습니다",
-    "title": "결제 (CHECKOUT)",
-    "customerInfo": "주문자 정보",
-    "securityNotice": "안전한 배송 및 보험 적용을 위해 정확한 정보를 입력해 주세요.",
-    "fullNamePlaceholder": "수령인 전체 이름 (신분증과 일치해야 함)",
-    "emailPlaceholder": "이메일 주소 (필수)",
-    "emailUsage": "용도: 주문 알림 / 배송 알림 / 본인 인증",
-    "phonePlaceholder": "연락처 (필수)",
-    "selectCity": "시/도 선택",
-    "selectDistrict": "구/군 선택",
-    "stateProvince": "주 / 도 (State / Province)",
-    "city": "시 (City)",
-    "streetPlaceholder": "상세 주소 (건물명, 동/호수 등)",
-    "remarkPlaceholder": "배송 메모 (예: 배송 희망 시간, 선물 포장, 세관 요청 사항)",
-    "shippingMethod": "배송 방법",
-    "shippingSecurityDesc": "고객님의 주문은 KÉSH 전문 팀이 안전하고 프라이빗하게 처리합니다.",
-    "shippingDelivery": "일반 택배",
-    "shippingProtection": "상품은 전문적인 보호 포장으로 발송되며 완벽한 배송 추적을 제공합니다.",
-    "freeShipping": "₩ 0 (무료 배송)",
-    "payment": "결제 수단",
-    "paymentSecurity1": "결제 정보는 국제 표준 암호화 기술로 안전하게 처리됩니다.",
-    "paymentSecurity2": "신용카드 정보는 결제 대행사에서 처리하며, 당사 웹사이트에는 저장되지 않습니다.",
-    "creditCard": "신용카드 결제",
-    "atmTransfer": "가상계좌 이체 (ATM / Virtual Account Transfer)",
-    "paypal": "PayPal / Apple Pay",
-    "processing": "처리 중...",
-    "completePurchase": "주문 확인 및 안전하게 결제하기",
-    "orderSummary": "주문 요약",
-    "subtotal": "소계",
-    "shipping": "배송비",
-    "total": "총 결제 금액",
-    "alert": {
-      "fillInfo": "연락처 및 배송지 정보를 모두 입력해 주세요!",
-      "cardError": "신용카드 정보가 올바르지 않습니다!",
-      "atmError": "가상계좌 생성 실패: 시스템 혼잡",
-      "success": "결제가 완료되었습니다!"
+    "empty_cart": "장바구니가 비어 있습니다",
+    "title": "결제",
+    "subtitle": "KÉSH de¹ 안전한 결제 (PayUni)",
+    "contact_info": "연락처 정보",
+    "email_placeholder": "이메일",
+    "shipping_method": "배송 방법",
+    "home_delivery": "택배 배송 (배송비 NT$80)",
+    "cvs_delivery": "7-11 편의점 수령 (배송비 NT$80)",
+    "cvs_store": "7-11 편의점 지점",
+    "btn_select_store": "지점 선택",
+    "store_label": "지점: ",
+    "address_label": "주소: ",
+    "btn_clear_store": "지점 지우기",
+    "no_store_selected": "지점이 선택되지 않았습니다. '지점 선택'을 클릭하세요.",
+    "shipping_address": "배송 주소",
+    "name_placeholder": "성명",
+    "phone_placeholder": "전화번호",
+    "paypal_success": "PayPal 결제가 완료되었습니다! 주문이 생성되었습니다.",
+    "cities": {
+      "taipei": "타이베이시",
+      "new_taipei": "신베이시",
+      "taichung": "타이중시",
+      "kaohsiung": "가오슝시"
     },
-    "popup": {
-      "title": "주문 생성 완료",
-      "desc1": "주문이 성공적으로 생성되었습니다.",
-      "desc2": "기한 내에 ATM 또는 인터넷 뱅킹을 통해 입금을 완료해 주세요.",
-      "bankCode": "은행 코드",
-      "account": "계좌 번호",
-      "deadline": "입금 기한",
-      "viewOrder": "주문 내역 보기"
+    "address_home_req": "상세 주소 (택배 배송 시 필수)",
+    "address_cvs_opt": "주소 (편의점 수령 시 선택)",
+    "postal_code": "우편번호",
+    "payment_method": "결제 방법",
+    "btn_processing": "처리 중...",
+    "btn_pay": "지금 결제하기",
+    "order_summary": "주문 요약",
+    "subtotal": "소계",
+    "shipping_fee": "배송비",
+    "total": "총계",
+    "note_final_amount": "* 최종 결제 금액은 주문 생성 후 계산 결과에 따릅니다.",
+    "alerts": {
+      "missing_fields": "모든 필수 항목을 입력해주세요.",
+      "missing_home_address": "택배 배송을 위한 상세 주소를 입력해주세요.",
+      "missing_cvs_store": "먼저 7-11 편의점 지점을 선택해주세요.",
+      "order_failed": "주문 생성 실패: ",
+      "payuni_missing": "PayUni 누락된 항목: ",
+      "system_error": "오류가 발생했습니다. 나중에 다시 시도해주세요."
     }
   },
   "order_lookup": {
@@ -913,11 +973,13 @@
   },
   "shopping_guide": {
     "page": {
-      "seo_title": "쇼핑 안내 | KÉSH de¹",
+      "seo_title": "쇼핑 안내 | KÉSH de¹ 명품관",
       "title": "Shopping Guide",
       "subtitle_desktop": "Please read before buying",
       "subtitle_mobile": "쇼핑 안내 및 이용 약관",
-      "footer_note": "KÉSH de¹를 선택해 주셔서 감사합니다"
+      "footer_note": "KÉSH de¹를 선택해 주셔서 감사합니다",
+      "seo_desc": "KÉSH de¹ 쇼핑 안내: 결제, 정품 보증, S/A/B 품황 등급, 반품 정책 및 개인정보. 중고 명품 구매 전 확인하세요.",
+      "seo_keywords": "쇼핑 안내, 반품 정책, 품황 등급, 정품 조항, 중고 명품 구매, KÉSH de¹"
     },
     "sections": [
       {
@@ -983,9 +1045,10 @@
   "privacy": {
     "page": {
       "seo_title": "개인정보 처리방침 | KÉSH de¹",
-      "seo_desc": "KÉSH de¹ Luxury 개인정보 처리방침.",
+      "seo_desc": "KÉSH de¹ 개인정보 처리방침: 데이터 수집·이용·보호·Cookie 및 회원 권리에 대한 안내.",
       "title": "개인정보 처리방침",
-      "last_updated": "최근 업데이트: "
+      "last_updated": "최근 업데이트: ",
+      "seo_keywords": "개인정보 처리방침, 개인정보 보호, KÉSH de¹, 명품 쇼핑몰 개인정보, 쿠키"
     },
     "sections": [
       {
@@ -1039,7 +1102,7 @@
       "details_title": "상품 세부 정보 (Product Details)",
       "faq_title": "쇼핑 가이드 및 FAQ",
       "tab_features": "제품 특징",
-      "tab_shipping": "청소 및 유지 관리 권장 사항",
+      "tab_shipping": "교환/반품 및 배송 안내",
       "related_title": "추천 상품 (You May Also Like)",
       "related_subtitle": "고객님을 위한 추천 상품",
       "view_all": "전체 보기"
@@ -1092,24 +1155,22 @@
     }
   },
   "cart": {
-    "title": "쇼핑백",
-    "product": "개의 상품",
+    "title": "장바구니",
     "continue_shopping": "쇼핑 계속하기",
-    "empty_message": "쇼핑백이 비어 있습니다.",
+    "empty_message": "장바구니가 비어 있습니다",
     "start_shopping": "쇼핑 시작하기",
+    "product": "상품",
     "quantity": "수량",
-    "total": "합계",
+    "total": "총계",
     "remove_item": "상품 삭제",
-    "order_summary": "주문 요약",
     "subtotal": "소계",
     "tax_shipping_note": "세금 포함. 배송비는 결제 단계에서 계산됩니다.",
-    "estimated_total": "예상 총액",
-    "go_to_checkout": "결제 진행하기",
-    "secure_checkout_note": "KÉSH de¹ 안전 결제 시스템"
+    "secure_checkout_note": "KÉSH de¹에서 지원하는 안전한 결제",
+    "go_to_checkout": "결제하기"
   },
   "terms": {
-    "seo_title": "서비스 약관 및 정책 | KÉSH de¹ 럭셔리 부티크",
-    "seo_desc": "KÉSH de¹를 선택해 주셔서 감사합니다. 저희는 투명하고 전문적이며 신뢰할 수 있는 명품 쇼핑 경험을 제공하기 위해 최선을 다하고 있습니다. 원활하고 안전한 거래를 위해 쇼핑 전 서비스 약관을 확인해 주시기 바랍니다.",
+    "seo_title": "서비스 약관 | KÉSH de¹ 명품관",
+    "seo_desc": "KÉSH de¹ 서비스 약관: 정품 보증, 결제·배송, 반품, 개인정보 및 면책 조항. 중고 명품 구매 전 반드시 확인하세요.",
     "page_tag": "KÉSH de¹ Service Policies",
     "page_title": "서비스 약관 및 정책",
     "page_subtitle": "KÉSH de¹를 선택해 주셔서 감사합니다. 저희는 투명하고 전문적이며 신뢰할 수 있는 명품 쇼핑 경험을 제공하기 위해 최선을 다하고 있습니다. 원활하고 안전한 거래를 위해 구매 전 아래의 서비스 약관을 주의 깊게 읽어보시기 바랍니다.",
@@ -1339,98 +1400,81 @@
           }
         ]
       }
-    ]
+    ],
+    "seo_keywords": "서비스 약관, 쇼핑 정책, 정품 보증, 반품, KÉSH de¹, 중고 명품 약관"
   },
   "member": {
-    "title": "내 계정",
-    "subtitle": "주문 및 개인정보 관리",
-    "welcome": "안녕하세요,",
+    "title": "마이 페이지",
+    "subtitle": "주문 및 개인 정보 관리",
+    "welcome": "환영합니다",
     "tabs": {
       "dashboard": "대시보드",
-      "orders": "내 주문",
+      "orders": "주문 내역",
       "addresses": "배송지 관리",
       "settings": "계정 설정",
       "logout": "로그아웃"
     },
-    "orders": {
-      "title": "주문 내역",
-      "count": "개의 주문",
-      "empty": "현재 주문 내역이 없습니다.",
-      "shop_now": "쇼핑 시작하기",
-      "order_no": "주문 번호",
-      "date": "주문일",
-      "status": "상태",
-      "total": "총액",
-      "view": "보기",
-      "close": "닫기",
-      "purchased_items": "구매 상품",
-      "qty": "수량",
-      "shipping_details": "배송 상세 정보",
-      "recipient": "수령인",
-      "payment_method": "결제 수단",
-      "shipping_address": "배송지 주소",
-      "order_summary": "주문 요약",
-      "subtotal": "소계",
-      "shipping": "배송비",
-      "free": "무료",
-      "credit_card": "신용카드",
-      "atm_transfer": "계좌 이체 (ATM)"
+    "dashboard": {
+      "total_spent": "총 결제 금액",
+      "completed_orders": "완료된 주문",
+      "pending_orders": "결제 대기"
     },
-    "atm": {
-      "pending": "결제 대기 중",
-      "bank_code": "은행 코드",
-      "account": "계좌 번호",
-      "deadline": "입금 기한"
+    "orders": {
+      "empty": "주문 내역이 없습니다.",
+      "shop_now": "쇼핑하러 가기",
+      "order_amount": "주문 금액",
+      "items": "개 상품",
+      "view_details": "상세 보기",
+      "pay_now": "지금 결제"
+    },
+    "addresses": {
+      "empty": "등록된 배송지가 없습니다.",
+      "add_new": "새 배송지 추가"
+    },
+    "settings": {
+      "title": "개인 정보",
+      "name": "이름",
+      "email": "이메일",
+      "save": "변경 사항 저장"
     },
     "status": {
       "pending": "결제 대기",
       "processing": "처리 중",
       "completed": "완료됨",
-      "canceled": "취소됨"
-    }
-  },
-  "showcase": {
-    "title": "CURATION",
-    "sub_title": "(STYLE)",
-    "tag": "for MODERN ELEGANCE",
-    "desc": "KÉSH de¹가 엄선한 최고급 럭셔리 아이템을 만나보세요.\n시대를 초월한 클래식부터 현대적인 어반 스타일까지, 당신만의 특별한 취향을 보여주세요.",
-    "buy_now": "BUY NOW",
-    "loading": "LOADING...",
-    "discover_more": "DISCOVER MORE",
-    "view_all": "전체 상품",
-    "no_products": "해당 카테고리에 상품이 없습니다"
-  },
-  "layout": {
-    "site_title": "KÉSH de¹ | 명품 중고 명품 부티크",
-    "site_name": "KÉSH de¹ 명품관",
-    "site_description": "KÉSH de¹은 타이중에 위치한 명품 부티크로, 에르메스·샤넬·루이비통·디올 등 정품 중고 명품을 전문으로 취급합니다. 모든 상품은 100% 정품이며 전문 감정을 거칩니다.",
-    "keywords": "KÉSH de¹, 명품관, 중고 명품, 에르메스, 샤넬, 루이비통, 디올, 구찌, 로에베, 셀린느, YSL, 고야르, 대만",
-    "og_locale": "ko_KR"
-  },
-  "brand_seo": {
-    "chanel": {
-      "title": "샤넬 중고 명품 | KÉSH de¹ 명품관",
-      "description": "정품 인증 샤넬 클래식 플랩, 보이, 2.55, 19 등 중고 핸드백. 전문 감정 및 100% 정품 보장."
-    },
-    "hermes": {
-      "title": "에르메스 중고 명품 | KÉSH de¹ 명품관",
-      "description": "정품 인증 에르메스 버킨, 켈리, 콘스탄스 등 희귀 중고 핸드백. 완전한 감정 서류 포함."
-    },
-    "lv": {
-      "title": "루이비통 중고 명품 | KÉSH de¹ 명품관",
-      "description": "정품 인증 루이비통 스피디, 네버풀, 알마, 포쉐트 등 중고 핸드백. 모든 상품 100% 정품."
-    },
-    "dior": {
-      "title": "디올 중고 명품 | KÉSH de¹ 명품관",
-      "description": "정품 인증 디올 레이디 디올, 새들, 30 몽테뉴 등 중고 핸드백. 전문 감정 및 품황 분류."
+      "canceled": "취소됨",
+      "unknown": "알 수 없음"
     }
   },
   "category": {
     "seo": {
-      "all_title": "전체 명품 상품 | KÉSH de¹",
-      "all_description": "KÉSH de¹의 에르메스, 샤넬, 루이비통, 디올 등 정품 인증 중고 명품 전체 컬렉션을 둘러보세요. 모든 상품 100% 정품, 전문 감정 및 품황 분류.",
-      "collection_description": "KÉSH de¹의 엄선된 중고 명품 컬렉션을 탐색하세요. 모든 상품은 전문 감정을 거쳤으며 감정 서류가 첨부됩니다. 100% 정품 보장.",
+      "all_title": "전체 명품｜에르메스·샤넬·LV | KÉSH de¹",
+      "all_description": "KÉSH de¹ 전체 중고 명품: 에르메스, 샤넬, 루이비통, 디올, 구찌, 로에베 등. 100% 정품, 전문 감정 및 S/A/B 품황 분류.",
+      "all_keywords": "전체 명품, 중고 핸드백, 에르메스, 샤넬, 루이비통, 디올, KÉSH de¹, 정품 중고",
+      "collection_description": "KÉSH de¹ {{name}} 엄선 컬렉션. 모든 상품 전문 감정, 감정 서류 첨부, 100% 정품 보장.",
+      "collection_keywords": "{{name}}, 중고 명품, KÉSH de¹, 정품 보증, 전문 감정",
       "og_image_alt": "KÉSH de¹ 명품 컬렉션"
+    }
+  },
+  "brand_seo": {
+    "chanel": {
+      "title": "샤넬 중고 명품 | KÉSH de¹",
+      "description": "KÉSH de¹ 정품 인증 샤넬 클래식 플랩, 보이, 2.55, 19. 이중 감정, 품황 분류, 전 세계 배송.",
+      "keywords": "샤넬 중고, 클래식 플랩, 보이백, 2.55, 정품 샤넬, KÉSH de¹, 명품 리셀"
+    },
+    "hermes": {
+      "title": "에르메스 중고 | 버킨·켈리 | KÉSH de¹",
+      "description": "KÉSH de¹ 에르메스 버킨, 켈리, 콘스탄스. Entrupy 검증, 완전한 감정 서류, 평생 정품 보장.",
+      "keywords": "에르메스 중고, 버킨, 켈리, 콘스탄스, 정품 에르메스, KÉSH de¹"
+    },
+    "lv": {
+      "title": "루이비통 중고 명품 | KÉSH de¹",
+      "description": "KÉSH de¹ 루이비통 스피디, 네버풀, 알마 등. 100% 정품, 전문 품황 분류.",
+      "keywords": "루이비통 중고, LV 스피디, 네버풀, 알마, 정품 LV, KÉSH de¹"
+    },
+    "dior": {
+      "title": "디올 중고 명품 | KÉSH de¹",
+      "description": "KÉSH de¹ 디올 레이디 디올, 새들, 30 몽테뉴. 전문 감정, 투명한 품황, 100% 정품.",
+      "keywords": "디올 중고, 레이디 디올, 새들백, 30 몽테뉴, 정품 디올, KÉSH de¹"
     }
   }
 }

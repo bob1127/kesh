@@ -5,6 +5,7 @@ import React from "react";
 import Image from "next/image";
 // 🔥 1. 引入翻譯 Hook
 import { useTranslation } from "next-i18next";
+import { tFallback } from "@/lib/t-fallback";
 
 export default function Footer() {
   // 🔥 2. 啟用翻譯 Hook
@@ -13,36 +14,50 @@ export default function Footer() {
   // --- 修改重點：修正陣列結構，並加入服務條款連結 ---
   const footerLinks = {
     explore: [
-      { name: t("footer.links.about") || "About 關於我們", href: "/about" },
-      { name: t("footer.links.news") || "News 最新消息", href: "/news" },
-      { name: t("footer.links.shop") || "Shop 所有商品", href: "/category" },
-      // 寄賣服務或其他連結 (保留您原本預留的位置)
       {
-        name: t("footer.links.services") || "Services 服務流程",
+        name: tFallback(t, "footer.links.about", "關於我們"),
+        href: "/about",
+      },
+      {
+        name: tFallback(t, "footer.links.news", "最新消息"),
+        href: "/news",
+      },
+      {
+        name: tFallback(t, "footer.links.shop", "所有商品"),
+        href: "/category",
+      },
+      {
+        name: tFallback(t, "footer.links.services", "精品服務"),
         href: "/services",
+      },
+      {
+        name: tFallback(t, "footer.links.note", "購物須知"),
+        href: "/note",
       },
     ],
     info: [
       {
-        name: t("footer.links.authenticity") || "Authenticity 正品保證",
+        name: tFallback(t, "footer.links.authenticity", "正品保證"),
         href: "/authenticity",
       },
       {
-        name: t("footer.links.shipping") || "Shipping 全球配送",
+        name: tFallback(t, "footer.links.shipping", "全球配送"),
         href: "/shipping",
       },
-      { name: t("footer.links.faq") || "FAQ 常見問題", href: "/faq" },
       {
-        name: t("footer.links.contact") || "Contact 聯絡我們",
+        name: tFallback(t, "footer.links.faq", "常見問題"),
+        href: "/faq",
+      },
+      {
+        name: tFallback(t, "footer.links.contact", "聯絡我們"),
         href: "/contact",
       },
       {
-        name: t("footer.links.privacy") || "Privacy Policy 隱私權政策",
+        name: tFallback(t, "footer.links.privacy", "隱私權政策"),
         href: "/privacy",
       },
-      // 🔥 新增：服務條款與政策 (放在隱私權下方)
       {
-        name: t("footer.links.terms") || "Terms of Service 服務條款",
+        name: tFallback(t, "footer.links.terms", "服務條款"),
         href: "/service",
       },
     ],
@@ -169,14 +184,14 @@ export default function Footer() {
               href="/service"
               className="hover:text-white transition-colors"
             >
-              Terms
+              {tFallback(t, "footer.links.terms", "服務條款")}
             </Link>
             <span className="w-[1px] h-3 bg-gray-700"></span>
             <Link
               href="/privacy"
               className="hover:text-white transition-colors"
             >
-              Privacy
+              {tFallback(t, "footer.links.privacy", "隱私權政策")}
             </Link>
             <span className="w-[1px] h-3 bg-gray-700 hidden md:block"></span>
             <p className="w-full md:w-auto text-center mt-2 md:mt-0">

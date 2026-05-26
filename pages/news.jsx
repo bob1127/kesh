@@ -7,6 +7,8 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
+import { BRAND_AGGREGATE_RATING } from "@/lib/news-article-seo";
 
 // --- 1. Hero 文章組件 ---
 const HeroPost = ({ post, t }) => {
@@ -121,77 +123,99 @@ const NewsCard = ({ post, index, t }) => {
 // --- 🔥 主頁面 ---
 export default function NewsPage({ posts }) {
   const { t } = useTranslation("common");
+  const router = useRouter();
+  const locale = router.locale || "zh-TW";
 
   const heroPost = posts.length > 0 ? posts[0] : null;
   const gridPosts = posts.length > 1 ? posts.slice(1) : [];
 
   const siteUrl =
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
+  const newsUrl =
+    locale === "zh-TW" ? `${siteUrl}/news` : `${siteUrl}/${locale}/news`;
+  const ogLocale =
+    locale === "en" ? "en_US" : locale === "ko" ? "ko_KR" : "zh_TW";
 
-  // 🔥 SEO: 抓取第一篇文章的圖作為社群分享圖，若沒有文章則用預設圖
   const ogImage = heroPost ? heroPost.image : `${siteUrl}/default-og-image.jpg`;
+  const listTitle = t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹");
+  const listDesc = t(
+    "news.seo_desc",
+    "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
+  );
+  const listKeywords = t("news.seo_keywords", "");
 
-  // 🔥 SEO 結構化資料：ItemList (文章清單標記)
-  const schemaItemList = {
+  const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: posts.map((post, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      url: `${siteUrl}/news/${post.slug}`,
-      name: post.title,
-    })),
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: t("layout.site_name"),
+        url: siteUrl,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ...BRAND_AGGREGATE_RATING,
+        },
+      },
+      {
+        "@type": "Blog",
+        "@id": `${newsUrl}#blog`,
+        name: listTitle,
+        description: listDesc,
+        url: newsUrl,
+        publisher: { "@id": `${siteUrl}/#organization` },
+        inLanguage: locale === "en" ? "en" : locale === "ko" ? "ko" : "zh-TW",
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": newsUrl,
+        name: listTitle,
+        description: listDesc,
+        url: newsUrl,
+      },
+      {
+        "@type": "ItemList",
+        itemListElement: posts.map((post, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          url:
+            locale === "zh-TW"
+              ? `${siteUrl}/news/${post.slug}`
+              : `${siteUrl}/${locale}/news/${post.slug}`,
+          name: post.title,
+        })),
+      },
+    ],
   };
 
   return (
     <>
       <Head>
-        <title>{t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}</title>
-        <meta
-          name="description"
-          content={t(
-            "news.seo_desc",
-            "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
-          )}
-        />
+        <title key="title">{listTitle}</title>
+        <meta name="description" content={listDesc} key="desc" />
+        {listKeywords && (
+          <meta name="keywords" content={listKeywords} key="keywords" />
+        )}
+        <link rel="canonical" href={newsUrl} key="canonical" />
 
-        <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
+        <meta property="og:locale" content={ogLocale} key="oglocale" />
         <meta property="og:type" content="website" key="ogtype" />
-        <meta
-          property="og:title"
-          content={t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}
-          key="ogtitle"
-        />
-        <meta
-          property="og:description"
-          content={t(
-            "news.seo_desc",
-            "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
-          )}
-        />
-        <meta property="og:image" content={ogImage} />
-        <meta property="og:image:secure_url" content={ogImage} />
-        <meta property="og:url" content={`${siteUrl}/news`} />
+        <meta property="og:site_name" content={t("layout.site_name")} key="ogsite" />
+        <meta property="og:title" content={listTitle} key="ogtitle" />
+        <meta property="og:description" content={listDesc} key="ogdesc" />
+        <meta property="og:image" content={ogImage} key="ogimage" />
+        <meta property="og:image:secure_url" content={ogImage} key="ogimagesecure" />
+        <meta property="og:url" content={newsUrl} key="ogurl" />
 
-        {/* 🔥 Twitter Card 標籤 */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹")}
-        />
-        <meta
-          name="twitter:description"
-          content={t(
-            "news.seo_desc",
-            "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
-          )}
-        />
-        <meta name="twitter:image" content={ogImage} />
+        <meta name="twitter:card" content="summary_large_image" key="twcard" />
+        <meta name="twitter:title" content={listTitle} key="twtitle" />
+        <meta name="twitter:description" content={listDesc} key="twdesc" />
+        <meta name="twitter:image" content={ogImage} key="twimage" />
 
-        {/* 注入自動生成的 JSON-LD */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaItemList) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          key="jsonld-graph"
         />
       </Head>
 

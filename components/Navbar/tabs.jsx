@@ -23,6 +23,7 @@ import { useCart } from "../../components/context/CartContext";
 import { useTranslation } from "next-i18next";
 import { medusa } from "@/lib/medusa";
 import { useUser } from "../../components/context/UserContext";
+import { tFallback } from "@/lib/t-fallback";
 
 export const SlideTabsExample = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -256,30 +257,49 @@ export const SlideTabsExample = () => {
   const navLinks = [
     {
       key: "categories",
-      label: t("navbar.categories") || "產品類別",
+      label: tFallback(t, "navbar.categories", "產品類別"),
       href: "/category/all",
       hasMega: true,
     },
     {
       key: "brand",
-      label: t("navbar.brand") || "品牌館",
+      label: tFallback(t, "navbar.brand", "品牌館"),
       href: "/category/all",
       hasMega: true,
     },
     {
-      key: "AUTHENTICITY",
-      label: t("navbar.authenticity") || "正品保證",
+      key: "authenticity",
+      label: tFallback(t, "navbar.authenticity", "正品保證"),
       href: "/authenticity",
     },
     {
-      key: "SHIPPING",
-      label: t("navbar.shipping") || "全球配送",
+      key: "shipping",
+      label: tFallback(t, "navbar.shipping", "全球配送"),
       href: "/shipping",
     },
-    { key: "news", label: t("navbar.news") || "最新消息", href: "/news" },
     {
-      key: "CONTACT",
-      label: t("navbar.contact") || "聯繫凱仕",
+      key: "services",
+      label: tFallback(t, "navbar.services", "精品服務"),
+      href: "/services",
+    },
+    {
+      key: "about",
+      label: tFallback(t, "navbar.about", "關於凱仕"),
+      href: "/about",
+    },
+    {
+      key: "news",
+      label: tFallback(t, "navbar.news", "最新消息"),
+      href: "/news",
+    },
+    {
+      key: "terms",
+      label: tFallback(t, "navbar.terms", "服務條款"),
+      href: "/service",
+    },
+    {
+      key: "contact",
+      label: tFallback(t, "navbar.contact", "聯繫凱仕"),
       href: "/contact",
     },
   ];

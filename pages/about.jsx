@@ -96,8 +96,14 @@ export default function About() {
   return (
     <ReactLenis root>
       <Head>
-        <title>{seo.title}</title>
-        <meta name="description" content={seo.description} />
+        <title key="title">{seo.title}</title>
+        <meta name="description" content={seo.description} key="description" />
+        {seo.keywords && (
+          <meta name="keywords" content={seo.keywords} key="keywords" />
+        )}
+        {seo.keywords && (
+          <meta name="keywords" content={seo.keywords} key="keywords" />
+        )}
 
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
         <meta property="og:type" content="website" key="ogtype" />

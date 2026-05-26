@@ -32,12 +32,14 @@ export default function Home() {
 
   const pageTitle = t("brand_seo.hermes.title");
   const pageDesc = t("brand_seo.hermes.description");
+  const pageKeywords = t("brand_seo.hermes.keywords");
 
   return (
     <>
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
+        <meta name="keywords" content={pageKeywords} key="keywords" />
         <meta property="og:title" content={pageTitle} key="ogtitle" />
         <meta property="og:description" content={pageDesc} key="ogdesc" />
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />

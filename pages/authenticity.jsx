@@ -27,6 +27,7 @@ export default function Authenticity() {
 
   const pageTitle = t("authenticity.seo_title");
   const pageDesc = t("authenticity.seo_desc");
+  const pageKeywords = t("authenticity.seo_keywords");
 
   const schemaData = {
     "@context": "https://schema.org",
@@ -42,8 +43,9 @@ export default function Authenticity() {
   return (
     <ReactLenis root>
       <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
+        <title key="title">{pageTitle}</title>
+        <meta name="description" content={pageDesc} key="description" />
+        <meta name="keywords" content={pageKeywords} key="keywords" />
 
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
         <meta property="og:type" content="website" key="ogtype" />

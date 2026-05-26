@@ -48,8 +48,15 @@ export default function PrivacyPolicy() {
   return (
     <>
       <Head>
-        <title>{pageInfo.seo_title}</title>
-        <meta name="description" content={pageInfo.seo_desc} />
+        <title key="title">{pageInfo.seo_title}</title>
+        <meta name="description" content={pageInfo.seo_desc} key="description" />
+        {pageInfo.seo_keywords && (
+          <meta
+            name="keywords"
+            content={pageInfo.seo_keywords}
+            key="keywords"
+          />
+        )}
 
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
         <meta property="og:type" content="website" key="ogtype" />

@@ -86,8 +86,13 @@ export default function Contact() {
   return (
     <ReactLenis root>
       <Head>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
+        <title key="title">{pageTitle}</title>
+        <meta name="description" content={pageDesc} key="description" />
+        <meta
+          name="keywords"
+          content={t("contact.seo.keywords")}
+          key="keywords"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
@@ -123,9 +128,12 @@ export default function Contact() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
             <div className="relative z-10">
-              <h1 className="text-3xl md:text-4xl font-serif mb-6 tracking-wide">
+              <h1 className="text-3xl md:text-4xl font-serif mb-4 tracking-wide">
                 {t("contact.left.title")}
               </h1>
+              <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                {t("contact.left.subtitle")}
+              </p>
               <p className="text-gray-400 font-light leading-loose mb-10 text-sm md:text-base">
                 {t("contact.left.desc1")}
                 <br />

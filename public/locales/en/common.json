@@ -8,8 +8,10 @@
     "news": "News",
     "faq": "FAQ",
     "contact": "Contact",
-    "about": "About Us",
-    "search": "Search..."
+    "about": "About",
+    "search": "Search...",
+    "services": "Services",
+    "terms": "Terms"
   },
   "lang": {
     "zh-TW": "繁體中文",
@@ -33,8 +35,13 @@
     "contact_title": "CONTACT US",
     "contact_btn": "Contact Us",
     "seo": {
-      "title": "KÉSH de¹ | Luxury Pre-Owned Designer Handbags",
-      "description": "Shop authenticated pre-owned Hermès Birkin, Kelly, Chanel Classic Flap, 2.55, Louis Vuitton Speedy, Neverfull, Dior Lady Dior, Saddle, Celine Triomphe, Loewe Puzzle and more. Personal sourcing service available."
+      "title": "KÉSH de¹ | New, Like-New & Curated Pre-Owned Luxury Platform",
+      "description": "KÉSH de¹ is a Taichung-based luxury platform for Hermès, Chanel, Louis Vuitton, Dior, Celine and more — new, like-new and curated pre-owned sales, personal sourcing, buy-in, consignment, authentication and worldwide shipping.",
+      "keywords": "KÉSH de¹, luxury buy sell, new luxury, like-new luxury, pre-owned luxury, designer handbags, personal sourcing, luxury buy-in, consignment, authentication, Taichung boutique, Chanel, Hermès, Louis Vuitton",
+      "h1": "New, Like-New & Curated Pre-Owned Luxury Platform",
+      "h2": "Curated bags & accessories | Authentication | Worldwide shipping | Sourcing & buy-in",
+      "positioning": "KÉSH de¹ | A trusted platform for new, like-new and curated pre-owned luxury with sales, sourcing, buy-in, consignment, authentication and global delivery.",
+      "tags": "new luxury, like-new, curated pre-owned, luxury trading, sourcing, buy-in, authentication, worldwide shipping"
     }
   },
   "guarantees": {
@@ -85,8 +92,8 @@
     ]
   },
   "authenticity": {
-    "seo_title": "Authenticity & Standards | KÉSH de¹",
-    "seo_desc": "All items purchased at KÉSH de¹ undergo professional authentication and come with verification documents and receipts, offering a lifetime guarantee of authenticity. Enjoy one free basic leather care and cleaning service within two years of purchase.",
+    "seo_title": "Authenticity Guarantee | KÉSH de¹ Luxury Boutique",
+    "seo_desc": "Every KÉSH de¹ item is verified by two qualified appraisers plus Entrupy AI authentication, with certificates and receipts. Lifetime authenticity guarantee and one complimentary leather care within two years.",
     "page_title": "Authenticity & Standards",
     "page_subtitle": "Our Authentication Standards",
     "commitment_title": "Our Commitment to Authenticity",
@@ -111,7 +118,8 @@
     "care_list_2": "Exclusions: Hardware polishing/, leather tear repair, interior , or dyeing services are not included.",
     "care_list_3": "How to use: Please make an appointment in advance via Customer Service LINE or online form, and send the item to the designated address.",
     "contact_desc": "If you need to know about the condition of the item or care details, please contact our customer service team.",
-    "contact_btn": "Contact Customer Service"
+    "contact_btn": "Contact Customer Service",
+    "seo_keywords": "authenticity guarantee, luxury authentication, Entrupy, pre-owned Hermès, Chanel authentication, KÉSH de¹, genuine luxury bags, lifetime guarantee"
   },
   "footer": {
     "slogan_1": "A Value of Priority.",
@@ -193,8 +201,8 @@
     "error_register_failed": "Registration failed"
   },
   "shipping": {
-    "seo_title": "Worldwide Shipping | KÉSH de¹",
-    "seo_desc": "We provide international shipping. Documentation is prepared in accordance with destination regulations. Delivery is handled securely and efficiently.",
+    "seo_title": "Worldwide Shipping Policy | KÉSH de¹",
+    "seo_desc": "KÉSH de¹ ships across Taiwan and worldwide via DHL Express with full insurance. In-stock items ship within 24–48 hours. Customs documentation prepared per destination regulations.",
     "title": "Worldwide Shipping",
     "subtitle": "Global Shipping Policy",
     "commitment_title": "Our Commitment",
@@ -204,20 +212,72 @@
     "delivery_time_title": "Delivery Time",
     "domestic_label": "Domestic (Taiwan)",
     "domestic_title": "Taiwan Island Delivery",
-    "domestic_desc": "The scarf was shipped via SF Express with declared value insurance and was safely delivered after undergoing a thorough packaging and shipping verification process. Every shipment is strictly monitored to meet the delivery standards for high-end luxury goods.",
+    "domestic_desc": "Approx. 1 - 3 business days (Black Cat Express / Personal Courier)",
     "intl_label": "International",
     "intl_title": "International Delivery",
-    "intl_desc": "All international orders are shipped via DHL Express and include insurance coverage. Actual delivery times may vary depending on the country, region, and local customs clearance procedures. Once your order has been shipped, we will provide a detailed tracking number so you can check the delivery progress and the status of your items in real time. All items are carefully packaged and securely protected to ensure that high-value luxury goods arrive safely during international shipping.",
+    "intl_desc": "Asia: 3-5 days / Europe & US: 5-10 days (DHL/FedEx)",
     "insurance_title": "Fully Insured Shipping",
     "insurance_desc": "To ensure the safety of high-value items, all dispatched packages are fully insured for transit. In the event of any loss or damage during shipping, the insurance company and we will take full responsibility, safeguarding your assets.",
     "duties_title": "Duties & Taxes",
-    "duties_desc": "Import duties and local taxes incurred from international shipping are the responsibility of the recipient (buyer). We declare items truthfully according to regulations. If you have special customs declaration requests, please contact our customer service before placing an order."
+    "duties_desc": "Import duties and local taxes incurred from international shipping are the responsibility of the recipient (buyer). We declare items truthfully according to regulations. If you have special customs declaration requests, please contact our customer service before placing an order.",
+    "seo_keywords": "worldwide shipping, DHL luxury delivery, international handbag shipping, Taiwan shipping, insured delivery, KÉSH de¹, pre-owned luxury shipping"
   },
   "services": {
     "seo": {
-      "title": "Buy-in・・Trade-in・Sourcing | Services",
-      "desc": "Applicants must provide two valid forms of identification for real-name verification. Information is used strictly for identity verification and legal compliance.",
-      "keywords": "Luxury Buy-in, , Personal Shopper, Hermes Sourcing, Chanel Buy-in, Trade-in, KESH de1"
+      "title": "Luxury Services | Sourcing, Buy-in, Consignment & Authentication | KÉSH de¹",
+      "desc": "KÉSH de¹ offers end-to-end luxury services: personal sourcing, new and like-new retail, buy-in, consignment, Entrupy-backed authentication, after-sales care and worldwide shipping.",
+      "keywords": "luxury services, personal sourcing, luxury buy-in, consignment, authentication, leather care, new luxury, like-new luxury, pre-owned luxury, Taichung boutique"
+    },
+    "page": {
+      "h1": "Services",
+      "h2": "",
+      "tags": "sourcing, buy-in, consignment, authentication, leather care, worldwide shipping, Taichung luxury services",
+      "cta_title": "Ready to get started?",
+      "cta_desc": "Contact our team for sourcing, selling, consignment or product inquiries.",
+      "cta_contact": "Contact Us",
+      "cta_authenticity": "Authenticity Guarantee",
+      "blocks": [
+        {
+          "id": "retail-new",
+          "title": "New & Like-New Luxury Retail",
+          "desc": "Rank S and unused or like-new pieces from Hermès, Chanel, Louis Vuitton, Dior, Celine and more."
+        },
+        {
+          "id": "retail-preowned",
+          "title": "Curated Pre-Owned Luxury",
+          "desc": "Authenticated, well-preserved pieces with transparent condition reports and full provenance."
+        },
+        {
+          "id": "sourcing",
+          "title": "Personal Sourcing",
+          "desc": "We source sold-out, limited and specific styles through our global buyer network."
+        },
+        {
+          "id": "buyback",
+          "title": "Buy-in & Trade-in",
+          "desc": "Competitive market pricing with a clear, secure process for sellers and collectors."
+        },
+        {
+          "id": "consignment",
+          "title": "Consignment",
+          "desc": "Safe listing and global exposure through our website and channels, with payout after sale."
+        },
+        {
+          "id": "authentication",
+          "title": "Professional Authentication",
+          "desc": "Dual appraiser review plus Entrupy verification with certificates and receipts."
+        },
+        {
+          "id": "care",
+          "title": "After-sales Leather Care",
+          "desc": "One complimentary basic leather cleaning within two years of purchase (exclusions apply)."
+        },
+        {
+          "id": "shipping",
+          "title": "Worldwide Shipping",
+          "desc": "Domestic and international delivery via DHL, FedEx and partners with full insurance."
+        }
+      ]
     },
     "ui": {
       "header_title": "Our Services",
@@ -502,23 +562,25 @@
     }
   },
   "news": {
-    "page_title": "Latest News",
-    "page_subtitle": "Explore KÉSH de¹ brand updates and curated articles",
-    "seo_title": "Latest News & Brand Updates | KÉSH de¹",
-    "seo_desc": "Discover the latest news, exclusive events, and professional pre-owned luxury care insights from KÉSH de¹.",
-    "badge_latest": "Latest",
+    "seo_title": "Journal & News | KÉSH de¹ Luxury Boutique",
+    "seo_desc": "Read KÉSH de¹ brand stories, luxury care guides, authentication tips and market insights for Hermès, Chanel, Louis Vuitton and more.",
+    "page_title": "Journal",
+    "page_subtitle": "News & Events / Fashion Trends",
+    "updated": "UPDATED :",
+    "no_posts": "No news available at the moment.",
+    "footer_official": "KÉSH de¹ Official",
+    "footer_store": "Go to Online Store",
+    "badge_latest": "Latest News",
     "badge_news": "News",
     "read_more": "Read More",
     "view_details": "View Details",
-    "no_posts": "No posts available at the moment",
-    "updated": "Last Updated",
-    "footer_official": "KÉSH de¹ Official Journal",
-    "footer_store": "Go to Online Store"
+    "seo_keywords": "luxury news, handbag care guide, Hermès tips, Chanel care, KÉSH de¹ journal, pre-owned luxury blog, brand updates"
   },
   "faq": {
     "seo": {
-      "title": "FAQ | KÉSH de¹ - Authentication &  Services",
-      "description": "KÉSH de¹ Frequently Asked Questions. Complete guide on luxury trading, authentication process (S/A/B grading),  fees (20%), international shipping, and return policies. Shop Hermès, Chanel, and LV with peace of mind."
+      "title": "FAQ | KÉSH de¹ Luxury Boutique",
+      "description": "KÉSH de¹ FAQ: authentication process, S/A/B condition grading, 20% service fee, international shipping, returns and payment options. Shop Hermès, Chanel and Louis Vuitton with confidence.",
+      "keywords": "FAQ, luxury boutique questions, authentication process, condition grading, international shipping, returns policy, KÉSH de¹, pre-owned Hermès, Chanel"
     },
     "ui": {
       "title": "FAQ",
@@ -698,9 +760,10 @@
   },
   "contact": {
     "seo": {
-      "title": "Contact Us | KÉSH de¹",
-      "description": "Brand new item sourcing, pre-owned luxury sales, and  services. For pre-sales and after-sales support, please contact us via the official form or email.",
-      "schema_name": "Contact KÉSH de¹"
+      "title": "Contact Us | KÉSH de¹ | Taichung Boutique & Online",
+      "description": "Contact KÉSH de¹ for sourcing, pre-owned sales, consignment and product inquiries. Reach our team via form, email or LINE. Pre-sales and after-sales support available.",
+      "schema_name": "Contact KÉSH de¹",
+      "keywords": "contact KÉSH de¹, Taichung luxury boutique, sourcing inquiry, pre-owned consignment, LINE support, luxury customer service"
     },
     "left": {
       "title": "Contact Us",
@@ -737,10 +800,11 @@
   },
   "about": {
     "seo": {
-      "title": "About Us | KÉSH de¹ Luxury",
-      "description": "KÉSH de¹ specializes in top-tier luxury items like Hermès and Chanel. Every item is manually authenticated by two certified appraisers and verified by the Entrupy system to ensure the highest level of authenticity.",
+      "title": "About KÉSH de¹ | Authenticated Pre-Owned Luxury",
+      "description": "Learn about KÉSH de¹: a trusted Taichung luxury platform for Hermès, Chanel, Louis Vuitton and Dior. Double authentication, Entrupy verification and transparent condition grading.",
       "schema_name": "About - KÉSH de¹",
-      "schema_desc": "Every item undergoes rigorous multi-stage authentication by certified appraisers and the Entrupy system before shipment."
+      "schema_desc": "Every item undergoes rigorous multi-stage authentication by certified appraisers and the Entrupy system before shipment.",
+      "keywords": "about KÉSH de¹, Taichung luxury boutique, pre-owned authentication, Entrupy, brand story, trusted resale"
     },
     "ui": {
       "hero_subtitle": "About KÉSH de¹",
@@ -838,52 +902,48 @@
     ]
   },
   "checkout": {
-    "backToBag": "Back to Bag",
-    "emptyBag": "YOUR BAG IS EMPTY",
-    "title": "CHECKOUT",
-    "customerInfo": "Customer Information",
-    "securityNotice": "To ensure safe delivery and insurance, please provide accurate information.",
-    "fullNamePlaceholder": "Full Name (Must match your ID)",
-    "emailPlaceholder": "Email Address (Required)",
-    "emailUsage": "Used for order updates, shipping notifications, and verification",
-    "phonePlaceholder": "Phone Number (Required)",
-    "selectCity": "Select City",
-    "selectDistrict": "Select District",
-    "stateProvince": "State / Province",
-    "city": "City",
-    "streetPlaceholder": "Detailed Street Address (Unit, Floor, Building)",
-    "remarkPlaceholder": "Order Remarks (e.g., preferred delivery time, gift wrapping, customs needs)",
-    "shippingMethod": "Shipping Method",
-    "shippingSecurityDesc": "Your order will be handled by the KÉSH professional team to ensure safety and privacy.",
-    "shippingDelivery": "Standard Delivery",
-    "shippingProtection": "Items will be shipped with professional protective packaging and full tracking.",
-    "freeShipping": "$ 0 (Free Shipping)",
-    "payment": "Payment",
-    "paymentSecurity1": "Your payment is securely processed with international-grade encryption.",
-    "paymentSecurity2": "Credit card details are handled by our payment gateway. We do not store your full card information.",
-    "creditCard": "Credit Card",
-    "atmTransfer": "ATM / Virtual Account Transfer",
-    "paypal": "PayPal / Apple Pay",
-    "processing": "PROCESSING...",
-    "completePurchase": "CONFIRM ORDER & PAY SECURELY",
-    "orderSummary": "Order Summary",
-    "subtotal": "Subtotal",
-    "shipping": "Shipping",
-    "total": "TOTAL",
-    "alert": {
-      "fillInfo": "Please fill in complete contact and shipping information!",
-      "cardError": "Invalid credit card information!",
-      "atmError": "Failed to generate virtual account. System busy.",
-      "success": "Checkout successful!"
+    "empty_cart": "Your cart is empty",
+    "title": "Checkout",
+    "subtitle": "KÉSH de¹ Secure Payment (PayUni)",
+    "contact_info": "Contact Information",
+    "email_placeholder": "Email",
+    "shipping_method": "Shipping Method",
+    "home_delivery": "Home Delivery (Fee NT$80)",
+    "cvs_delivery": "7-11 Store Pickup (Fee NT$80)",
+    "cvs_store": "7-11 Store",
+    "btn_select_store": "Select Store",
+    "store_label": "Store: ",
+    "address_label": "Address: ",
+    "btn_clear_store": "Clear Store",
+    "no_store_selected": "No store selected. Please click 'Select Store'",
+    "shipping_address": "Shipping Address",
+    "name_placeholder": "First & Last Name",
+    "phone_placeholder": "Phone Number",
+    "paypal_success": "PayPal payment successful! Order created.",
+    "cities": {
+      "taipei": "Taipei City",
+      "new_taipei": "New Taipei City",
+      "taichung": "Taichung City",
+      "kaohsiung": "Kaohsiung City"
     },
-    "popup": {
-      "title": "Order Created",
-      "desc1": "Your order has been successfully created.",
-      "desc2": "Please complete the transfer via ATM or online banking within the time limit.",
-      "bankCode": "Bank Code",
-      "account": "Account No.",
-      "deadline": "Deadline",
-      "viewOrder": "View Order"
+    "address_home_req": "Full Address (Required)",
+    "address_cvs_opt": "Address (Optional for CVS)",
+    "postal_code": "ZIP / Postal Code",
+    "payment_method": "Payment",
+    "btn_processing": "Processing...",
+    "btn_pay": "Pay Now",
+    "order_summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping_fee": "Shipping",
+    "total": "Total",
+    "note_final_amount": "* The final amount is subject to the calculation after the order is created.",
+    "alerts": {
+      "missing_fields": "Please fill in all required fields.",
+      "missing_home_address": "Please provide a full address for home delivery.",
+      "missing_cvs_store": "Please select a 7-11 store first.",
+      "order_failed": "Order creation failed: ",
+      "payuni_missing": "PayUni missing fields: ",
+      "system_error": "An error occurred, please try again later."
     }
   },
   "order_lookup": {
@@ -913,11 +973,13 @@
   },
   "shopping_guide": {
     "page": {
-      "seo_title": "Shopping Guide | KÉSH de¹",
+      "seo_title": "Shopping Guide | KÉSH de¹ Luxury Boutique",
       "title": "Shopping Guide",
       "subtitle_desktop": "Please read before buying",
       "subtitle_mobile": "Shopping Guide & Terms",
-      "footer_note": "Thank you for choosing KÉSH de¹"
+      "footer_note": "Thank you for choosing KÉSH de¹",
+      "seo_desc": "KÉSH de¹ Shopping Guide: payment, authenticity guarantee, S/A/B condition grading, returns and privacy before buying pre-owned luxury.",
+      "seo_keywords": "shopping guide, return policy, condition grading, authenticity terms, pre-owned luxury buying, KÉSH de¹"
     },
     "sections": [
       {
@@ -982,10 +1044,11 @@
   },
   "privacy": {
     "page": {
-      "seo_title": "Privacy Policy | KÉSH de¹",
-      "seo_desc": "Privacy Policy for KÉSH de¹ Luxury.",
+      "seo_title": "Privacy Policy | KÉSH de¹ Luxury Boutique",
+      "seo_desc": "KÉSH de¹ Privacy Policy explains how we collect, use, protect and share personal data for browsing, membership and luxury transactions.",
       "title": "Privacy Policy",
-      "last_updated": "Last Updated: "
+      "last_updated": "Last Updated: ",
+      "seo_keywords": "privacy policy, personal data, KÉSH de¹, luxury boutique privacy, cookies, member data"
     },
     "sections": [
       {
@@ -1039,7 +1102,7 @@
       "details_title": "Product Details",
       "faq_title": "Shopping Guide & FAQ",
       "tab_features": "Features",
-      "tab_shipping": "Cleaning and Maintenance Tips",
+      "tab_shipping": "Shipping & Returns",
       "related_title": "You May Also Like",
       "related_subtitle": "Recommended for you",
       "view_all": "View All"
@@ -1092,24 +1155,22 @@
     }
   },
   "cart": {
-    "title": "Shopping Bag",
-    "product": "Items",
+    "title": "Cart",
     "continue_shopping": "Continue Shopping",
-    "empty_message": "Your bag is currently empty.",
+    "empty_message": "Your cart is currently empty",
     "start_shopping": "Start Shopping",
+    "product": "Product",
     "quantity": "Quantity",
     "total": "Total",
-    "remove_item": "Remove Item",
-    "order_summary": "Order Summary",
+    "remove_item": "Remove item",
     "subtotal": "Subtotal",
-    "tax_shipping_note": "Taxes included. Shipping calculated at checkout.",
-    "estimated_total": "Estimated Total",
-    "go_to_checkout": "Proceed to Checkout",
-    "secure_checkout_note": "Secure checkout by KÉSH de¹"
+    "tax_shipping_note": "Tax included. Shipping calculated at checkout.",
+    "secure_checkout_note": "Secure checkout powered by KÉSH de¹",
+    "go_to_checkout": "Go to Checkout"
   },
   "terms": {
-    "seo_title": "Terms of Service & Policies | KÉSH de¹ Luxury Boutique",
-    "seo_desc": "Thank you for choosing KÉSH de¹. We are committed to providing a transparent, professional, and trustworthy luxury shopping experience. Please read our service policies carefully before purchasing.",
+    "seo_title": "Terms of Service | KÉSH de¹ Luxury Boutique",
+    "seo_desc": "KÉSH de¹ Terms of Service: authenticity guarantee, payment and shipping, returns, privacy and liability. Please read before purchasing pre-owned luxury goods.",
     "page_tag": "KÉSH de¹ Service Policies",
     "page_title": "Terms of Service & Policies",
     "page_subtitle": "Thank you for choosing KÉSH de¹. We are committed to providing a transparent, professional, and trustworthy luxury shopping experience. To ensure a smooth and secure transaction, please read the following terms of service carefully before making a purchase.",
@@ -1339,98 +1400,81 @@
           }
         ]
       }
-    ]
+    ],
+    "seo_keywords": "terms of service, shopping policy, authenticity statement, returns, KÉSH de¹, pre-owned luxury terms"
   },
   "member": {
     "title": "My Account",
-    "subtitle": "Manage your orders and personal information",
-    "welcome": "Hi,",
+    "subtitle": "Manage your orders and personal details",
+    "welcome": "Welcome back",
     "tabs": {
       "dashboard": "Dashboard",
       "orders": "My Orders",
       "addresses": "Addresses",
-      "settings": "Settings",
-      "logout": "Log Out"
+      "settings": "Account Details",
+      "logout": "Logout"
+    },
+    "dashboard": {
+      "total_spent": "Total Spent",
+      "completed_orders": "Completed",
+      "pending_orders": "Pending"
     },
     "orders": {
-      "title": "Order History",
-      "count": "Orders",
-      "empty": "You currently have no orders.",
-      "shop_now": "Start Shopping",
-      "order_no": "Order No.",
-      "date": "Date",
-      "status": "Status",
-      "total": "Total",
-      "view": "View",
-      "close": "Close",
-      "purchased_items": "Purchased Items",
-      "qty": "Qty",
-      "shipping_details": "Shipping Details",
-      "recipient": "Recipient",
-      "payment_method": "Payment Method",
-      "shipping_address": "Shipping Address",
-      "order_summary": "Order Summary",
-      "subtotal": "Subtotal",
-      "shipping": "Shipping",
-      "free": "Free",
-      "credit_card": "Credit Card",
-      "atm_transfer": "ATM Transfer"
+      "empty": "No orders yet.",
+      "shop_now": "Shop Now",
+      "order_amount": "Total Amount",
+      "items": "items",
+      "view_details": "View Details",
+      "pay_now": "Pay Now"
     },
-    "atm": {
-      "pending": "Pending Payment",
-      "bank_code": "Bank Code",
-      "account": "Account Number",
-      "deadline": "Deadline"
+    "addresses": {
+      "empty": "No addresses saved yet.",
+      "add_new": "Add New Address"
+    },
+    "settings": {
+      "title": "Personal Details",
+      "name": "Name",
+      "email": "Email",
+      "save": "Save Changes"
     },
     "status": {
-      "pending": "Awaiting Payment",
+      "pending": "Pending",
       "processing": "Processing",
       "completed": "Completed",
-      "canceled": "Canceled"
-    }
-  },
-  "showcase": {
-    "title": "CURATION",
-    "sub_title": "(STYLE)",
-    "tag": "for MODERN ELEGANCE",
-    "desc": "Discover the finest luxury pieces curated by KÉSH de¹.\nFrom timeless classics to modern urban styles, showcase your unique taste in luxury.",
-    "buy_now": "BUY NOW",
-    "loading": "LOADING...",
-    "discover_more": "DISCOVER MORE",
-    "view_all": "ALL",
-    "no_products": "No products in this category"
-  },
-  "layout": {
-    "site_title": "KÉSH de¹ | Luxury Pre-Owned Designer Boutique",
-    "site_name": "KÉSH de¹ Luxury Boutique",
-    "site_description": "KÉSH de¹ is a Taichung-based luxury boutique specializing in authenticated pre-owned Hermès, Chanel, Louis Vuitton, and Dior. All items are 100% authentic and professionally graded.",
-    "keywords": "KÉSH de¹, luxury boutique, pre-owned designer, Hermès, Chanel, Louis Vuitton, Dior, Gucci, Loewe, Celine, YSL, Goyard, Taiwan",
-    "og_locale": "en_US"
-  },
-  "brand_seo": {
-    "chanel": {
-      "title": "Pre-Owned Chanel | KÉSH de¹ Luxury Boutique",
-      "description": "Authenticated pre-owned Chanel Classic Flap, Boy, 2.55, and 19 bags. 100% genuine, professionally graded."
-    },
-    "hermes": {
-      "title": "Pre-Owned Hermès | KÉSH de¹ Luxury Boutique",
-      "description": "Rare pre-owned Hermès Birkin, Kelly, and Constance bags. Fully authenticated with documentation."
-    },
-    "lv": {
-      "title": "Pre-Owned Louis Vuitton | KÉSH de¹ Luxury Boutique",
-      "description": "Pre-owned Louis Vuitton Speedy, Neverfull, Alma, and Pochette. All items 100% authentic."
-    },
-    "dior": {
-      "title": "Pre-Owned Dior | KÉSH de¹ Luxury Boutique",
-      "description": "Pre-owned Dior Lady Dior, Saddle, and 30 Montaigne bags. Professionally authenticated and graded."
+      "canceled": "Canceled",
+      "unknown": "Unknown"
     }
   },
   "category": {
     "seo": {
-      "all_title": "All Luxury Products | KÉSH de¹",
-      "all_description": "Browse KÉSH de¹'s complete collection of authenticated pre-owned luxury goods, including Hermès, Chanel, Louis Vuitton, Dior and more. 100% authentic, professionally graded.",
-      "collection_description": "Explore KÉSH de¹'s curated pre-owned luxury selection. Every item is professionally authenticated and graded, with full documentation. 100% authentic guarantee.",
+      "all_title": "Shop All Pre-Owned Luxury | Hermès, Chanel, LV | KÉSH de¹",
+      "all_description": "Browse all authenticated pre-owned luxury at KÉSH de¹: Hermès, Chanel, Louis Vuitton, Dior, Gucci, Loewe and more. 100% authentic with professional grading.",
+      "all_keywords": "shop all luxury, pre-owned designer bags, Hermès, Chanel, Louis Vuitton, Dior, KÉSH de¹, authenticated resale",
+      "collection_description": "Explore KÉSH de¹'s curated pre-owned {{name}} collection. Every item is authenticated with full documentation. 100% genuine guarantee.",
+      "collection_keywords": "{{name}}, pre-owned luxury, KÉSH de¹, authenticated bags, condition grading",
       "og_image_alt": "KÉSH de¹ Luxury Product Collection"
+    }
+  },
+  "brand_seo": {
+    "chanel": {
+      "title": "Pre-Owned Chanel Bags | KÉSH de¹",
+      "description": "Shop authenticated pre-owned Chanel Classic Flap, Boy, 2.55 and 19 at KÉSH de¹. Double authentication, condition grading and worldwide shipping.",
+      "keywords": "pre-owned Chanel, Chanel Classic Flap, Boy bag, 2.55, authenticated Chanel, KÉSH de¹, luxury resale"
+    },
+    "hermes": {
+      "title": "Pre-Owned Hermès Bags | Birkin & Kelly | KÉSH de¹",
+      "description": "Rare pre-owned Hermès Birkin, Kelly and Constance at KÉSH de¹. Entrupy verified, full documentation and lifetime authenticity guarantee.",
+      "keywords": "pre-owned Hermès, Birkin, Kelly, Constance, authenticated Hermès, KÉSH de¹, luxury Hermès resale"
+    },
+    "lv": {
+      "title": "Pre-Owned Louis Vuitton | KÉSH de¹",
+      "description": "Authenticated pre-owned LV Speedy, Neverfull, Alma and more at KÉSH de¹. 100% genuine with professional grading.",
+      "keywords": "pre-owned Louis Vuitton, LV Speedy, Neverfull, Alma, authenticated LV, KÉSH de¹"
+    },
+    "dior": {
+      "title": "Pre-Owned Dior Bags | KÉSH de¹",
+      "description": "Pre-owned Dior Lady Dior, Saddle and 30 Montaigne at KÉSH de¹. Professionally authenticated with transparent condition reports.",
+      "keywords": "pre-owned Dior, Lady Dior, Saddle bag, 30 Montaigne, authenticated Dior, KÉSH de¹"
     }
   }
 }

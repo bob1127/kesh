@@ -61,6 +61,14 @@ export default function ShoppingGuide() {
     <>
       <Head>
         <title>{pageInfo.seo_title}</title>
+        <meta name="description" content={pageInfo.seo_desc || pageInfo.seo_title} />
+        {pageInfo.seo_keywords && (
+          <meta
+            name="keywords"
+            content={pageInfo.seo_keywords}
+            key="keywords"
+          />
+        )}
       </Head>
 
       <ReactLenis root>
