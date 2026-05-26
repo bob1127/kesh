@@ -19,6 +19,9 @@ import { ChevronDown, Search, X, Filter } from "lucide-react";
 
 // 🔥 引入全站統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
+import { getLocalizedUrl, SITE_URL } from "@/lib/sitelinks-seo";
+import { getSchemaBrand } from "@/lib/schema-i18n";
+import { tFallback } from "@/lib/t-fallback";
 
 // --- 🛍️ 商品卡片組件 ---
 const ProductCard = ({ product, locale, index }) => {
@@ -725,19 +728,24 @@ export default function CategoryPage({ products, brands, categories }) {
   };
 
   const displayTitle = getFilterDisplayName();
-  const siteUrl = "https://www.kesh-de1.com";
+  const siteUrl = SITE_URL;
+  const brand = getSchemaBrand(t);
 
-  const pageTitle = t("category.seo.all_title");
-  const pageDesc = t("category.seo.all_description");
-  const pageKeywords = t("category.seo.all_keywords");
-  const ogLocale = t("layout.og_locale");
-  const siteName = t("layout.site_name");
+  const pageTitle = tFallback(
+    t,
+    "category.seo.all_title",
+    "精品商城｜KÉSH de¹",
+  );
+  const pageDesc = tFallback(t, "category.seo.all_description", brand.siteDescription);
+  const pageKeywords = tFallback(t, "category.seo.all_keywords", "");
+  const ogLocale = brand.ogLocale;
+  const siteName = brand.siteName;
 
   // Use first available product image for richer social previews
   const firstProductImg = products?.find((p) => p.image)?.image;
   const ogImage = firstProductImg || `${siteUrl}/default-og-image.jpg`;
 
-  const canonicalUrl = `${siteUrl}/category`;
+  const canonicalUrl = getLocalizedUrl(siteUrl, locale || "zh-TW", "/category");
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
@@ -759,7 +767,7 @@ export default function CategoryPage({ products, brands, categories }) {
         item: {
           "@type": "Product",
           name: p.metadata?.[`title_${metaLang}`] || p.title,
-          url: `${siteUrl}/product/${p.slug}`,
+          url: getLocalizedUrl(siteUrl, locale || "zh-TW", `/product/${p.slug}`),
           image: p.image || ogImage,
           offers: {
             "@type": "Offer",

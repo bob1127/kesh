@@ -19,6 +19,9 @@ import { ChevronDown, Search, X, Filter } from "lucide-react";
 
 // 🔥 引入全站統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
+import { getLocalizedUrl, SITE_URL } from "@/lib/sitelinks-seo";
+import { getSchemaBrand } from "@/lib/schema-i18n";
+import { tFallback } from "@/lib/t-fallback";
 
 // --- 🛍️ 商品卡片組件 ---
 const ProductCard = ({ product, locale, index }) => {
@@ -725,33 +728,38 @@ export default function CategoryPage({ products, brands, categories, currentPage
   };
 
   const displayTitle = getFilterDisplayName();
-  const siteUrl = "https://www.kesh-de1.com";
+  const siteUrl = SITE_URL;
+  const brand = getSchemaBrand(t);
   const isAllPage = !currentSlug || currentSlug === "all";
 
   const collectionName = currentPageName || displayTitle || "";
   const pageTitle = isAllPage
-    ? t("category.seo.all_title")
+    ? tFallback(t, "category.seo.all_title", "精品商城｜KÉSH de¹")
     : `${collectionName} | KÉSH de¹`;
   const pageDesc = isAllPage
-    ? t("category.seo.all_description")
+    ? tFallback(t, "category.seo.all_description", brand.siteDescription)
     : t("category.seo.collection_description").replace(
         /\{\{name\}\}/g,
         collectionName,
       );
   const pageKeywords = isAllPage
-    ? t("category.seo.all_keywords")
+    ? tFallback(t, "category.seo.all_keywords", "")
     : t("category.seo.collection_keywords").replace(
         /\{\{name\}\}/g,
         collectionName,
       );
-  const ogLocale = t("layout.og_locale");
-  const siteName = t("layout.site_name");
+  const ogLocale = brand.ogLocale;
+  const siteName = brand.siteName;
 
   // Use first available product image as og:image for richer social previews
   const firstProductImg = products?.find((p) => p.image)?.image;
   const ogImage = firstProductImg || `${siteUrl}/default-og-image.jpg`;
 
-  const canonicalUrl = `${siteUrl}/category/${currentSlug || "all"}`;
+  const canonicalUrl = getLocalizedUrl(
+    siteUrl,
+    locale || "zh-TW",
+    `/category/${currentSlug || "all"}`,
+  );
 
   const collectionPageJsonLd = {
     "@context": "https://schema.org",
@@ -773,7 +781,7 @@ export default function CategoryPage({ products, brands, categories, currentPage
         item: {
           "@type": "Product",
           name: p.metadata?.[`title_${metaLang}`] || p.title,
-          url: `${siteUrl}/product/${p.slug}`,
+          url: getLocalizedUrl(siteUrl, locale || "zh-TW", `/product/${p.slug}`),
           image: p.image || ogImage,
           offers: {
             "@type": "Offer",

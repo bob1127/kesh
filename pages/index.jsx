@@ -24,7 +24,10 @@ import {
   getLocalizedUrl,
   getOgLocale,
   buildHomePageJsonLd,
+  DEFAULT_SITE_NAME,
+  DEFAULT_SITE_DESCRIPTION,
 } from "@/lib/sitelinks-seo";
+import { tFallback } from "@/lib/t-fallback";
 
 export default function Home({ featuredProducts }) {
   const { t } = useTranslation("common");
@@ -77,8 +80,12 @@ export default function Home({ featuredProducts }) {
 
   const siteTitle = t("home.seo.title");
   const siteDescription = t("home.seo.description");
-  const siteName = t("layout.site_name");
-  const siteDescriptionGlobal = t("layout.site_description");
+  const siteName = tFallback(t, "layout.site_name", DEFAULT_SITE_NAME);
+  const siteDescriptionGlobal = tFallback(
+    t,
+    "layout.site_description",
+    DEFAULT_SITE_DESCRIPTION,
+  );
   const keywords = t("home.seo.keywords");
   const ogLocale = getOgLocale(locale);
   const canonicalUrl = getLocalizedUrl(SITE_URL, locale, "/");

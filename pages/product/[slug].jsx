@@ -23,6 +23,7 @@ import {
   buildProductSeoDescription,
   buildProductSeoKeywords,
 } from "@/lib/product-seo";
+import { getSchemaBrand, getSchemaBreadcrumbLabels } from "@/lib/schema-i18n";
 import {
   Star,
   ChevronDown,
@@ -422,6 +423,7 @@ const GenericAccordion = ({
 export default function ProductDetail({ product, relatedProducts = [] }) {
   const router = useRouter();
   const { t } = useTranslation("common");
+  const schemaBrand = getSchemaBrand(t);
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
@@ -568,7 +570,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         : "https://schema.org/OutOfStock",
       seller: {
         "@type": "Organization",
-        name: "KÉSH de¹",
+        name: schemaBrand.siteName,
       },
       shippingDetails: {
         "@type": "OfferShippingDetails",
@@ -682,8 +684,9 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   }
 
   // BreadcrumbList — locale-aware breadcrumb for Google SERP display
-  const breadcrumbHome = isEn ? "Home" : isKo ? "홈" : "首頁";
-  const breadcrumbProducts = isEn ? "Products" : isKo ? "상품" : "商品";
+  const breadcrumbLabels = getSchemaBreadcrumbLabels(t, currentLocale);
+  const breadcrumbHome = breadcrumbLabels.home;
+  const breadcrumbProducts = breadcrumbLabels.products;
   const brandPageUrl = `${siteUrl}/brand/${product.brand.toLowerCase().replace(/\s+/g, "-")}`;
 
   schemaGraph.push({

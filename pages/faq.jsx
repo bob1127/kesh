@@ -7,6 +7,11 @@ import Link from "next/link";
 import Head from "next/head";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
+import {
+  getSchemaBrand,
+  getContactPointSchema,
+} from "@/lib/schema-i18n";
 
 // --- 單個問題組件 ---
 const AccordionItem = ({ question, answer }) => {
@@ -53,6 +58,7 @@ const AccordionItem = ({ question, answer }) => {
 // --- 主頁面組件 ---
 export default function FAQPage() {
   const { t } = useTranslation("common");
+  const { locale } = useRouter();
 
   // 從多語系檔案取得資料
   const seo = t("faq.seo", { returnObjects: true });
@@ -74,19 +80,14 @@ export default function FAQPage() {
     })),
   };
 
+  const brand = getSchemaBrand(t);
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "KÉSH de¹ 凱仕國際精品",
+    name: brand.siteName,
     url: "https://www.kesh-de1.com",
     logo: "https://www.kesh-de1.com/images/logo.png",
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: "+886-4-xxxx-xxxx", // ⚠️ 記得修改為您的實際電話
-      contactType: "customer service",
-      areaServed: ["TW"],
-      availableLanguage: ["Chinese", "English", "Korean"],
-    },
+    contactPoint: getContactPointSchema(locale || "zh-TW"),
   };
 
   return (

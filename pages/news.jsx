@@ -9,6 +9,7 @@ import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import { BRAND_AGGREGATE_RATING } from "@/lib/news-article-seo";
+import { getSchemaBrand } from "@/lib/schema-i18n";
 
 // --- 1. Hero 文章組件 ---
 const HeroPost = ({ post, t }) => {
@@ -143,6 +144,7 @@ export default function NewsPage({ posts }) {
     "探索 KÉSH de¹ 凱仕國際精品的最新消息、活動資訊與專業二手精品保養知識。",
   );
   const listKeywords = t("news.seo_keywords", "");
+  const brand = getSchemaBrand(t);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -150,7 +152,7 @@ export default function NewsPage({ posts }) {
       {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
-        name: t("layout.site_name"),
+        name: brand.siteName,
         url: siteUrl,
         aggregateRating: {
           "@type": "AggregateRating",
@@ -200,7 +202,7 @@ export default function NewsPage({ posts }) {
 
         <meta property="og:locale" content={ogLocale} key="oglocale" />
         <meta property="og:type" content="website" key="ogtype" />
-        <meta property="og:site_name" content={t("layout.site_name")} key="ogsite" />
+        <meta property="og:site_name" content={brand.siteName} key="ogsite" />
         <meta property="og:title" content={listTitle} key="ogtitle" />
         <meta property="og:description" content={listDesc} key="ogdesc" />
         <meta property="og:image" content={ogImage} key="ogimage" />

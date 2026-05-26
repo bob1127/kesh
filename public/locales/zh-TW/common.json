@@ -17,6 +17,18 @@
     "en": "English",
     "ko": "한국어"
   },
+  "layout": {
+    "site_name": "KÉSH de¹ 凱仕國際精品",
+    "site_title": "KÉSH de¹ 凱仕國際精品｜全新、近全新與精選二手精品交易平台",
+    "site_description": "KÉSH de¹ 凱仕國際精品位於台中，嚴選 Hermès、Chanel、Louis Vuitton、Dior、Celine 等精品品牌，提供全新、近全新與精選二手精品販售、精品代尋、收購、寄售代售、專業鑑定與全球配送服務。",
+    "og_locale": "zh_TW"
+  },
+  "schema": {
+    "breadcrumb_home": "首頁",
+    "breadcrumb_news": "最新消息",
+    "breadcrumb_products": "商品",
+    "brand_list_chanel": "Chanel 精選商品"
+  },
   "mega": {
     "categories": "產品類別",
     "brands": "精選品牌",
@@ -34,7 +46,7 @@
     "contact_title": "CONTACT US",
     "contact_btn": "聯繫我們",
     "seo": {
-      "title": "KÉSH de¹ 凱仕國際精品｜全新、近全新與精選二手精品交易平台，提供精品銷售、代尋、收購、寄售代售、專業鑑定與全球配送服務。",
+      "title": "KÉSH de¹ 凱仕國際精品｜全新、近全新與精選二手精品交易平台",
       "description": "KÉSH de¹ 凱仕國際精品位於台中，嚴選 Hermès、Chanel、Louis Vuitton、Dior、Celine 等精品品牌，提供全新、近全新與精選二手精品販售、精品代尋、收購、寄售代售、專業鑑定與全球配送服務。",
       "keywords": "凱仕國際精品, KÉSH de¹, 精品買賣, 全新精品, 近全新精品, 二手精品, 精品包包, 精品代尋, 精品收購, 精品寄售, 精品鑑定, 台中精品店, Chanel 精品, Hermès 精品, Louis Vuitton 精品",
       "h1": "全新、近全新與精選二手精品交易平台",

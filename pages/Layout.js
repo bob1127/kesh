@@ -15,7 +15,11 @@ import {
   DEFAULT_LOCALE,
   getLocalizedUrl,
   getSitelinkPages,
+  getBusinessPostalAddress,
+  DEFAULT_SITE_NAME,
+  DEFAULT_SITE_DESCRIPTION,
 } from "@/lib/sitelinks-seo";
+import { tFallback } from "@/lib/t-fallback";
 
 export default function Layout({ children }) {
   const { t } = useTranslation("common");
@@ -32,9 +36,13 @@ export default function Layout({ children }) {
   }, []);
 
   const siteUrl = SITE_URL;
-  const siteTitle = t("layout.site_title");
-  const siteName = t("layout.site_name");
-  const siteDescription = t("layout.site_description");
+  const siteTitle = tFallback(t, "layout.site_title", DEFAULT_SITE_NAME);
+  const siteName = tFallback(t, "layout.site_name", DEFAULT_SITE_NAME);
+  const siteDescription = tFallback(
+    t,
+    "layout.site_description",
+    DEFAULT_SITE_DESCRIPTION,
+  );
   const siteImage = `${siteUrl}/default-og-image.jpg`;
   const storePhone = "0938-535-870";
   const defaultLocale = DEFAULT_LOCALE;
@@ -52,14 +60,7 @@ export default function Layout({ children }) {
     url: siteUrl,
     image: siteImage,
     telephone: storePhone,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "No. 428, Zhongqing Rd. Sec. 1",
-      addressLocality: "North District, Taichung",
-      addressRegion: "Taichung",
-      postalCode: "404",
-      addressCountry: "TW",
-    },
+    address: getBusinessPostalAddress(locale),
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",

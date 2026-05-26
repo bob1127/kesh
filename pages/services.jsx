@@ -11,6 +11,7 @@ import {
   getLocalizedUrl,
   getOgLocale,
 } from "@/lib/sitelinks-seo";
+import { getSchemaBrand } from "@/lib/schema-i18n";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
@@ -21,6 +22,7 @@ export default function ServicesPage() {
   const { t } = useTranslation("common");
   const { locale } = useRouter();
 
+  const brand = getSchemaBrand(t);
   const seo = t("services.seo", { returnObjects: true });
   const page = t("services.page", { returnObjects: true });
   const blocks = page.blocks || [];
@@ -37,7 +39,7 @@ export default function ServicesPage() {
     url: canonicalUrl,
     provider: {
       "@type": "Organization",
-      name: t("layout.site_name"),
+      name: brand.siteName,
       url: SITE_URL,
     },
     areaServed: ["TW", "Global"],

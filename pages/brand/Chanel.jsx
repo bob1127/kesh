@@ -6,6 +6,8 @@ import https from "https";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getSchemaBrand } from "@/lib/schema-i18n";
+import { tFallback } from "@/lib/t-fallback";
 
 // Components
 import StickyColumns from "../../components/SwiperCarousel/SwiperCardChanel";
@@ -15,6 +17,7 @@ import FeatureCarousel from "../../components/EmblaCarouselFeatureCarousel/index
 
 export default function Home({ chanelProducts }) {
   const { t } = useTranslation("common");
+  const brand = getSchemaBrand(t);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(null);
 
@@ -39,14 +42,14 @@ export default function Home({ chanelProducts }) {
   const jsonLdWebSite = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: t("layout.site_name"),
+    name: brand.siteName,
     url: siteUrl,
   };
 
   const jsonLdItemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Featured Chanel Items",
+    name: tFallback(t, "schema.brand_list_chanel", "Chanel 精選商品"),
     itemListElement:
       chanelProducts?.map((product, index) => ({
         "@type": "ListItem",

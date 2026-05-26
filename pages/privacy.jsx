@@ -3,10 +3,12 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getSchemaBrand } from "@/lib/schema-i18n";
 
 export default function PrivacyPolicy() {
   const router = useRouter();
   const { t } = useTranslation("common");
+  const brand = getSchemaBrand(t);
 
   // 取得翻譯好的各區塊資料
   const pageInfo = t("privacy.page", { returnObjects: true });
@@ -40,7 +42,7 @@ export default function PrivacyPolicy() {
     url: `${siteUrl}/privacy`,
     publisher: {
       "@type": "Organization",
-      name: t("layout.site_name"),
+      name: brand.siteName,
       url: siteUrl,
     },
   };

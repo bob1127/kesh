@@ -8,6 +8,8 @@ import Head from "next/head";
 import ParallaxImage from "../components/ParallaxImage";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
+import { getFoundingPlaceName } from "@/lib/schema-i18n";
 
 // --- 子元件：文字區塊動畫設定 ---
 const FadeInSection = ({ children, delay = 0, className = "" }) => (
@@ -24,6 +26,7 @@ const FadeInSection = ({ children, delay = 0, className = "" }) => (
 
 export default function About() {
   const { t } = useTranslation("common");
+  const { locale } = useRouter();
 
   // 從多語系檔案取得資料
   const seo = t("about.seo", { returnObjects: true });
@@ -49,7 +52,7 @@ export default function About() {
         description: seo.schema_desc,
         foundingLocation: {
           "@type": "Place",
-          name: "Taichung, Taiwan",
+          name: getFoundingPlaceName(locale || "zh-TW"),
         },
       },
       {

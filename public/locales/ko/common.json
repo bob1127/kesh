@@ -18,6 +18,18 @@
     "en": "English",
     "ko": "한국어"
   },
+  "layout": {
+    "site_name": "KÉSH de¹",
+    "site_title": "KÉSH de¹ | 신품·준신품·엄선 중고 명품 플랫폼",
+    "site_description": "KÉSH de¹는 Hermès, Chanel, Louis Vuitton, Dior 등 명품의 판매·구매 대행·매입·위탁·감정·배송 서비스를 제공합니다.",
+    "og_locale": "ko_KR"
+  },
+  "schema": {
+    "breadcrumb_home": "홈",
+    "breadcrumb_news": "저널",
+    "breadcrumb_products": "상품",
+    "brand_list_chanel": "Chanel 엄선 상품"
+  },
   "mega": {
     "categories": "카테고리",
     "brands": "추천 브랜드",

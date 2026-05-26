@@ -4,9 +4,13 @@ import { ReactLenis } from "@studio-freight/react-lenis";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getSchemaBrand, getContactPointSchema } from "@/lib/schema-i18n";
+import { useRouter } from "next/router";
 
 export default function Contact() {
   const { t } = useTranslation("common");
+  const { locale } = useRouter();
+  const brand = getSchemaBrand(t);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -32,18 +36,10 @@ export default function Contact() {
     url: `${siteUrl}/contact`,
     mainEntity: {
       "@type": "Organization",
-      name: "KÉSH de¹ 凱仕國際精品",
+      name: brand.siteName,
       url: siteUrl,
       email: "contact@kesh-de1.com",
-      contactPoint: [
-        {
-          "@type": "ContactPoint",
-          contactType: "customer service",
-          email: "contact@kesh-de1.com",
-          areaServed: "TW",
-          availableLanguage: ["Chinese", "English", "Korean"],
-        },
-      ],
+      contactPoint: [getContactPointSchema(locale || "zh-TW")],
     },
   };
 

@@ -5,6 +5,7 @@ import { ReactLenis } from "@studio-freight/react-lenis";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getSchemaBrand } from "@/lib/schema-i18n";
 
 // --- 動畫設定 ---
 const fadeInUp = {
@@ -23,6 +24,7 @@ const imageReveal = {
 
 export default function Shipping() {
   const { t } = useTranslation("common");
+  const brand = getSchemaBrand(t);
 
   const pageTitle = t("shipping.seo_title");
   const pageDesc = t("shipping.seo_desc");
@@ -37,7 +39,7 @@ export default function Shipping() {
     url: `${siteUrl}/shipping`,
     publisher: {
       "@type": "Organization",
-      name: t("layout.site_name"),
+      name: brand.siteName,
       url: siteUrl,
     },
   };

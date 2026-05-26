@@ -6,6 +6,7 @@ import { ReactLenis } from "@studio-freight/react-lenis";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { getSchemaBrand } from "@/lib/schema-i18n";
 
 // 動畫設定
 const fadeInUp = {
@@ -24,6 +25,7 @@ const imageReveal = {
 
 export default function Authenticity() {
   const { t } = useTranslation("common");
+  const brand = getSchemaBrand(t);
 
   const pageTitle = t("authenticity.seo_title");
   const pageDesc = t("authenticity.seo_desc");
@@ -36,7 +38,8 @@ export default function Authenticity() {
     description: pageDesc,
     publisher: {
       "@type": "Organization",
-      name: "KÉSH de¹ 凱仕國際精品",
+      name: brand.siteName,
+      url: "https://www.kesh-de1.com",
     },
   };
 

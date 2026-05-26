@@ -18,6 +18,18 @@
     "en": "English",
     "ko": "한국어"
   },
+  "layout": {
+    "site_name": "KÉSH de¹",
+    "site_title": "KÉSH de¹ | New, Like-New & Curated Pre-Owned Luxury Platform",
+    "site_description": "KÉSH de¹ curates Hermès, Chanel, Louis Vuitton, Dior and more — new, like-new and pre-owned luxury with authentication, sourcing, buy-in, consignment and worldwide shipping.",
+    "og_locale": "en_US"
+  },
+  "schema": {
+    "breadcrumb_home": "Home",
+    "breadcrumb_news": "Journal",
+    "breadcrumb_products": "Products",
+    "brand_list_chanel": "Featured Chanel Items"
+  },
   "mega": {
     "categories": "Categories",
     "brands": "Featured Brands",

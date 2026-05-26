@@ -14,6 +14,7 @@ import {
   getOgLocale,
   stripHtml,
 } from "@/lib/news-article-seo";
+import { getSchemaBrand, getSchemaBreadcrumbLabels } from "@/lib/schema-i18n";
 
 // --- 1. 推薦閱讀組件 ---
 const RecentJournalCard = ({ post, t }) => (
@@ -91,16 +92,19 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
 
   const getLocalizedUrl = (loc) => getArticleUrl(siteUrl, loc, post.slug);
 
+  const brand = getSchemaBrand(t);
+  const breadcrumbs = getSchemaBreadcrumbLabels(t, locale);
+
   const jsonLd = buildArticleJsonLd({
     post,
     locale,
     siteUrl,
     relatedProducts,
     labels: {
-      home: t("nav.home", "Home"),
-      news: t("nav.news", "Journal"),
-      siteName: t("layout.site_name"),
-      siteDescription: t("layout.site_description"),
+      home: breadcrumbs.home,
+      news: breadcrumbs.news,
+      siteName: brand.siteName,
+      siteDescription: brand.siteDescription,
     },
   });
 
@@ -112,7 +116,7 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
         {post.seo_keywords && (
           <meta name="keywords" content={post.seo_keywords} key="keywords" />
         )}
-        <meta name="author" content="KÉSH de¹ 凱仕國際精品" key="author" />
+        <meta name="author" content={brand.siteName} key="author" />
         <meta
           name="robots"
           content="index, follow, max-image-preview:large, max-snippet:-1"
@@ -146,7 +150,7 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
             />
           ))}
         <meta property="og:type" content="article" key="ogtype" />
-        <meta property="og:site_name" content={t("layout.site_name")} key="ogsite" />
+        <meta property="og:site_name" content={brand.siteName} key="ogsite" />
         <meta property="og:title" content={metaTitle} key="ogtitle" />
         <meta property="og:description" content={metaDesc} key="ogdesc" />
         <meta property="og:image" content={post.image} key="ogimage" />
