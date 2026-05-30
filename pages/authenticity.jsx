@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getSchemaBrand } from "@/lib/schema-i18n";
+import { buildLocalizedWebPageSchema, SITE_URL } from "@/lib/sitelinks-seo";
+import { useRouter } from "next/router";
 
 // 動畫設定
 const fadeInUp = {
@@ -25,23 +27,21 @@ const imageReveal = {
 
 export default function Authenticity() {
   const { t } = useTranslation("common");
+  const { locale } = useRouter();
   const brand = getSchemaBrand(t);
 
   const pageTitle = t("authenticity.seo_title");
   const pageDesc = t("authenticity.seo_desc");
   const pageKeywords = t("authenticity.seo_keywords");
 
-  const schemaData = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
+  const schemaData = buildLocalizedWebPageSchema({
+    locale: locale || "zh-TW",
+    path: "/authenticity",
     name: pageTitle,
     description: pageDesc,
-    publisher: {
-      "@type": "Organization",
-      name: brand.siteName,
-      url: "https://www.kesh-de1.com",
-    },
-  };
+    siteUrl: SITE_URL,
+    brand,
+  });
 
   return (
     <ReactLenis root>

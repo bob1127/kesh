@@ -11,7 +11,7 @@ import {
   getLocalizedUrl,
   getOgLocale,
 } from "@/lib/sitelinks-seo";
-import { getSchemaBrand } from "@/lib/schema-i18n";
+import { getSchemaBrand, getServiceAreaServed } from "@/lib/schema-i18n";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
@@ -37,12 +37,14 @@ export default function ServicesPage() {
     name: seo.title,
     description: seo.desc,
     url: canonicalUrl,
+    inLanguage:
+      locale === "en" ? "en-US" : locale === "ko" ? "ko-KR" : "zh-TW",
     provider: {
       "@type": "Organization",
       name: brand.siteName,
-      url: SITE_URL,
+      url: getLocalizedUrl(SITE_URL, locale || "zh-TW", "/"),
     },
-    areaServed: ["TW", "Global"],
+    areaServed: getServiceAreaServed(locale || "zh-TW"),
     serviceType: tags.slice(0, 8),
   };
 

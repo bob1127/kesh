@@ -22,6 +22,8 @@ import { getCorrectAmount } from "@/lib/price";
 import { getLocalizedUrl, SITE_URL } from "@/lib/sitelinks-seo";
 import { getSchemaBrand } from "@/lib/schema-i18n";
 import { tFallback } from "@/lib/t-fallback";
+import { getSiteHeroUrl } from "@/lib/schema-images";
+import { buildProductItemListSchema } from "@/lib/product-offer-schema";
 
 // --- 🛍️ 商品卡片組件 ---
 const ProductCard = ({ product, locale, index }) => {
@@ -753,7 +755,9 @@ export default function CategoryPage({ products, brands, categories, currentPage
 
   // Use first available product image as og:image for richer social previews
   const firstProductImg = products?.find((p) => p.image)?.image;
-  const ogImage = firstProductImg || `${siteUrl}/default-og-image.jpg`;
+  const ogImage =
+    firstProductImg ||
+    getSiteHeroUrl(siteUrl);
 
   const canonicalUrl = getLocalizedUrl(
     siteUrl,
@@ -767,6 +771,7 @@ export default function CategoryPage({ products, brands, categories, currentPage
     name: pageTitle,
     description: pageDesc,
     url: canonicalUrl,
+    image: ogImage,
     publisher: {
       "@type": "Organization",
       name: siteName,
@@ -775,22 +780,15 @@ export default function CategoryPage({ products, brands, categories, currentPage
     mainEntity: {
       "@type": "ItemList",
       name: pageTitle,
-      itemListElement: products.slice(0, 12).map((p, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        item: {
-          "@type": "Product",
-          name: p.metadata?.[`title_${metaLang}`] || p.title,
-          url: getLocalizedUrl(siteUrl, locale || "zh-TW", `/product/${p.slug}`),
-          image: p.image || ogImage,
-          offers: {
-            "@type": "Offer",
-            priceCurrency: locale === "en" ? "USD" : locale === "ko" ? "KRW" : "TWD",
-            price: p.rawPrice,
-            availability: "https://schema.org/InStock",
-          },
-        },
-      })),
+      itemListElement: buildProductItemListSchema({
+        products,
+        locale: locale || "zh-TW",
+        siteUrl,
+        sellerName: siteName,
+        metaLang,
+        fallbackImage: ogImage,
+        limit: 12,
+      }),
     },
   };
 

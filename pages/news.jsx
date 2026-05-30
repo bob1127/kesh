@@ -9,7 +9,8 @@ import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import { BRAND_AGGREGATE_RATING } from "@/lib/news-article-seo";
-import { getSchemaBrand } from "@/lib/schema-i18n";
+import { getSchemaBrand, getSchemaInLanguage } from "@/lib/schema-i18n";
+import { resolveSchemaImage, getSiteHeroUrl } from "@/lib/schema-images";
 
 // --- 1. Hero 文章組件 ---
 const HeroPost = ({ post, t }) => {
@@ -134,10 +135,15 @@ export default function NewsPage({ posts }) {
     process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
   const newsUrl =
     locale === "zh-TW" ? `${siteUrl}/news` : `${siteUrl}/${locale}/news`;
+  const orgHome = locale === "zh-TW" ? siteUrl : `${siteUrl}/${locale}`;
+  const orgId = `${orgHome.replace(/\/$/, "")}/#organization`;
   const ogLocale =
     locale === "en" ? "en_US" : locale === "ko" ? "ko_KR" : "zh_TW";
 
-  const ogImage = heroPost ? heroPost.image : `${siteUrl}/default-og-image.jpg`;
+  const ogImage = resolveSchemaImage({
+    candidates: [heroPost?.image],
+    siteUrl,
+  });
   const listTitle = t("news.seo_title", "最新消息與品牌動態 | KÉSH de¹");
   const listDesc = t(
     "news.seo_desc",
@@ -151,9 +157,11 @@ export default function NewsPage({ posts }) {
     "@graph": [
       {
         "@type": "Organization",
-        "@id": `${siteUrl}/#organization`,
+        "@id": orgId,
         name: brand.siteName,
-        url: siteUrl,
+        url: orgHome,
+        description: brand.siteDescription,
+        inLanguage: getSchemaInLanguage(locale || "zh-TW"),
         aggregateRating: {
           "@type": "AggregateRating",
           ...BRAND_AGGREGATE_RATING,
@@ -165,8 +173,9 @@ export default function NewsPage({ posts }) {
         name: listTitle,
         description: listDesc,
         url: newsUrl,
-        publisher: { "@id": `${siteUrl}/#organization` },
-        inLanguage: locale === "en" ? "en" : locale === "ko" ? "ko" : "zh-TW",
+        image: ogImage,
+        publisher: { "@id": orgId },
+        inLanguage: getSchemaInLanguage(locale || "zh-TW"),
       },
       {
         "@type": "CollectionPage",
@@ -174,6 +183,8 @@ export default function NewsPage({ posts }) {
         name: listTitle,
         description: listDesc,
         url: newsUrl,
+        image: ogImage,
+        inLanguage: getSchemaInLanguage(locale || "zh-TW"),
       },
       {
         "@type": "ItemList",

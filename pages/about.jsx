@@ -9,7 +9,9 @@ import ParallaxImage from "../components/ParallaxImage";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
-import { getFoundingPlaceName } from "@/lib/schema-i18n";
+import { getFoundingPlaceName, getSchemaInLanguage } from "@/lib/schema-i18n";
+import { SITE_URL, getLocalizedUrl, getLocaleHomeUrl } from "@/lib/sitelinks-seo";
+import { getSiteLogoUrl } from "@/lib/schema-images";
 
 // --- 子元件：文字區塊動畫設定 ---
 const FadeInSection = ({ children, delay = 0, className = "" }) => (
@@ -37,7 +39,10 @@ export default function About() {
   const spiritItems = t("about.spirit_items", { returnObjects: true });
   const guaranteeItems = t("about.guarantee_items", { returnObjects: true });
 
-  const siteUrl = "https://www.kesh-de1.com";
+  const siteUrl = SITE_URL;
+  const pageLocale = locale || "zh-TW";
+  const aboutUrl = getLocalizedUrl(siteUrl, pageLocale, "/about");
+  const orgId = `${getLocaleHomeUrl(siteUrl, pageLocale).replace(/\/$/, "")}/#organization`;
 
   // --- 結構化資料 (JSON-LD) ---
   const jsonLd = {
@@ -45,25 +50,25 @@ export default function About() {
     "@graph": [
       {
         "@type": "Organization",
-        "@id": `${siteUrl}#organization`,
+        "@id": orgId,
         name: corp.name_val,
-        url: siteUrl,
-        logo: `${siteUrl}/images/logo.png`,
+        url: getLocaleHomeUrl(siteUrl, pageLocale),
+        logo: getSiteLogoUrl(siteUrl),
         description: seo.schema_desc,
+        inLanguage: getSchemaInLanguage(pageLocale),
         foundingLocation: {
           "@type": "Place",
-          name: getFoundingPlaceName(locale || "zh-TW"),
+          name: getFoundingPlaceName(pageLocale),
         },
       },
       {
         "@type": "AboutPage",
-        "@id": `${siteUrl}/about#webpage`,
-        url: `${siteUrl}/about`,
+        "@id": `${aboutUrl.replace(/\/$/, "")}#webpage`,
+        url: aboutUrl,
         name: seo.schema_name,
         description: seo.description,
-        mainEntity: {
-          "@id": `${siteUrl}#organization`,
-        },
+        inLanguage: getSchemaInLanguage(pageLocale),
+        mainEntity: { "@id": orgId },
       },
     ],
   };

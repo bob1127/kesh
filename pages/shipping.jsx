@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getSchemaBrand } from "@/lib/schema-i18n";
+import { buildLocalizedWebPageSchema, SITE_URL, getLocalizedUrl } from "@/lib/sitelinks-seo";
+import { getSiteHeroUrl } from "@/lib/schema-images";
+import { useRouter } from "next/router";
 
 // --- 動畫設定 ---
 const fadeInUp = {
@@ -24,25 +27,25 @@ const imageReveal = {
 
 export default function Shipping() {
   const { t } = useTranslation("common");
+  const { locale } = useRouter();
   const brand = getSchemaBrand(t);
 
   const pageTitle = t("shipping.seo_title");
   const pageDesc = t("shipping.seo_desc");
   const pageKeywords = t("shipping.seo_keywords");
-  const siteUrl = "https://www.kesh-de1.com";
 
-  const shippingJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
+  const pageLocale = locale || "zh-TW";
+  const canonicalUrl = getLocalizedUrl(SITE_URL, pageLocale, "/shipping");
+  const ogImage = getSiteHeroUrl(SITE_URL);
+
+  const shippingJsonLd = buildLocalizedWebPageSchema({
+    locale: pageLocale,
+    path: "/shipping",
     name: pageTitle,
     description: pageDesc,
-    url: `${siteUrl}/shipping`,
-    publisher: {
-      "@type": "Organization",
-      name: brand.siteName,
-      url: siteUrl,
-    },
-  };
+    siteUrl: SITE_URL,
+    brand,
+  });
 
   return (
     <ReactLenis root>
@@ -55,13 +58,13 @@ export default function Shipping() {
         <meta property="og:type" content="website" key="ogtype" />
         <meta property="og:title" content={pageTitle} key="ogtitle" />
         <meta property="og:description" content={pageDesc} key="ogdesc" />
-        <meta property="og:url" content={`${siteUrl}/shipping`} key="ogurl" />
-        <meta property="og:image" content={`${siteUrl}/default-og-image.jpg`} key="ogimage" />
+        <meta property="og:url" content={canonicalUrl} key="ogurl" />
+        <meta property="og:image" content={ogImage} key="ogimage" />
 
         <meta name="twitter:card" content="summary_large_image" key="twcard" />
         <meta name="twitter:title" content={pageTitle} key="twtitle" />
         <meta name="twitter:description" content={pageDesc} key="twdesc" />
-        <meta name="twitter:image" content={`${siteUrl}/default-og-image.jpg`} key="twimage" />
+        <meta name="twitter:image" content={ogImage} key="twimage" />
 
         <script
           type="application/ld+json"

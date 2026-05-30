@@ -4,8 +4,9 @@ import { ReactLenis } from "@studio-freight/react-lenis";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import { getSchemaBrand, getContactPointSchema } from "@/lib/schema-i18n";
+import { getSchemaBrand, getContactPointSchema, getSchemaInLanguage } from "@/lib/schema-i18n";
 import { useRouter } from "next/router";
+import { SITE_URL, getLocalizedUrl } from "@/lib/sitelinks-seo";
 
 export default function Contact() {
   const { t } = useTranslation("common");
@@ -23,7 +24,9 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // --- SEO 設定 ---
-  const siteUrl = "https://www.kesh-de1.com";
+  const siteUrl = SITE_URL;
+  const pageLocale = locale || "zh-TW";
+  const contactUrl = getLocalizedUrl(siteUrl, pageLocale, "/contact");
   const pageTitle = t("contact.seo.title");
   const pageDesc = t("contact.seo.description");
 
@@ -33,13 +36,14 @@ export default function Contact() {
     "@type": "ContactPage",
     name: t("contact.seo.schema_name"),
     description: pageDesc,
-    url: `${siteUrl}/contact`,
+    url: contactUrl,
+    inLanguage: getSchemaInLanguage(pageLocale),
     mainEntity: {
       "@type": "Organization",
       name: brand.siteName,
       url: siteUrl,
       email: "contact@kesh-de1.com",
-      contactPoint: [getContactPointSchema(locale || "zh-TW")],
+      contactPoint: [getContactPointSchema(pageLocale)],
     },
   };
 

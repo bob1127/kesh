@@ -6,8 +6,12 @@ import https from "https";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import { useRouter } from "next/router";
 import { getSchemaBrand } from "@/lib/schema-i18n";
 import { tFallback } from "@/lib/t-fallback";
+import { buildProductItemListSchema } from "@/lib/product-offer-schema";
+import { SITE_URL } from "@/lib/sitelinks-seo";
+import { getSiteHeroUrl } from "@/lib/schema-images";
 
 // Components
 import StickyColumns from "../../components/SwiperCarousel/SwiperCardChanel";
@@ -17,6 +21,7 @@ import FeatureCarousel from "../../components/EmblaCarouselFeatureCarousel/index
 
 export default function Home({ chanelProducts }) {
   const { t } = useTranslation("common");
+  const { locale } = useRouter();
   const brand = getSchemaBrand(t);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevIndex, setPrevIndex] = useState(null);
@@ -34,10 +39,13 @@ export default function Home({ chanelProducts }) {
     return () => clearInterval(timer);
   }, [currentIndex]);
 
-  const siteUrl = "https://www.kesh-de1.com";
+  const siteUrl = SITE_URL;
   const pageTitle = t("brand_seo.chanel.title");
   const pageDesc = t("brand_seo.chanel.description");
   const pageKeywords = t("brand_seo.chanel.keywords");
+  const ogImage =
+    chanelProducts?.find((p) => p.image && !String(p.image).includes("placeholder"))
+      ?.image || getSiteHeroUrl(siteUrl);
 
   const jsonLdWebSite = {
     "@context": "https://schema.org",
@@ -50,25 +58,19 @@ export default function Home({ chanelProducts }) {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: tFallback(t, "schema.brand_list_chanel", "Chanel 精選商品"),
-    itemListElement:
-      chanelProducts?.map((product, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        item: {
-          "@type": "Product",
-          name: product.title,
-          image: product.image,
-          description: product.shortDesc,
-          sku: product.id,
-          brand: { "@type": "Brand", name: "Chanel" },
-          offers: {
-            "@type": "Offer",
-            priceCurrency: "TWD",
-            price: product.rawPrice,
-            availability: "https://schema.org/InStock",
-          },
-        },
-      })) || [],
+    itemListElement: buildProductItemListSchema({
+      products: (chanelProducts || []).map((product) => ({
+        ...product,
+        brand: "Chanel",
+        slug: product.slug || product.handle,
+      })),
+      locale: locale || "zh-TW",
+      siteUrl,
+      sellerName: brand.siteName,
+      metaLang: locale === "zh-TW" ? "zh" : locale || "zh",
+      fallbackImage: ogImage,
+      limit: 20,
+    }),
   };
 
   return (

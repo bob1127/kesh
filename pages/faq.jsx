@@ -10,8 +10,10 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
 import {
   getSchemaBrand,
+  getSchemaInLanguage,
   getContactPointSchema,
 } from "@/lib/schema-i18n";
+import { SITE_URL, getLocalizedUrl } from "@/lib/sitelinks-seo";
 
 // --- 單個問題組件 ---
 const AccordionItem = ({ question, answer }) => {
@@ -67,9 +69,14 @@ export default function FAQPage() {
   const faqSections = t("faq.sections", { returnObjects: true });
 
   // 動態生成 SEO Schema
+  const pageLocale = locale || "zh-TW";
+  const faqUrl = getLocalizedUrl(SITE_URL, pageLocale, "/faq");
+
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    url: faqUrl,
+    inLanguage: getSchemaInLanguage(pageLocale),
     mainEntity: schemaItems.map((item) => ({
       "@type": "Question",
       name: item.q,
@@ -85,9 +92,9 @@ export default function FAQPage() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: brand.siteName,
-    url: "https://www.kesh-de1.com",
-    logo: "https://www.kesh-de1.com/images/logo.png",
-    contactPoint: getContactPointSchema(locale || "zh-TW"),
+    url: SITE_URL,
+    logo: `${SITE_URL}/images/logo.png`,
+    contactPoint: getContactPointSchema(pageLocale),
   };
 
   return (

@@ -28,8 +28,9 @@ import {
   DEFAULT_SITE_DESCRIPTION,
 } from "@/lib/sitelinks-seo";
 import { tFallback } from "@/lib/t-fallback";
+import { getSiteHeroUrl } from "@/lib/schema-images";
 
-export default function Home({ featuredProducts }) {
+export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
   const { t } = useTranslation("common");
   const { locale } = useRouter();
   // --- 1. 頁面滾動特效 ---
@@ -89,17 +90,11 @@ export default function Home({ featuredProducts }) {
   const keywords = t("home.seo.keywords");
   const ogLocale = getOgLocale(locale);
   const canonicalUrl = getLocalizedUrl(SITE_URL, locale, "/");
-  const ogImage = `${SITE_URL}/default-og-image.jpg`;
+  const ogImage =
+    featuredProducts?.find((p) => p.image && !p.image.includes("placeholder"))
+      ?.image || getSiteHeroUrl(SITE_URL);
 
-  const jsonLd = buildHomePageJsonLd({
-    locale,
-    siteUrl: SITE_URL,
-    siteName,
-    siteDescription: siteDescriptionGlobal,
-    homeTitle: siteTitle,
-    homeDescription: siteDescription,
-    keywords,
-  });
+  const jsonLd = jsonLdFromProps;
 
   return (
     <>
@@ -161,11 +156,13 @@ export default function Home({ featuredProducts }) {
         />
         <meta name="twitter:image" content={ogImage} key="twimage" />
 
+        {jsonLd && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
           key="home-jsonld"
         />
+        )}
       </Head>
       <HeroCarousel />
       <CollectionShowcase />
@@ -340,6 +337,27 @@ export default function Home({ featuredProducts }) {
 
 // --- SSG: 服務端抓取資料 ---
 // --- SSG: 服務端抓取資料 ---
+function loadHomeJsonLd(currentLang, featuredImage = "") {
+  const fs = require("fs");
+  const path = require("path");
+  const filePath = path.join(
+    process.cwd(),
+    "public/locales",
+    currentLang,
+    "common.json",
+  );
+  const msgs = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return buildHomePageJsonLd({
+    locale: currentLang,
+    siteName: msgs.layout?.site_name,
+    siteDescription: msgs.layout?.site_description,
+    homeTitle: msgs.home?.seo?.title,
+    homeDescription: msgs.home?.seo?.description,
+    keywords: msgs.home?.seo?.keywords || "",
+    featuredImage,
+  });
+}
+
 export async function getStaticProps({ locale }) {
   const currentLang = locale || "zh-TW";
 
@@ -379,6 +397,7 @@ export async function getStaticProps({ locale }) {
     return {
       props: {
         featuredProducts: [],
+        jsonLd: loadHomeJsonLd(currentLang),
         ...(await serverSideTranslations(currentLang, ["common"])),
       },
     };
@@ -432,10 +451,17 @@ export async function getStaticProps({ locale }) {
 
     console.log(`🎉 [Build Debug] ${currentLang} 語系處理完成！\n`);
 
+    const featuredImage =
+      formattedSlides.find(
+        (p) => p.image && !String(p.image).includes("placeholder"),
+      )?.image || "";
+    const jsonLd = loadHomeJsonLd(currentLang, featuredImage);
+
     return {
       props: {
         ...(await serverSideTranslations(currentLang, ["common"])),
         featuredProducts: formattedSlides,
+        jsonLd,
       },
       revalidate: 60,
     };
@@ -444,6 +470,7 @@ export async function getStaticProps({ locale }) {
     return {
       props: {
         featuredProducts: [],
+        jsonLd: loadHomeJsonLd(currentLang),
         ...(await serverSideTranslations(currentLang, ["common"])),
       },
       revalidate: 60,

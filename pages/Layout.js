@@ -20,6 +20,11 @@ import {
   DEFAULT_SITE_DESCRIPTION,
 } from "@/lib/sitelinks-seo";
 import { tFallback } from "@/lib/t-fallback";
+import { getOpeningHoursSpecification } from "@/lib/schema-i18n";
+import {
+  pathnameHasDedicatedJsonLd,
+  getSiteHeroUrl,
+} from "@/lib/schema-images";
 
 export default function Layout({ children }) {
   const { t } = useTranslation("common");
@@ -43,7 +48,8 @@ export default function Layout({ children }) {
     "layout.site_description",
     DEFAULT_SITE_DESCRIPTION,
   );
-  const siteImage = `${siteUrl}/default-og-image.jpg`;
+  const siteImage = getSiteHeroUrl(siteUrl);
+  const skipGlobalJsonLd = pathnameHasDedicatedJsonLd(pathname);
   const storePhone = "0938-535-870";
   const defaultLocale = DEFAULT_LOCALE;
   const isEn = locale === "en";
@@ -61,21 +67,7 @@ export default function Layout({ children }) {
     image: siteImage,
     telephone: storePhone,
     address: getBusinessPostalAddress(locale),
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ],
-        opens: "13:00",
-        closes: "20:00",
-      },
-    ],
+    openingHoursSpecification: getOpeningHoursSpecification(),
     sameAs: [
       "https://www.instagram.com/hello.cieman",
     ],
@@ -159,13 +151,19 @@ export default function Layout({ children }) {
               ))}
             <meta property="og:site_name" content={siteName} />
             <meta property="og:url" content={canonicalUrl} key="ogurl" />
-            <meta property="og:image" content={siteImage} key="ogimage" />
-            <meta
-              property="og:image:secure_url"
-              content={siteImage}
-              key="ogimagesecure"
-            />
+            {!skipGlobalJsonLd && (
+              <meta property="og:image" content={siteImage} key="ogimage" />
+            )}
+            {!skipGlobalJsonLd && (
+              <meta
+                property="og:image:secure_url"
+                content={siteImage}
+                key="ogimagesecure"
+              />
+            )}
 
+            {!skipGlobalJsonLd && (
+              <>
             <script
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
@@ -180,6 +178,8 @@ export default function Layout({ children }) {
               type="application/ld+json"
               dangerouslySetInnerHTML={{ __html: JSON.stringify(navJsonLd) }}
             />
+              </>
+            )}
           </>
         )}
       </Head>

@@ -29,7 +29,13 @@ export function middleware(req) {
     return NextResponse.next();
   }
 
-  // 2. 只有「第一次來的新訪客」且未指定 /en、/ko，才依 IP 分流
+  // 繁中主站 (/) 與 zh-TW 路徑：不做 IP 分流，確保 Google 索引到正確語系
+  // 語系僅由 URL 決定（/、/en、/ko），避免 Rich Results 把 / 判成英文
+  if (req.nextUrl.pathname === "/" || req.nextUrl.locale === "zh-TW") {
+    return NextResponse.next();
+  }
+
+  // 2. 只有 /en、/ko 前綴以外的非繁中頁面，才依 IP 建議語系（不影響 / 與 zh-TW）
   const country = req.geo?.country || req.headers.get('x-vercel-ip-country');
   
   // 本機開發時沒有國家資料，直接放行

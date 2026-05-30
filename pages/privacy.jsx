@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getSchemaBrand } from "@/lib/schema-i18n";
+import { buildLocalizedWebPageSchema, SITE_URL, getLocalizedUrl } from "@/lib/sitelinks-seo";
+import { getSiteHeroUrl } from "@/lib/schema-images";
 
 export default function PrivacyPolicy() {
   const router = useRouter();
@@ -32,20 +34,18 @@ export default function PrivacyPolicy() {
   const currentLocale = localeMap[router.locale] || "zh-TW";
   const currentDate = new Date().toLocaleDateString(currentLocale);
 
-  const siteUrl = "https://www.kesh-de1.com";
+  const pageLocale = router.locale || "zh-TW";
+  const canonicalUrl = getLocalizedUrl(SITE_URL, pageLocale, "/privacy");
+  const ogImage = getSiteHeroUrl(SITE_URL);
 
-  const privacyJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
+  const privacyJsonLd = buildLocalizedWebPageSchema({
+    locale: pageLocale,
+    path: "/privacy",
     name: pageInfo.seo_title,
     description: pageInfo.seo_desc,
-    url: `${siteUrl}/privacy`,
-    publisher: {
-      "@type": "Organization",
-      name: brand.siteName,
-      url: siteUrl,
-    },
-  };
+    siteUrl: SITE_URL,
+    brand,
+  });
 
   return (
     <>
@@ -64,13 +64,13 @@ export default function PrivacyPolicy() {
         <meta property="og:type" content="website" key="ogtype" />
         <meta property="og:title" content={pageInfo.seo_title} key="ogtitle" />
         <meta property="og:description" content={pageInfo.seo_desc} key="ogdesc" />
-        <meta property="og:url" content={`${siteUrl}/privacy`} key="ogurl" />
-        <meta property="og:image" content={`${siteUrl}/default-og-image.jpg`} key="ogimage" />
+        <meta property="og:url" content={canonicalUrl} key="ogurl" />
+        <meta property="og:image" content={ogImage} key="ogimage" />
 
         <meta name="twitter:card" content="summary_large_image" key="twcard" />
         <meta name="twitter:title" content={pageInfo.seo_title} key="twtitle" />
         <meta name="twitter:description" content={pageInfo.seo_desc} key="twdesc" />
-        <meta name="twitter:image" content={`${siteUrl}/default-og-image.jpg`} key="twimage" />
+        <meta name="twitter:image" content={ogImage} key="twimage" />
 
         <script
           type="application/ld+json"

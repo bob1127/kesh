@@ -23,7 +23,12 @@ import {
   buildProductSeoDescription,
   buildProductSeoKeywords,
 } from "@/lib/product-seo";
+import { buildMerchantOfferSchema } from "@/lib/product-offer-schema";
 import { getSchemaBrand, getSchemaBreadcrumbLabels } from "@/lib/schema-i18n";
+import {
+  resolveSchemaImage,
+  resolveSchemaImages,
+} from "@/lib/schema-images";
 import {
   Star,
   ChevronDown,
@@ -534,23 +539,21 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   // og:locale directly from router.locale (avoids i18next hydration issue)
   const ogLocale = isEn ? "en_US" : isKo ? "ko_KR" : "zh_TW";
 
-  const ogImage =
-    product.thumbnail ||
-    (product.images?.length > 0
-      ? product.images[0]
-      : `${siteUrl}/default-og-image.jpg`);
+  const ogImage = resolveSchemaImage({
+    candidates: [product.thumbnail, ...(product.images || [])],
+    siteUrl,
+  });
+  const schemaImages = resolveSchemaImages({
+    candidates: [product.thumbnail, ...(product.images || [])],
+    siteUrl,
+  });
 
   const schemaGraph = [];
-
-  // 計算一年後的日期，提供給 priceValidUntil 避免 GSC 警告
-  const nextYearDate = new Date();
-  nextYearDate.setFullYear(nextYearDate.getFullYear() + 1);
-  const priceValidUntil = nextYearDate.toISOString().split("T")[0];
 
   schemaGraph.push({
     "@type": "Product",
     name: product.title,
-    image: product.images || [ogImage],
+    image: schemaImages.length === 1 ? schemaImages[0] : schemaImages,
     description: seoDesc,
     sku: product.sku || product.id,
     mpn: product.sku || product.id,
@@ -558,57 +561,13 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
       "@type": "Brand",
       name: product.brand,
     },
-    offers: {
-      "@type": "Offer",
+    offers: buildMerchantOfferSchema({
       url: currentUrl,
-      priceCurrency: product.currency,
       price: product.rawPrice,
-      priceValidUntil: priceValidUntil,
-      itemCondition: "https://schema.org/UsedCondition",
-      availability: product.inStock
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-      seller: {
-        "@type": "Organization",
-        name: schemaBrand.siteName,
-      },
-      shippingDetails: {
-        "@type": "OfferShippingDetails",
-        shippingRate: {
-          "@type": "MonetaryAmount",
-          value: 0,
-          currency: product.currency,
-        },
-        shippingDestination: {
-          "@type": "DefinedRegion",
-          addressCountry: "TW",
-        },
-        deliveryTime: {
-          "@type": "ShippingDeliveryTime",
-          handlingTime: {
-            "@type": "QuantitativeValue",
-            minValue: 0,
-            maxValue: 2,
-            unitCode: "d",
-          },
-          transitTime: {
-            "@type": "QuantitativeValue",
-            minValue: 1,
-            maxValue: 3,
-            unitCode: "d",
-          },
-        },
-      },
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "TW",
-        returnPolicyCategory:
-          "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7,
-        returnMethod: "https://schema.org/ReturnInStore",
-        returnFees: "https://schema.org/FreeReturn",
-      },
-    },
+      currency: product.currency,
+      sellerName: schemaBrand.siteName,
+      inStock: product.inStock,
+    }),
   });
 
   const faqEntities = [];
