@@ -4,7 +4,7 @@ import { NextUIProvider } from "@nextui-org/react";
 import { appWithTranslation } from "next-i18next";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Script from "next/script"; // 🔥 1. 引入 next/script
-import { cormorantGaramond, isChineseLocale } from "@/lib/fonts";
+import { libreBaskerville, isChineseLocale } from "@/lib/fonts";
 
 import { AuthProvider } from "../components/AuthProvider";
 import { UserProvider } from "../components/context/UserContext";
@@ -39,7 +39,7 @@ function MyApp({ Component, pageProps }) {
       {/* 原有的 Provider 與佈局 */}
       <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>
         <div
-          className={`${cormorantGaramond.variable} antialiased ${
+          className={`${libreBaskerville.variable} antialiased ${
             isZh ? "lang-zh" : "lang-en"
           }`}
         >

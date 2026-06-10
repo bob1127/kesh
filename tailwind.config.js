@@ -19,7 +19,7 @@ module.exports = {
       fontFamily: {
         sans: [
           "var(--font-en-serif)",
-          "Cormorant Garamond",
+          "Libre Baskerville",
           "Georgia",
           "serif",
         ],
@@ -32,7 +32,7 @@ module.exports = {
         ],
         en: [
           "var(--font-en-serif)",
-          "Cormorant Garamond",
+          "Libre Baskerville",
           "Georgia",
           "serif",
         ],

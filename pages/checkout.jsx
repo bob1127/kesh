@@ -1034,9 +1034,15 @@ export default function CheckoutPage() {
                       onChange={handleChange}
                       className="md:col-span-2 border border-gray-200 p-4 text-sm outline-none focus:border-black bg-white text-black"
                     >
-                      <option value="TW">Taiwan (台灣)</option>
-                      <option value="US">United States (美國)</option>
-                      <option value="KR">South Korea (韓國)</option>
+                      <option value="TW">
+                        {t("checkout.countryTW", "Taiwan (台灣)")}
+                      </option>
+                      <option value="US">
+                        {t("checkout.countryUS", "United States (美國)")}
+                      </option>
+                      <option value="KR">
+                        {t("checkout.countryKR", "South Korea (韓國)")}
+                      </option>
                     </select>
 
                     {formData.country === "TW" ? (
@@ -1549,16 +1555,16 @@ export default function CheckoutPage() {
               <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>{t("checkout.subtotal", "Subtotal")}</span>
-                  <span>
+                  <span className="tabular-nums">
                     {symbol} {Math.round(total).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>
-                    {t("checkout.shipping", "Shipping")} (Total Weight:{" "}
-                    {totalWeight}g)
+                    {t("checkout.shipping", "Shipping")} (
+                    {t("checkout.totalWeight", "Total Weight")}: {totalWeight}g)
                   </span>
-                  <span>
+                  <span className="tabular-nums">
                     {symbol} {Math.round(shippingInfo.cost).toLocaleString()}
                   </span>
                 </div>
@@ -1566,7 +1572,7 @@ export default function CheckoutPage() {
                   <span className="text-sm uppercase tracking-widest mt-1">
                     {t("checkout.total", "TOTAL")}
                   </span>
-                  <span>
+                  <span className="tabular-nums">
                     {symbol}{" "}
                     {Math.round(total + shippingInfo.cost).toLocaleString()}
                   </span>
