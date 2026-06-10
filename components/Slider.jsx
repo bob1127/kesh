@@ -208,7 +208,7 @@ export default function Slider() {
           height: 100svh;
           overflow: hidden;
           background-color: #000;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          font-family: inherit;
           color: #fff;
         }
 

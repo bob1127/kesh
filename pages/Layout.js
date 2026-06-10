@@ -25,6 +25,7 @@ import {
   pathnameHasDedicatedJsonLd,
   getSiteHeroUrl,
 } from "@/lib/schema-images";
+import { NOTO_SERIF_TC_CSS, isChineseLocale, getHtmlLang } from "@/lib/fonts";
 
 export default function Layout({ children }) {
   const { t } = useTranslation("common");
@@ -39,6 +40,12 @@ export default function Layout({ children }) {
       easing: "ease-out-cubic",
     });
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = getHtmlLang(locale);
+  }, [locale]);
+
+  const isZh = isChineseLocale(locale);
 
   const siteUrl = SITE_URL;
   const siteTitle = tFallback(t, "layout.site_title", DEFAULT_SITE_NAME);
@@ -109,6 +116,18 @@ export default function Layout({ children }) {
   return (
     <>
      <Head>
+        {isZh && (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link
+              rel="preconnect"
+              href="https://fonts.gstatic.com"
+              crossOrigin=""
+            />
+            <link href={NOTO_SERIF_TC_CSS} rel="stylesheet" />
+          </>
+        )}
+
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
         <link rel="apple-touch-icon" href="/icon.png" />

@@ -35,7 +35,9 @@ export default function Contact() {
     "@context": "https://schema.org",
     "@type": "ContactPage",
     name: t("contact.seo.schema_name"),
+    headline: pageTitle,
     description: pageDesc,
+    keywords: t("contact.seo.keywords") || undefined,
     url: contactUrl,
     inLanguage: getSchemaInLanguage(pageLocale),
     mainEntity: {

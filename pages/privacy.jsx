@@ -43,6 +43,7 @@ export default function PrivacyPolicy() {
     path: "/privacy",
     name: pageInfo.seo_title,
     description: pageInfo.seo_desc,
+    keywords: pageInfo.seo_keywords || "",
     siteUrl: SITE_URL,
     brand,
   });

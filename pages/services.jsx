@@ -35,7 +35,9 @@ export default function ServicesPage() {
     "@context": "https://schema.org",
     "@type": "Service",
     name: seo.title,
+    headline: seo.title,
     description: seo.desc,
+    keywords: seo.keywords || undefined,
     url: canonicalUrl,
     inLanguage:
       locale === "en" ? "en-US" : locale === "ko" ? "ko-KR" : "zh-TW",

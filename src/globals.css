@@ -1,20 +1,51 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-@font-face {
-  font-family: "FuturaCyr";
-  src: url("/fonts/FuturaCyrillicBook.ttf") format("truetype");
-  font-weight: 100 !important;
-  font-style: normal;
-}
 body {
-   font-family: "FuturaCyr", sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
+/* 繁中：思源宋體（僅 zh-TW 語系載入字型檔） */
+.lang-zh {
+  font-family: var(--font-noto-serif-tc), "Noto Serif TC", "Source Han Serif TC",
+    "思源宋體", serif;
+  letter-spacing: 0.03em;
+}
+
+.lang-zh h1,
+.lang-zh h2,
+.lang-zh h3,
+.lang-zh h4 {
+  letter-spacing: 0.05em;
+}
+
+/* 繁中站：Tailwind font-sans 仍用宋體，避免中文被無襯線覆蓋 */
+.lang-zh.font-sans,
+.lang-zh .font-sans {
+  font-family: var(--font-noto-serif-tc), "Noto Serif TC", "Source Han Serif TC",
+    "思源宋體", serif;
+}
+
+/* 英文 / 韓文：Cormorant Garamond 襯線（next/font 自托管 preload） */
+.lang-en {
+  font-family: var(--font-en-serif), "Cormorant Garamond", Georgia,
+    "Times New Roman", serif;
+  letter-spacing: 0.02em;
+}
+
+.lang-en h1,
+.lang-en h2,
+.lang-en h3,
+.lang-en h4 {
+  letter-spacing: 0.06em;
 }
 
 
 
 :root{
+  --font-noto-serif-tc: "Noto Serif TC", "Source Han Serif TC", "思源宋體", serif;
   /* 購買按鈕 */
   --color-buy-dark:#2c81db;
     /* 卡片 */

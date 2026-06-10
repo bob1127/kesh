@@ -76,6 +76,10 @@ export default function FAQPage() {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     url: faqUrl,
+    name: seo.title,
+    headline: seo.title,
+    description: seo.description,
+    keywords: seo.keywords || undefined,
     inLanguage: getSchemaInLanguage(pageLocale),
     mainEntity: schemaItems.map((item) => ({
       "@type": "Question",

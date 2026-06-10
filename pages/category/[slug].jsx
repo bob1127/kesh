@@ -20,7 +20,7 @@ import { ChevronDown, Search, X, Filter } from "lucide-react";
 // 🔥 引入全站統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
 import { getLocalizedUrl, SITE_URL } from "@/lib/sitelinks-seo";
-import { getSchemaBrand } from "@/lib/schema-i18n";
+import { getSchemaBrand, getSchemaInLanguage } from "@/lib/schema-i18n";
 import { tFallback } from "@/lib/t-fallback";
 import { getSiteHeroUrl } from "@/lib/schema-images";
 import { buildProductItemListSchema } from "@/lib/product-offer-schema";
@@ -769,9 +769,12 @@ export default function CategoryPage({ products, brands, categories, currentPage
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: pageTitle,
+    headline: pageTitle,
     description: pageDesc,
+    keywords: pageKeywords || undefined,
     url: canonicalUrl,
     image: ogImage,
+    inLanguage: getSchemaInLanguage(locale || "zh-TW"),
     publisher: {
       "@type": "Organization",
       name: siteName,

@@ -352,7 +352,7 @@ export default function ProductGridShowcase() {
                     />
                   </div>
 
-                  <h3 className="text-[13px] md:text-[14px] font-bold text-gray-900 tracking-wider mb-3 line-clamp-1 w-full px-2">
+                  <h3 className="text-[13px] md:text-[13px] 2xl:text-[14px] font-bold text-gray-900 tracking-wider mb-3 w-full px-2 leading-relaxed">
                     {product.title}
                   </h3>
                   <span className="text-[12px] font-bold text-gray-800 tracking-[0.15em] border-b border-gray-400 pb-1 mb-5 inline-block">

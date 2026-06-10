@@ -1430,6 +1430,14 @@
       "completed": "已完成",
       "canceled": "已取消",
       "unknown": "狀態未明"
+    },
+    "tracking": {
+      "title": "包裹追蹤",
+      "refresh": "刷新",
+      "pending": "訂單已付款，等待商家安排出貨。",
+      "waybill": "運單號碼",
+      "official": "順豐官網查詢",
+      "created": "已建立運單"
     }
   },
   "category": {

@@ -337,7 +337,7 @@ const PickleballAnimation = () => {
           overflow: hidden;
           position: relative;
           background: #000;
-          font-family: "DM Sans", sans-serif;
+          font-family: inherit;
         }
         .carousel {
           width: 100%;

@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 import { getSchemaBrand } from "@/lib/schema-i18n";
 import { tFallback } from "@/lib/t-fallback";
 import { buildProductItemListSchema } from "@/lib/product-offer-schema";
-import { SITE_URL } from "@/lib/sitelinks-seo";
+import { SITE_URL, getLocalizedUrl, buildLocalizedWebPageSchema } from "@/lib/sitelinks-seo";
 import { getSiteHeroUrl } from "@/lib/schema-images";
 
 // Components
@@ -47,12 +47,16 @@ export default function Home({ chanelProducts }) {
     chanelProducts?.find((p) => p.image && !String(p.image).includes("placeholder"))
       ?.image || getSiteHeroUrl(siteUrl);
 
-  const jsonLdWebSite = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: brand.siteName,
-    url: siteUrl,
-  };
+  const jsonLdWebPage = buildLocalizedWebPageSchema({
+    locale: locale || "zh-TW",
+    path: "/brand/Chanel",
+    name: pageTitle,
+    description: pageDesc,
+    keywords: pageKeywords,
+    siteUrl,
+    brand,
+    image: ogImage,
+  });
 
   const jsonLdItemList = {
     "@context": "https://schema.org",
@@ -84,7 +88,7 @@ export default function Home({ chanelProducts }) {
         <meta property="og:locale" content={t("layout.og_locale")} key="oglocale" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebPage) }}
         />
         <script
           type="application/ld+json"

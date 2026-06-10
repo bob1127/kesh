@@ -39,6 +39,7 @@ export default function Authenticity() {
     path: "/authenticity",
     name: pageTitle,
     description: pageDesc,
+    keywords: pageKeywords,
     siteUrl: SITE_URL,
     brand,
   });

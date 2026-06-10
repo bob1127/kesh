@@ -24,7 +24,7 @@ import {
   buildProductSeoKeywords,
 } from "@/lib/product-seo";
 import { buildMerchantOfferSchema } from "@/lib/product-offer-schema";
-import { getSchemaBrand, getSchemaBreadcrumbLabels } from "@/lib/schema-i18n";
+import { getSchemaBrand, getSchemaBreadcrumbLabels, getSchemaInLanguage } from "@/lib/schema-i18n";
 import {
   resolveSchemaImage,
   resolveSchemaImages,
@@ -551,10 +551,22 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const schemaGraph = [];
 
   schemaGraph.push({
+    "@type": "WebPage",
+    "@id": `${currentUrl}#webpage`,
+    url: currentUrl,
+    name: seoTitle,
+    headline: seoTitle,
+    description: seoDesc,
+    keywords: seoKeywords || undefined,
+    inLanguage: getSchemaInLanguage(currentLocale),
+  });
+
+  schemaGraph.push({
     "@type": "Product",
     name: product.title,
     image: schemaImages.length === 1 ? schemaImages[0] : schemaImages,
     description: seoDesc,
+    keywords: seoKeywords || undefined,
     sku: product.sku || product.id,
     mpn: product.sku || product.id,
     brand: {

@@ -16,6 +16,27 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          "var(--font-en-serif)",
+          "Cormorant Garamond",
+          "Georgia",
+          "serif",
+        ],
+        serif: [
+          "var(--font-noto-serif-tc)",
+          "Noto Serif TC",
+          "Source Han Serif TC",
+          "思源宋體",
+          "serif",
+        ],
+        en: [
+          "var(--font-en-serif)",
+          "Cormorant Garamond",
+          "Georgia",
+          "serif",
+        ],
+      },
       clipPath: {
         slide: 'polygon(0 100%, 100% 100%, 100% 100%, 0 100%)',
         'slide-1': 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',

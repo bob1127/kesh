@@ -2,9 +2,8 @@
 module.exports = {
   siteUrl: "https://www.kesh-de1.com",
 
-  // This generates public/sitemap.xml for static pages at build time.
-  // At runtime, pages/sitemap.xml.js overrides it with a dynamic version
-  // that also includes all products and categories fetched from the backend.
+  // Sitemap 由 pages/sitemap.xml.js 動態產生（含商品/分類）。
+  // 此設定僅供手動執行 npx next-sitemap 時參考，postbuild 已不再執行，避免與 /sitemap.xml 路由衝突。
   generateRobotsTxt: true,
   generateIndexSitemap: false,
 

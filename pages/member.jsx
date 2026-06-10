@@ -14,6 +14,8 @@ import {
   ChevronDown,
   ChevronUp,
   Landmark,
+  Truck,
+  ExternalLink,
 } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -39,6 +41,8 @@ export default function MemberProfile() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [activeTab, setActiveTab] = useState("orders");
   const [expandedOrders, setExpandedOrders] = useState({});
+  const [trackingMap, setTrackingMap] = useState({});
+  const [trackingLoading, setTrackingLoading] = useState({});
 
   // 📦 動態狀態標籤 (需傳入 t 函數翻譯)
   const getStatusBadge = (paymentStatus) => {
@@ -104,6 +108,50 @@ export default function MemberProfile() {
 
   const toggleExpanded = (id) =>
     setExpandedOrders((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const fetchOrderTracking = async (orderId, refresh = false) => {
+    const token = localStorage.getItem("medusa_auth_token");
+    if (!token) return;
+
+    setTrackingLoading((prev) => ({ ...prev, [orderId]: true }));
+    try {
+      const BACKEND_URL =
+        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+      const PUB_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+      const qs = refresh ? "?refresh=true" : "";
+      const res = await fetch(
+        `${BACKEND_URL}/store/orders/${orderId}/sf-tracking${qs}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-publishable-api-key": PUB_KEY,
+          },
+        },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setTrackingMap((prev) => ({ ...prev, [orderId]: data }));
+      }
+    } catch (error) {
+      console.error("❌ 物流查詢失敗:", error);
+    } finally {
+      setTrackingLoading((prev) => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  useEffect(() => {
+    Object.entries(expandedOrders).forEach(([orderId, isOpen]) => {
+      if (!isOpen) return;
+      const order = orders.find((o) => o.id === orderId);
+      if (!order) return;
+      const captured = order.payment_status === "captured";
+      const hasWaybill = order.metadata?.sf_waybill_no;
+      if (captured && (hasWaybill || !trackingMap[orderId])) {
+        fetchOrderTracking(orderId, Boolean(hasWaybill));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedOrders, orders]);
 
   if (authLoading || !userInfo)
     return (
@@ -270,6 +318,21 @@ export default function MemberProfile() {
                             order.payment_status === "requires_action") &&
                           atmVaccount;
 
+                        const tracking = trackingMap[order.id];
+                        const sfWaybill =
+                          tracking?.waybill_no || order.metadata?.sf_waybill_no;
+                        const sfRoutes =
+                          tracking?.routes || order.metadata?.sf_routes || [];
+                        const sfStatus =
+                          tracking?.status ||
+                          order.metadata?.sf_status ||
+                          (sfWaybill
+                            ? t("member.tracking.created", "已建立運單")
+                            : null);
+                        const showTracking =
+                          order.payment_status === "captured" &&
+                          (sfWaybill || tracking?.has_shipment === false);
+
                         return (
                           <div
                             key={order.id}
@@ -388,6 +451,117 @@ export default function MemberProfile() {
 
                                     {/* 右：收件資訊與金額 */}
                                     <div className="lg:w-[350px] flex flex-col gap-8 shrink-0">
+                                      {showTracking && (
+                                        <div className="bg-white border border-gray-200 p-6">
+                                          <div className="flex items-center justify-between gap-2 mb-5 pb-3 border-b border-gray-200">
+                                            <div className="flex items-center gap-2">
+                                              <Truck
+                                                size={18}
+                                                className="text-black"
+                                              />
+                                              <h4 className="text-xs font-bold text-black uppercase tracking-widest">
+                                                {t(
+                                                  "member.tracking.title",
+                                                  "包裹追蹤",
+                                                )}
+                                              </h4>
+                                            </div>
+                                            {sfWaybill && (
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  fetchOrderTracking(
+                                                    order.id,
+                                                    true,
+                                                  );
+                                                }}
+                                                className="text-[9px] font-bold uppercase tracking-widest text-gray-400 hover:text-black"
+                                              >
+                                                {trackingLoading[order.id]
+                                                  ? "..."
+                                                  : t(
+                                                      "member.tracking.refresh",
+                                                      "刷新",
+                                                    )}
+                                              </button>
+                                            )}
+                                          </div>
+
+                                          {!sfWaybill ? (
+                                            <p className="text-xs text-gray-500 leading-relaxed">
+                                              {t(
+                                                "member.tracking.pending",
+                                                "訂單已付款，等待商家安排出貨。",
+                                              )}
+                                            </p>
+                                          ) : (
+                                            <div className="space-y-4">
+                                              <div>
+                                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                                  {t(
+                                                    "member.tracking.waybill",
+                                                    "運單號碼",
+                                                  )}
+                                                </p>
+                                                <p className="text-sm font-mono font-bold tracking-wider text-black">
+                                                  {sfWaybill}
+                                                </p>
+                                                {sfStatus && (
+                                                  <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">
+                                                    {sfStatus}
+                                                  </p>
+                                                )}
+                                              </div>
+
+                                              {sfRoutes.length > 0 && (
+                                                <div className="space-y-3 max-h-40 overflow-y-auto">
+                                                  {[...sfRoutes]
+                                                    .reverse()
+                                                    .map((route, idx) => (
+                                                      <div
+                                                        key={`${route.acceptTime}-${idx}`}
+                                                        className="border-l-2 border-gray-200 pl-3"
+                                                      >
+                                                        <p className="text-xs text-black leading-relaxed">
+                                                          {route.remark}
+                                                        </p>
+                                                        <p className="text-[10px] text-gray-400 mt-0.5">
+                                                          {[
+                                                            route.acceptTime,
+                                                            route.acceptAddress,
+                                                          ]
+                                                            .filter(Boolean)
+                                                            .join(" · ")}
+                                                        </p>
+                                                      </div>
+                                                    ))}
+                                                </div>
+                                              )}
+
+                                              <a
+                                                href={
+                                                  tracking?.tracking_url ||
+                                                  `https://www.sf-express.com/tw/tc/dynamic_function/waybill/#search/bill-number/${sfWaybill}`
+                                                }
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) =>
+                                                  e.stopPropagation()
+                                                }
+                                                className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-black"
+                                              >
+                                                {t(
+                                                  "member.tracking.official",
+                                                  "順豐官網查詢",
+                                                )}
+                                                <ExternalLink size={12} />
+                                              </a>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
                                       {/* 🔥 升級為 Popup 質感的 ATM 卡片 */}
                                       {showAtmTransferInfo && (
                                         <div className="bg-[#fafafa] border border-gray-200 p-6 shadow-sm">

@@ -43,6 +43,7 @@ export default function Shipping() {
     path: "/shipping",
     name: pageTitle,
     description: pageDesc,
+    keywords: pageKeywords,
     siteUrl: SITE_URL,
     brand,
   });

@@ -239,10 +239,8 @@ export default function HeroSlider({ carouselSlides = [] }) {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
-
         .integrated-wrapper {
-          font-family: "Inter", sans-serif;
+          font-family: inherit;
           width: 100%;
           height: 600px; 
           overflow: hidden;
