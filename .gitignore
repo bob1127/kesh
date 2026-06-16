@@ -23,6 +23,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local env files
-.env*.local
+# local env files (never commit secrets)
 .env
+.env.*
+!.env.template
+!.env.example
+.env*.local

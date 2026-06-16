@@ -23,6 +23,7 @@ import Image from "next/image";
 import { State, City } from "country-state-city";
 // 🔥 引入全域統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
+import { resolveTwPostalCode } from "@/lib/tw-postal-code";
 
 // ==========================================
 // 內建台灣縣市區域資料庫
@@ -732,6 +733,15 @@ export default function CheckoutPage() {
         : State.getStateByCodeAndCountry(formData.city, formData.country)
             ?.name || formData.city;
 
+    const twPostal =
+      formData.country === "TW"
+        ? resolveTwPostalCode({
+            province: stateName,
+            city: formData.district,
+            country_code: "tw",
+          })
+        : undefined;
+
     // 1. 建立購物車與填入地址
     const cartRes = await fetch(`${backendUrl}/store/carts`, {
       method: "POST",
@@ -750,6 +760,7 @@ export default function CheckoutPage() {
           city: formData.district,
           address_1: formData.street,
           country_code: formData.country.toLowerCase(),
+          ...(twPostal ? { postal_code: twPostal } : {}),
         },
       }),
     });

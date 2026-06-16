@@ -432,6 +432,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
+  const [mainSwiper, setMainSwiper] = useState(null);
   const [activeTab, setActiveTab] = useState("features");
 
   // 🔥 放大鏡專屬 State
@@ -450,6 +451,13 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
     window.addEventListener("resize", updateDirection);
     return () => window.removeEventListener("resize", updateDirection);
   }, []);
+
+  useEffect(() => {
+    if (!mainSwiper || !thumbsSwiper || thumbsSwiper.destroyed) return;
+    mainSwiper.thumbs.swiper = thumbsSwiper;
+    mainSwiper.thumbs.init();
+    mainSwiper.thumbs.update();
+  }, [mainSwiper, thumbsSwiper, thumbDirection]);
 
   // 🖱️ 滑鼠版放大鏡追蹤
   const handleMouseMove = (e) => {
@@ -792,6 +800,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                     spaceBetween={10}
                     slidesPerView={4}
                     freeMode={true}
+                    slideToClickedSlide={true}
                     watchSlidesProgress={true}
                     modules={[FreeMode, Navigation, Thumbs]}
                     className="w-full h-full thumb-swiper"
@@ -801,7 +810,23 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                         key={idx}
                         className="cursor-pointer opacity-50 [&.swiper-slide-thumb-active]:opacity-100"
                       >
-                        <div className="relative w-full h-full border border-transparent bg-white">
+                        <div
+                          className="relative w-full h-full border border-transparent bg-white"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${product.title} ${idx + 1}`}
+                          onClick={() => {
+                            mainSwiper?.slideTo(idx);
+                            thumbsSwiper?.slideTo(idx);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              mainSwiper?.slideTo(idx);
+                              thumbsSwiper?.slideTo(idx);
+                            }
+                          }}
+                        >
                           <Image
                             src={img}
                             alt="thumb"
@@ -835,6 +860,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                 </button>
 
                 <Swiper
+                  onSwiper={setMainSwiper}
                   spaceBetween={10}
                   navigation={true}
                   thumbs={{
