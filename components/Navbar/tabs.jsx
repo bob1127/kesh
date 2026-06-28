@@ -380,7 +380,7 @@ export const SlideTabsExample = () => {
                   )}
                 </AnimatePresence>
               </div>
-              <div className="hidden md:flex pl-4 gap-3 min-w-[120px] justify-end items-center">
+              <div className="hidden xl:flex pl-4 gap-3 min-w-[120px] justify-end items-center">
                 {mounted && !userLoading ? (
                   userInfo ? (
                     <Link
@@ -427,19 +427,19 @@ export const SlideTabsExample = () => {
           <div className="max-w-[1920px] mx-auto px-6 md:px-10 flex justify-between items-center relative">
             <button
               onClick={() => setIsMenuOpen(true)}
-              className="md:hidden p-2 -ml-2 text-gray-800 hover:text-[#ef4628] transition-colors"
+              className="xl:hidden p-2 -ml-2 text-gray-800 hover:text-[#ef4628] transition-colors"
             >
               <Menu size={24} />
             </button>
 
             <Link
               href="/"
-              className="text-2xl font-bold tracking-widest absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0"
+              className="text-2xl font-bold tracking-widest absolute left-1/2 -translate-x-1/2 xl:static xl:translate-x-0"
             >
               KÉSH<span className="text-[#ef4628]">.</span>
             </Link>
 
-            <nav className="hidden md:flex gap-8 items-center h-full">
+            <nav className="hidden xl:flex gap-8 items-center h-full">
               {navLinks.map((link) => (
                 <div
                   key={link.key}
@@ -465,7 +465,7 @@ export const SlideTabsExample = () => {
             <div className="flex items-center gap-4">
               {/* 🔍 搜尋欄區塊 */}
               <div
-                className="hidden lg:block relative"
+                className="hidden xl:block relative"
                 ref={searchContainerRef}
               >
                 <div className="flex items-center bg-gray-50 px-4 py-2 rounded-full border-none focus-within:ring-1 focus-within:ring-gray-200 transition-all">
@@ -611,7 +611,7 @@ export const SlideTabsExample = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl z-50 hidden md:block"
+              className="absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl z-50 hidden xl:block"
             >
               <div className="max-w-[1920px] mx-auto px-6 md:px-10 py-10">
                 {loadingCats ? (
@@ -735,14 +735,14 @@ export const SlideTabsExample = () => {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-black z-[1001] md:hidden"
+              className="fixed inset-0 bg-black z-[1001] xl:hidden"
             />
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.3 }}
-              className="fixed top-0 left-0 w-[85%] max-w-[320px] h-full bg-white shadow-2xl z-[1002] md:hidden flex flex-col"
+              className="fixed top-0 left-0 w-[85%] max-w-[320px] h-full bg-white shadow-2xl z-[1002] xl:hidden flex flex-col"
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-100">
                 <span className="text-xl font-bold tracking-widest">

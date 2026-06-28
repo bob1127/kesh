@@ -36,6 +36,17 @@
     "view_all": "View All",
     "no_products": "No products found"
   },
+  "showcase": {
+    "title": "CURATION",
+    "sub_title": "(STYLE)",
+    "tag": "for MODERN ELEGANCE",
+    "desc": "Discover KÉSH de¹'s curated selection of luxury pieces.\nFrom timeless classics to modern urban elegance — a distinctive luxury experience.",
+    "view_all": "All Products",
+    "loading": "LOADING...",
+    "buy_now": "BUY NOW",
+    "discover_more": "DISCOVER MORE",
+    "no_products": "No products in this category"
+  },
   "home": {
     "editorial_title": "Editorial Selection",
     "editorial_subtitle": "Style Proposals",
@@ -941,6 +952,14 @@
     "payment": "Payment",
     "paymentSecurity1": "Payments are processed securely via TapPay encryption",
     "paymentSecurity2": "Card details are handled by our payment provider; we never store your full card number",
+    "paypalSecurity1": "Payments are processed securely via PayPal.",
+    "paypalSecurity2": "Card and wallet payments are handled by PayPal; we never store your payment credentials.",
+    "paymentLimitNoticeTitle": "To comply with Taiwan payment regulations:",
+    "paymentLimitCreditCard": "Credit card transactions are limited to NT$199,999 per transaction",
+    "paymentLimitAtm": "Bank transfer transactions are limited to NT$49,999 per transaction",
+    "paymentLimitContactBefore": "If your order exceeds these limits, ",
+    "paymentLimitContactLink": "contact customer service",
+    "paymentLimitContactAfter": " to arrange payment.",
     "creditCard": "Credit Card",
     "atmTransfer": "Bank Transfer (ATM / Virtual Account)",
     "paypal": "PayPal / Apple Pay / Google Pay",

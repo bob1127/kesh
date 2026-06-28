@@ -35,6 +35,17 @@
     "view_all": "查看全部",
     "no_products": "該分類下沒有產品"
   },
+  "showcase": {
+    "title": "CURATION",
+    "sub_title": "(STYLE)",
+    "tag": "for MODERN ELEGANCE",
+    "desc": "探索 KÉSH de¹ 為您精心挑選的頂級精品。\n從經典雋永的傳世之作到現代俐落的都會風格，展現獨一無二的奢華品味。",
+    "view_all": "全部商品",
+    "loading": "載入中...",
+    "buy_now": "立即選購",
+    "discover_more": "探索更多",
+    "no_products": "該分類下目前沒有產品"
+  },
   "home": {
     "editorial_title": "Editorial Selection",
     "editorial_subtitle": "精選風格提案",
@@ -940,6 +951,14 @@
     "payment": "付款方式",
     "paymentSecurity1": "您的付款將透過 TapPay 國際級加密機制安全處理",
     "paymentSecurity2": "信用卡資料由金流服務商代為處理，本網站不會儲存您的完整卡片資訊",
+    "paypalSecurity1": "您的付款將透過 PayPal 安全加密機制處理",
+    "paypalSecurity2": "信用卡及電子錢包由 PayPal 代為處理，本網站不會儲存您的完整付款資訊",
+    "paymentLimitNoticeTitle": "為符合台灣金流及交易規範：",
+    "paymentLimitCreditCard": "信用卡單筆交易金額最高為 NT$199,999",
+    "paymentLimitAtm": "銀行轉帳單筆交易金額最高為 NT$49,999",
+    "paymentLimitContactBefore": "若訂單金額超過上述限制，",
+    "paymentLimitContactLink": "請聯繫客服",
+    "paymentLimitContactAfter": "協助安排付款方式。",
     "creditCard": "信用卡付款",
     "atmTransfer": "銀行轉帳 (ATM / 虛擬帳號轉帳)",
     "paypal": "PayPal / Apple Pay / Google Pay",

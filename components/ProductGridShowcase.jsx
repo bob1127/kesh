@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -8,20 +8,27 @@ import { useTranslation } from "next-i18next";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
-// 🔥 引入全站統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
+import { tFallback } from "@/lib/t-fallback";
+import {
+  getLocalizedMetadataTitle,
+  getNumberLocale,
+} from "@/lib/localized-metadata";
+import {
+  MEDUSA_BACKEND_URL,
+  getMedusaStoreHeaders,
+} from "@/lib/medusa-store";
 
 export default function ProductGridShowcase() {
   const router = useRouter();
   const { t } = useTranslation("common");
   const locale = router.locale || "zh-TW";
 
-  // 🌍 語系與幣別引擎
-  const metaLang = locale === "zh-TW" ? "zh" : locale;
   const targetCurrency =
     locale === "en" ? "usd" : locale === "ko" ? "krw" : "twd";
   const symbol =
     targetCurrency === "usd" ? "$ " : targetCurrency === "krw" ? "₩ " : "NT$ ";
+  const numberLocale = getNumberLocale(locale);
 
   const [collections, setCollections] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
@@ -34,22 +41,30 @@ export default function ProductGridShowcase() {
 
   const limit = 8;
   const containerRef = useRef(null);
-  const isReady = useRef(false); // 用於防止初始雙重抓取
+  const isReady = useRef(false);
+
+  const formatPrice = useCallback(
+    (amount) =>
+      `${symbol}${Math.round(amount).toLocaleString(numberLocale)}`,
+    [symbol, numberLocale],
+  );
+
+  const localizeTitle = useCallback(
+    (metadata, defaultTitle) =>
+      getLocalizedMetadataTitle(metadata, defaultTitle, locale),
+    [locale],
+  );
 
   // ==========================================
-  // 🔍 1. 抓取分類 (高效能版)
+  // 🔍 1. 抓取分類
   // ==========================================
   useEffect(() => {
     const fetchValidCollections = async () => {
-      const BACKEND_URL =
-        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-        "https://kesh-backend-production.up.railway.app";
-      const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-      const headers = API_KEY ? { "x-publishable-api-key": API_KEY } : {};
+      const headers = getMedusaStoreHeaders();
 
       try {
         const prodRes = await fetch(
-          `${BACKEND_URL}/store/products?limit=250&fields=id,collection_id`,
+          `${MEDUSA_BACKEND_URL}/store/products?limit=250&fields=id,collection_id`,
           { headers },
         );
         if (!prodRes.ok) return;
@@ -62,7 +77,7 @@ export default function ProductGridShowcase() {
         );
 
         const colRes = await fetch(
-          `${BACKEND_URL}/store/collections?limit=250`,
+          `${MEDUSA_BACKEND_URL}/store/collections?limit=250`,
           { headers },
         );
         if (!colRes.ok) return;
@@ -72,11 +87,14 @@ export default function ProductGridShowcase() {
           .filter((col) => activeCollectionIds.has(col.id))
           .map((col) => ({
             id: col.id,
-            title: col.metadata?.[`title_${metaLang}`] || col.title,
+            title: localizeTitle(col.metadata, col.title),
           }));
 
         setCollections([
-          { id: "all", title: t("showcase.view_all", "全部商品") },
+          {
+            id: "all",
+            title: tFallback(t, "showcase.view_all", "全部商品"),
+          },
           ...validCollections,
         ]);
       } catch (error) {
@@ -85,10 +103,10 @@ export default function ProductGridShowcase() {
     };
 
     fetchValidCollections();
-  }, [metaLang, t]);
+  }, [locale, t, localizeTitle]);
 
   // ==========================================
-  // 🛍️ 2. 抓取商品 (支援自訂數量，用於還原狀態)
+  // 🛍️ 2. 抓取商品
   // ==========================================
   const fetchProducts = async (
     currentOffset,
@@ -96,22 +114,17 @@ export default function ProductGridShowcase() {
     isLoadMore = false,
     customFetchLimit = limit,
   ) => {
-    const BACKEND_URL =
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
-      "https://kesh-backend-production.up.railway.app";
-    const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-
     try {
       if (isLoadMore) setIsLoadingMore(true);
       else setIsLoading(true);
 
-      let targetUrl = `${BACKEND_URL}/store/products?limit=${customFetchLimit}&offset=${currentOffset}&order=-created_at&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`;
+      let targetUrl = `${MEDUSA_BACKEND_URL}/store/products?limit=${customFetchLimit}&offset=${currentOffset}&order=-created_at&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`;
       if (tabId !== "all") {
         targetUrl += `&collection_id[]=${tabId}`;
       }
 
       const res = await fetch(targetUrl, {
-        headers: API_KEY ? { "x-publishable-api-key": API_KEY } : {},
+        headers: getMedusaStoreHeaders(),
       });
 
       if (!res.ok) throw new Error("API 請求失敗");
@@ -119,23 +132,20 @@ export default function ProductGridShowcase() {
 
       const formattedProducts = (data.products || []).map((p) => {
         const variantPrices = p.variants?.[0]?.prices || [];
-        let priceObj =
+        const priceObj =
           variantPrices.find(
             (pr) => pr.currency_code?.toLowerCase() === targetCurrency,
           ) || variantPrices[0];
 
-        // 🔥 套用我們剛寫好的全站價格統一邏輯
-        let amount = priceObj
+        const amount = priceObj
           ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
           : 0;
 
-        const localizedTitle = p.metadata?.[`title_${metaLang}`] || p.title;
-
         return {
           id: p.id,
-          title: localizedTitle,
+          title: localizeTitle(p.metadata, p.title),
           slug: p.handle,
-          price: `${symbol}${Math.round(amount).toLocaleString()}`,
+          price: formatPrice(amount),
           image: p.thumbnail || "/images/placeholder.jpg",
         };
       });
@@ -147,7 +157,7 @@ export default function ProductGridShowcase() {
       }
 
       setHasMore(data.count > currentOffset + customFetchLimit);
-      setOffset(currentOffset + customFetchLimit); // 紀錄當前總共載入了多少商品
+      setOffset(currentOffset + customFetchLimit);
     } catch (error) {
       console.error("載入商品失敗:", error);
     } finally {
@@ -157,12 +167,11 @@ export default function ProductGridShowcase() {
   };
 
   // ==========================================
-  // 🧠 3. 智慧狀態還原 (返回上一頁時執行)
+  // 🧠 3. 智慧狀態還原
   // ==========================================
   useEffect(() => {
     if (!router.isReady || typeof window === "undefined") return;
 
-    // 關閉瀏覽器原生的捲動還原，由我們手動接管
     if ("scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
@@ -173,7 +182,6 @@ export default function ProductGridShowcase() {
     let initTab = "all";
     let initOffset = limit;
 
-    // 如果有存檔，就把之前存的 Tab 和已載入的數量抓出來
     if (savedState) {
       try {
         const parsed = JSON.parse(savedState);
@@ -186,9 +194,7 @@ export default function ProductGridShowcase() {
 
     setActiveTab(initTab);
 
-    // 一次性把之前載入的所有商品抓回來 (例如之前載了 24 個，這次就直接抓 24 個)
     fetchProducts(0, initTab, false, initOffset).then(() => {
-      // 資料抓完後，智慧捲動回先前的 Y 軸位置
       const savedScroll = sessionStorage.getItem(
         `kesh_grid_scroll_${currentPath}`,
       );
@@ -200,7 +206,7 @@ export default function ProductGridShowcase() {
             window.scrollTo({ top: targetY, behavior: "instant" });
           } else {
             attempts++;
-            setTimeout(tryScroll, 50); // 每 50ms 嘗試一次，等待圖片撐開高度
+            setTimeout(tryScroll, 50);
           }
         };
         tryScroll();
@@ -209,12 +215,11 @@ export default function ProductGridShowcase() {
 
     isReady.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.isReady, router.asPath]);
+  }, [router.isReady, router.asPath, locale]);
 
   // ==========================================
-  // 💾 4. 自動存檔機制 (當使用者操作時紀錄)
+  // 💾 4. 自動存檔
   // ==========================================
-  // 4a. 存檔 Tab 與載入數量
   useEffect(() => {
     if (!isReady.current || typeof window === "undefined") return;
     const currentPath = router.asPath.split("?")[0];
@@ -224,7 +229,6 @@ export default function ProductGridShowcase() {
     );
   }, [activeTab, offset, router.asPath]);
 
-  // 4b. 存檔捲動位置 (防抖動優化)
   useEffect(() => {
     if (typeof window === "undefined") return;
     let scrollTimeout;
@@ -243,24 +247,12 @@ export default function ProductGridShowcase() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [router.asPath]);
 
-  // 4c. 當語系或幣別改變時，依照目前的 offset 重新抓取 (但不重置畫面位置)
-  const prevLangRef = useRef(metaLang);
-  useEffect(() => {
-    if (!isReady.current) return;
-    if (prevLangRef.current !== metaLang) {
-      fetchProducts(0, activeTab, false, offset || limit);
-      prevLangRef.current = metaLang;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metaLang, targetCurrency]);
-
   // ==========================================
-  // 🖱️ 5. 切換分類 Tab 處理
+  // 🖱️ 5. 切換分類 Tab
   // ==========================================
   const handleTabClick = (tabId) => {
-    if (activeTab === tabId) return; // 避免重複點擊
+    if (activeTab === tabId) return;
     setActiveTab(tabId);
-    // 切換分類時，重新從 0 開始抓取預設數量的商品
     fetchProducts(0, tabId, false, limit);
   };
 
@@ -276,7 +268,7 @@ export default function ProductGridShowcase() {
         stagger: 0.1,
         ease: "power2.out",
         onComplete: function () {
-          this.targets().forEach((t) => t.classList.add("animated"));
+          this.targets().forEach((target) => target.classList.add("animated"));
         },
       });
     },
@@ -293,17 +285,18 @@ export default function ProductGridShowcase() {
         <div className="w-full pb-8 flex flex-col items-center justify-center text-center">
           <div className="mb-6">
             <h2 className="text-4xl md:text-5xl lg:text-[54px] font-extrabold tracking-widest flex items-start justify-center gap-1 mb-2">
-              {t("showcase.title", "CURATION")}
+              {tFallback(t, "showcase.title", "CURATION")}
               <span className="text-[11px] lg:text-[13px] font-bold mt-2 tracking-normal uppercase">
-                {t("showcase.sub_title", "(STYLE)")}
+                {tFallback(t, "showcase.sub_title", "(STYLE)")}
               </span>
             </h2>
             <p className="text-sm md:text-base font-bold tracking-[0.2em] uppercase">
-              {t("showcase.tag", "for MODERN ELEGANCE")}
+              {tFallback(t, "showcase.tag", "for MODERN ELEGANCE")}
             </p>
           </div>
           <p className="text-[12px] md:text-[14px] text-gray-700 leading-[2.5] tracking-[0.15em] whitespace-pre-line max-w-3xl mb-12">
-            {t(
+            {tFallback(
+              t,
               "showcase.desc",
               "探索 KÉSH de¹ 為您精心挑選的頂級精品。\n從經典雋永的傳世之作到現代俐落的都會風格，展現獨一無二的奢華品味。",
             )}
@@ -331,7 +324,7 @@ export default function ProductGridShowcase() {
         {/* 商品網格區塊 */}
         {isLoading ? (
           <div className="flex justify-center items-center h-64 text-gray-400 text-xs tracking-widest uppercase animate-pulse">
-            {t("showcase.loading", "LOADING...")}
+            {tFallback(t, "showcase.loading", "LOADING...")}
           </div>
         ) : products.length > 0 ? (
           <>
@@ -340,6 +333,7 @@ export default function ProductGridShowcase() {
                 <Link
                   href={`/product/${product.slug}`}
                   key={product.id}
+                  locale={locale}
                   className="group block product-card opacity-0 translate-y-8 flex flex-col items-center text-center"
                 >
                   <div className="relative w-full aspect-[4/5] bg-gray-50 overflow-hidden mb-4">
@@ -360,13 +354,12 @@ export default function ProductGridShowcase() {
                   </span>
 
                   <div className="w-full bg-black text-white text-[10px] md:text-[11px] font-bold tracking-[0.2em] uppercase py-3 group-hover:bg-gray-800 transition-colors duration-300">
-                    {t("showcase.buy_now", "BUY NOW")}
+                    {tFallback(t, "showcase.buy_now", "BUY NOW")}
                   </div>
                 </Link>
               ))}
             </div>
 
-            {/* Load More 按鈕 */}
             {hasMore && (
               <div className="flex justify-center mt-4">
                 <button
@@ -375,15 +368,15 @@ export default function ProductGridShowcase() {
                   className="px-12 py-4 border border-black text-black text-[11px] font-bold tracking-[0.2em] uppercase hover:bg-black hover:text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoadingMore
-                    ? t("showcase.loading", "LOADING...")
-                    : t("showcase.discover_more", "DISCOVER MORE")}
+                    ? tFallback(t, "showcase.loading", "LOADING...")
+                    : tFallback(t, "showcase.discover_more", "DISCOVER MORE")}
                 </button>
               </div>
             )}
           </>
         ) : (
           <div className="text-center py-20 text-gray-400 text-sm tracking-widest uppercase">
-            {t("showcase.no_products", "該分類下目前沒有產品")}
+            {tFallback(t, "showcase.no_products", "該分類下目前沒有產品")}
           </div>
         )}
       </div>

@@ -24,11 +24,12 @@ import {
   buildProductSeoKeywords,
 } from "@/lib/product-seo";
 import { buildMerchantOfferSchema } from "@/lib/product-offer-schema";
-import { getSchemaBrand, getSchemaBreadcrumbLabels, getSchemaInLanguage } from "@/lib/schema-i18n";
 import {
-  resolveSchemaImage,
-  resolveSchemaImages,
-} from "@/lib/schema-images";
+  getSchemaBrand,
+  getSchemaBreadcrumbLabels,
+  getSchemaInLanguage,
+} from "@/lib/schema-i18n";
+import { resolveSchemaImage, resolveSchemaImages } from "@/lib/schema-images";
 import {
   Star,
   ChevronDown,
@@ -236,9 +237,7 @@ function ProseBlock({ text }) {
       <div className="space-y-6">
         {sections.map((sec, i) => (
           <div key={i}>
-            {sec.title ? (
-              <p className={SECTION_TITLE}>{sec.title}</p>
-            ) : null}
+            {sec.title ? <p className={SECTION_TITLE}>{sec.title}</p> : null}
             <ProseBlock text={sec.body} />
           </div>
         ))}
@@ -246,7 +245,10 @@ function ProseBlock({ text }) {
     );
   }
 
-  const paragraphs = text.split(/\n{2,}|\r\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  const paragraphs = text
+    .split(/\n{2,}|\r\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
   if (paragraphs.length > 1) {
     return (
       <div className="space-y-5">
@@ -257,7 +259,10 @@ function ProseBlock({ text }) {
     );
   }
 
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   if (lines.length >= 2 && lines.every(isListLine)) {
     return (
       <ul className="space-y-2.5 list-none m-0 p-0">
@@ -292,7 +297,9 @@ function ProseBlock({ text }) {
 function FaqItemBlock({ question, answer, index }) {
   return (
     <article
-      className={index > 0 ? "pt-6 mt-6 border-t border-stone-100/90" : "pt-0.5"}
+      className={
+        index > 0 ? "pt-6 mt-6 border-t border-stone-100/90" : "pt-0.5"
+      }
     >
       <div className="flex gap-3 md:gap-3.5">
         <span
@@ -375,9 +382,7 @@ const AccordionBody = ({ content, variant = "default" }) => {
 };
 
 const AccordionContentPanel = ({ children }) => (
-  <div className="mt-2 pt-1 pb-1 md:pt-2">
-    {children}
-  </div>
+  <div className="mt-2 pt-1 pb-1 md:pt-2">{children}</div>
 );
 
 // --- 通用摺疊組件 ---
@@ -786,7 +791,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
       `}</style>
 
       <main className="bg-white text-black min-h-screen pt-5 md:pt-14 pb-0">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10">
+        <div className="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20">
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
             {/* ================= 左側：圖片區 (結合垂直與水平排列) ================= */}
             <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10 flex flex-col-reverse md:flex-row gap-3 items-stretch">
@@ -1012,7 +1017,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         </div>
 
         {/* 下方 Tabs */}
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-10">
+        <div className="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20 pt-10">
           <div className="flex justify-center gap-8 md:gap-16 border-b border-gray-200 mb-10">
             <button
               onClick={() => setActiveTab("features")}

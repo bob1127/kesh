@@ -24,6 +24,10 @@ import { State, City } from "country-state-city";
 // 🔥 引入全域統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
 import { resolveTwPostalCode } from "@/lib/tw-postal-code";
+import {
+  MEDUSA_BACKEND_URL,
+  getMedusaStoreHeaders,
+} from "@/lib/medusa-store";
 
 // ==========================================
 // 內建台灣縣市區域資料庫
@@ -655,7 +659,7 @@ export default function CheckoutPage() {
           window.TPDirect.setupSDK(
             Number(process.env.NEXT_PUBLIC_TAPPAY_APP_ID),
             process.env.NEXT_PUBLIC_TAPPAY_APP_KEY,
-            "production",
+            process.env.NEXT_PUBLIC_TAPPAY_ENV || "production",
           );
           isTapPaySetup.current = true;
         }
@@ -710,18 +714,20 @@ export default function CheckoutPage() {
   // 🚨 資安核心重構：先建立 Medusa 購物車，不信任前端加法
   // ==========================================
   const prepareMedusaCart = async () => {
-    const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-    const backendUrl =
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-    const token = localStorage.getItem("medusa_auth_token");
-    const headers = {
-      "Content-Type": "application/json",
-      "x-publishable-api-key": PUBLISHABLE_API_KEY,
-    };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const backendUrl = MEDUSA_BACKEND_URL;
+    const headers = getMedusaStoreHeaders();
 
     const regionRes = await fetch(`${backendUrl}/store/regions`, { headers });
-    const regions = (await regionRes.json()).regions;
+    const regionData = await regionRes.json();
+    if (!regionRes.ok) {
+      throw new Error(regionData?.message || "無法取得配送地區，請稍後再試。");
+    }
+
+    const regions = regionData.regions;
+    if (!regions?.length) {
+      throw new Error("商店尚未設定配送地區，請聯絡客服。");
+    }
+
     const targetRegion =
       regions.find((r) =>
         r.countries.some((c) => c.iso_2 === formData.country.toLowerCase()),
@@ -765,6 +771,12 @@ export default function CheckoutPage() {
       }),
     });
     const cartData = await cartRes.json();
+    if (!cartRes.ok || !cartData?.cart?.id) {
+      throw new Error(
+        cartData?.message ||
+          "無法建立購物車，請確認填寫資料是否完整後再試。",
+      );
+    }
     const cartId = cartData.cart.id;
 
     // 2. 塞入商品 (防禦缺貨幽靈訂單)
@@ -858,9 +870,15 @@ export default function CheckoutPage() {
         );
       } else if (formData.paymentMethod === "ATM") {
         prime = await new Promise((resolve, reject) =>
-          TPDirect.virtualAccount.getPrime((err, res) =>
-            err ? reject(new Error(err.msg)) : resolve(res.prime),
-          ),
+          TPDirect.virtualAccount.getPrime((error, result) => {
+            if (error) return reject(new Error(error.msg || "虛擬帳號初始化失敗"));
+            if (!result || result.status !== 0 || !result.prime) {
+              return reject(
+                new Error(result?.msg || "無法取得 ATM 付款授權，請稍後再試"),
+              );
+            }
+            resolve(result.prime);
+          }),
         );
       } else if (formData.paymentMethod === "PAYPAL") {
         prime = paypalOrderId;
@@ -873,16 +891,8 @@ export default function CheckoutPage() {
         cartId = cart.id;
       }
 
-      const PUBLISHABLE_API_KEY =
-        process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
-      const backendUrl =
-        process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
-      const headers = {
-        "Content-Type": "application/json",
-        "x-publishable-api-key": PUBLISHABLE_API_KEY,
-      };
-      const token = localStorage.getItem("medusa_auth_token");
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const backendUrl = MEDUSA_BACKEND_URL;
+      const headers = getMedusaStoreHeaders();
 
       const customCheckoutRes = await fetch(
         `${backendUrl}/store/tappay-checkout`,
@@ -907,6 +917,7 @@ export default function CheckoutPage() {
         throw new Error(completeData?.message || "結帳 API 處理失敗");
 
       if (completeData.bank_code && completeData.vaccount) {
+        localStorage.removeItem("shopping-cart");
         setAtmData({
           bankCode: completeData.bank_code,
           vAccount: completeData.vaccount,
@@ -1228,18 +1239,81 @@ export default function CheckoutPage() {
                     {t("checkout.payment", "Payment")}
                   </h2>
                   <p className="text-[12px] text-gray-700 font-bold mb-4 leading-relaxed">
-                    {t(
-                      "checkout.paymentSecurity1",
-                      "您的付款將透過 TapPay 國際級加密機制安全處理",
+                    {formData.country === "TW" ? (
+                      <>
+                        {t(
+                          "checkout.paymentSecurity1",
+                          "您的付款將透過 TapPay 國際級加密機制安全處理",
+                        )}
+                        <br />
+                        <span className="text-black bg-yellow-100 px-1">
+                          {t(
+                            "checkout.paymentSecurity2",
+                            "信用卡資料由金流服務商代為處理，本網站不會儲存您的完整卡片資訊",
+                          )}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {t(
+                          "checkout.paypalSecurity1",
+                          "Payments are processed securely via PayPal.",
+                        )}
+                        <br />
+                        <span className="text-black bg-yellow-100 px-1">
+                          {t(
+                            "checkout.paypalSecurity2",
+                            "Card and wallet payments are handled by PayPal; we never store your payment credentials.",
+                          )}
+                        </span>
+                      </>
                     )}
-                    <br />
-                    <span className="text-black bg-yellow-100 px-1">
-                      {t(
-                        "checkout.paymentSecurity2",
-                        "信用卡資料由金流服務商代為處理，本網站不會儲存您的完整卡片資訊",
-                      )}
-                    </span>
                   </p>
+                  {formData.country === "TW" && (
+                    <div className="mb-4 border border-gray-200 bg-gray-50 px-4 py-3 text-[12px] leading-relaxed text-gray-700">
+                      <p className="font-bold">
+                        {t(
+                          "checkout.paymentLimitNoticeTitle",
+                          "為符合台灣金流及交易規範：",
+                        )}
+                      </p>
+                      <ul className="mt-2 list-disc space-y-1 pl-5">
+                        <li>
+                          {t(
+                            "checkout.paymentLimitCreditCard",
+                            "信用卡單筆交易金額最高為 NT$199,999",
+                          )}
+                        </li>
+                        <li>
+                          {t(
+                            "checkout.paymentLimitAtm",
+                            "銀行轉帳單筆交易金額最高為 NT$49,999",
+                          )}
+                        </li>
+                      </ul>
+                      <p className="mt-2">
+                        {t(
+                          "checkout.paymentLimitContactBefore",
+                          "若訂單金額超過上述限制，",
+                        )}
+                        <a
+                          href="https://line.me/R/ti/p/@391huuts"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#06C755] font-semibold underline underline-offset-2 hover:text-[#05a847] transition-colors"
+                        >
+                          {t(
+                            "checkout.paymentLimitContactLink",
+                            "請聯繫客服",
+                          )}
+                        </a>
+                        {t(
+                          "checkout.paymentLimitContactAfter",
+                          "協助安排付款方式。",
+                        )}
+                      </p>
+                    </div>
+                  )}
                   <div className="border border-gray-200 divide-y divide-gray-100">
                     {formData.country === "TW" ? (
                       <>

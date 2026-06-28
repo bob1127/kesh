@@ -36,6 +36,17 @@
     "view_all": "모두 보기",
     "no_products": "해당 카테고리에 제품이 없습니다"
   },
+  "showcase": {
+    "title": "CURATION",
+    "sub_title": "(STYLE)",
+    "tag": "for MODERN ELEGANCE",
+    "desc": "KÉSH de¹이 엄선한 럭셔리 아이템을 만나보세요.\n시대를 초월한 클래식부터 현대적 우아함까지, 독보적인 품격을 경험하세요.",
+    "view_all": "전체 상품",
+    "loading": "로딩 중...",
+    "buy_now": "지금 구매",
+    "discover_more": "더 보기",
+    "no_products": "해당 카테고리에 상품이 없습니다"
+  },
   "home": {
     "editorial_title": "Editorial Selection",
     "editorial_subtitle": "스타일 제안",
@@ -941,6 +952,14 @@
     "payment": "결제",
     "paymentSecurity1": "결제는 TapPay 국제 암호화 시스템으로 안전하게 처리됩니다",
     "paymentSecurity2": "카드 정보는 결제 대행사가 처리하며, 본 사이트는 전체 카드 번호를 저장하지 않습니다",
+    "paypalSecurity1": "결제는 PayPal을 통해 안전하게 처리됩니다.",
+    "paypalSecurity2": "카드 및 전자지갑 결제는 PayPal이 처리하며, 본 사이트는 결제 정보를 저장하지 않습니다.",
+    "paymentLimitNoticeTitle": "대만 결제 규정을 준수하기 위해:",
+    "paymentLimitCreditCard": "신용카드 단일 거래 한도는 NT$199,999입니다",
+    "paymentLimitAtm": "계좌이체 단일 거래 한도는 NT$49,999입니다",
+    "paymentLimitContactBefore": "주문 금액이 위 한도를 초과하는 경우, ",
+    "paymentLimitContactLink": "고객 서비스에 문의",
+    "paymentLimitContactAfter": "하여 결제 방법을 안내받으시기 바랍니다.",
     "creditCard": "신용카드 결제",
     "atmTransfer": "계좌이체 (ATM / 가상계좌)",
     "paypal": "PayPal / Apple Pay / Google Pay",
