@@ -328,15 +328,15 @@ export default function ProductGridShowcase() {
           </div>
         ) : products.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12 mb-16 pt-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12 mb-16 pt-8 items-stretch">
               {products.map((product) => (
                 <Link
                   href={`/product/${product.slug}`}
                   key={product.id}
                   locale={locale}
-                  className="group block product-card opacity-0 translate-y-8 flex flex-col items-center text-center"
+                  className="group product-card opacity-0 translate-y-8 flex h-full flex-col items-center text-center"
                 >
-                  <div className="relative w-full aspect-[4/5] bg-gray-50 overflow-hidden mb-4">
+                  <div className="relative w-full aspect-[4/5] shrink-0 bg-gray-50 overflow-hidden mb-4">
                     <Image
                       src={product.image}
                       alt={product.title}
@@ -346,15 +346,17 @@ export default function ProductGridShowcase() {
                     />
                   </div>
 
-                  <h3 className="text-[13px] md:text-[13px] 2xl:text-[14px] font-bold text-gray-900 tracking-wider mb-3 w-full px-2 leading-relaxed">
-                    {product.title}
-                  </h3>
-                  <span className="text-[12px] font-bold text-gray-800 tracking-[0.15em] border-b border-gray-400 pb-1 mb-5 inline-block">
-                    {product.price}
-                  </span>
+                  <div className="flex w-full flex-1 flex-col items-center">
+                    <h3 className="mb-3 w-full flex-1 px-2 text-[13px] font-bold leading-relaxed tracking-wider text-gray-900 line-clamp-4 md:text-[13px] 2xl:text-[14px]">
+                      {product.title}
+                    </h3>
+                    <span className="mb-4 inline-block shrink-0 border-b border-gray-400 pb-1 text-[12px] font-bold tracking-[0.15em] text-gray-800">
+                      {product.price}
+                    </span>
 
-                  <div className="w-full bg-black text-white text-[10px] md:text-[11px] font-bold tracking-[0.2em] uppercase py-3 group-hover:bg-gray-800 transition-colors duration-300">
-                    {tFallback(t, "showcase.buy_now", "BUY NOW")}
+                    <div className="mt-auto w-full shrink-0 bg-black py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-300 group-hover:bg-gray-800 md:text-[11px]">
+                      {tFallback(t, "showcase.buy_now", "BUY NOW")}
+                    </div>
                   </div>
                 </Link>
               ))}

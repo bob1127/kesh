@@ -324,7 +324,7 @@ export const SlideTabsExample = () => {
       <div
         ref={navRef}
         onMouseLeave={() => setOpenMega("none")}
-        className={`font-sans text-gray-800 z-[1000] w-full transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 shadow-md" : "relative"}`}
+        className={`font-sans text-gray-800 z-[1000] w-full transition-all duration-300 ${isScrolled ? "fixed top-0 left-0 border-b border-gray-200" : "relative"}`}
       >
         {/* Top Bar */}
         <div className="bg-[#ef4628] text-white text-[11px] md:text-xs font-medium py-2 px-4">
