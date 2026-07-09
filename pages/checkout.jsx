@@ -14,6 +14,7 @@ import {
   X,
   Globe,
 } from "lucide-react";
+import { LINE_OFFICIAL_URL } from "@/lib/social-links";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1297,7 +1298,7 @@ export default function CheckoutPage() {
                           "若訂單金額超過上述限制，",
                         )}
                         <a
-                          href="https://line.me/R/ti/p/@391huuts"
+                          href={LINE_OFFICIAL_URL}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#06C755] font-semibold underline underline-offset-2 hover:text-[#05a847] transition-colors"

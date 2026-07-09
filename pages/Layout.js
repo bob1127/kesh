@@ -7,6 +7,7 @@ import Banner from "@/components/banner";
 import Footer from "@/components/ui/footer.jsx";
 import Head from "next/head";
 import CartSidebar from "@/components/CartSidebar"; 
+import FixedSocialBar from "@/components/FixedSocialBar";
 import { ReactLenis } from "@studio-freight/react-lenis";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
@@ -205,6 +206,7 @@ export default function Layout({ children }) {
 
       <Navbar />
       <CartSidebar />
+      <FixedSocialBar />
 
       <ReactLenis root>
         <div className="flex flex-col justify-between">

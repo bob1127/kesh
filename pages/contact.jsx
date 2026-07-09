@@ -6,6 +6,7 @@ import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getSchemaBrand, getContactPointSchema, getSchemaInLanguage } from "@/lib/schema-i18n";
 import { useRouter } from "next/router";
+import { LINE_OFFICIAL_URL, FACEBOOK_URL } from "@/lib/social-links";
 import { SITE_URL, getLocalizedUrl } from "@/lib/sitelinks-seo";
 
 export default function Contact() {
@@ -169,7 +170,9 @@ export default function Contact() {
                       Instagram
                     </a>
                     <a
-                      href="#"
+                      href={FACEBOOK_URL}
+                      target="_blank"
+                      rel="noreferrer"
                       className="text-sm hover:opacity-70 transition-opacity"
                     >
                       Facebook
@@ -184,7 +187,7 @@ export default function Contact() {
                 {t("contact.left.line_hint")}
               </p>
               <a
-                href="https://line.me/ti/p/@yourid"
+                href={LINE_OFFICIAL_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center bg-[#06c755] hover:bg-[#05b34c] text-white px-8 py-3 text-sm font-bold tracking-wider rounded-sm transition-colors w-full md:w-auto"
