@@ -421,7 +421,7 @@ const TAIWAN_CITIES = {
   連江縣: ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"],
 };
 
-const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
+const AtmPopup = ({ bankCode, vAccount, expireDate, orderId, onClose, t }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <motion.div
@@ -549,7 +549,9 @@ export default function CheckoutPage() {
       clearCart?.();
       sessionStorage.removeItem("tappay_pending_checkout");
       localStorage.removeItem("shopping-cart");
-      const q = displayId ? `?orderId=${encodeURIComponent(displayId)}` : "";
+      const q = displayId
+        ? `?orderId=${encodeURIComponent(displayId)}&stage=processing`
+        : "?stage=processing";
       router.replace(`/thankyou${q}`);
     };
 
@@ -962,12 +964,15 @@ export default function CheckoutPage() {
         throw new Error(completeData?.message || "結帳 API 處理失敗");
 
       if (completeData.bank_code && completeData.vaccount) {
+        const atmDisplayId =
+          completeData.order?.display_id || completeData.display_id || "";
         localStorage.removeItem("shopping-cart");
         clearCart?.();
         setAtmData({
           bankCode: completeData.bank_code,
           vAccount: completeData.vaccount,
           expireDate: completeData.expire_date,
+          orderId: atmDisplayId,
         });
         setShowAtmPopup(true);
         return;
@@ -1003,8 +1008,8 @@ export default function CheckoutPage() {
       sessionStorage.removeItem("tappay_pending_checkout");
       router.push(
         displayId
-          ? `/thankyou?orderId=${encodeURIComponent(displayId)}`
-          : "/thankyou",
+          ? `/thankyou?orderId=${encodeURIComponent(displayId)}&stage=processing`
+          : "/thankyou?stage=processing",
       );
     } catch (err) {
       console.error("❌ Checkout 致命錯誤:", err);
@@ -1049,7 +1054,12 @@ export default function CheckoutPage() {
               {...atmData}
               onClose={() => {
                 setShowAtmPopup(false);
-                router.push("/");
+                const oid = atmData?.orderId;
+                router.push(
+                  oid
+                    ? `/thankyou?orderId=${encodeURIComponent(oid)}&method=ATM&stage=unpaid`
+                    : "/thankyou?method=ATM&stage=unpaid",
+                );
               }}
               t={t}
             />

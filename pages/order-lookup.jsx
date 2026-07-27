@@ -4,9 +4,12 @@ import React, { useState } from "react";
 import Head from "next/head"; // 🔥 引入 Head 支援 SEO
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import OrderProgress from "../components/OrderProgress";
+import { useRouter } from "next/router";
 
 export default function OrderLookupPage() {
   const { t } = useTranslation("common"); // 🔥 啟用翻譯
+  const router = useRouter();
 
   const [orderId, setOrderId] = useState("");
   const [email, setEmail] = useState("");
@@ -132,6 +135,12 @@ export default function OrderLookupPage() {
               </div>
 
               {/* Summary cards */}
+              <div className="mb-6 border border-gray-100 bg-[#fafafa] px-4 py-2">
+                <OrderProgress
+                  order={{ status: order.status }}
+                  locale={router.locale || "zh-TW"}
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <InfoCard
                   title={t("order_lookup.result_status")}

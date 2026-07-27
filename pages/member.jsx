@@ -19,6 +19,11 @@ import {
 } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import OrderProgress from "../components/OrderProgress";
+import {
+  resolveOrderProgressStage,
+  stageLabel,
+} from "../lib/order-progress";
 
 const formatMoney = (v) =>
   Number.isNaN(Number(v)) ? "0" : Math.round(Number(v)).toLocaleString();
@@ -44,25 +49,27 @@ export default function MemberProfile() {
   const [trackingMap, setTrackingMap] = useState({});
   const [trackingLoading, setTrackingLoading] = useState({});
 
-  // 📦 動態狀態標籤 (需傳入 t 函數翻譯)
-  const getStatusBadge = (paymentStatus) => {
-    if (paymentStatus === "captured")
+  // 📦 動態狀態標籤（訂購→付款→處理→出貨）
+  const getStatusBadge = (order) => {
+    const stage = resolveOrderProgressStage(order);
+    const label = stageLabel(stage, locale);
+    if (stage === "shipped")
       return {
-        label: t("member.status.completed", "已完成"),
+        label,
         color: "bg-[#f2fcf5] text-[#166534] border border-[#dcfce7]",
       };
-    if (paymentStatus === "awaiting" || paymentStatus === "requires_action")
+    if (stage === "unpaid")
       return {
-        label: t("member.status.pending", "待付款"),
+        label,
         color: "bg-[#fffbeb] text-[#b45309] border border-[#fef3c7]",
       };
-    if (paymentStatus === "canceled")
+    if (stage === "canceled")
       return {
-        label: t("member.status.canceled", "已取消"),
+        label,
         color: "bg-[#f9fafb] text-[#52525b] border border-[#f3f4f6]",
       };
     return {
-      label: t("member.status.processing", "處理中"),
+      label,
       color: "bg-[#eff6ff] text-[#1d4ed8] border border-[#dbeafe]",
     };
   };
@@ -275,7 +282,7 @@ export default function MemberProfile() {
                     <div className="space-y-4">
                       {orders.map((order) => {
                         const expanded = Boolean(expandedOrders[order.id]);
-                        const badge = getStatusBadge(order.payment_status);
+                        const badge = getStatusBadge(order);
                         const date = new Date(
                           order.created_at,
                         ).toLocaleDateString(dateLocale, {
@@ -311,7 +318,9 @@ export default function MemberProfile() {
 
                         const atmBankCode = order.metadata?.atm_bank_code;
                         const atmVaccount = order.metadata?.atm_vaccount;
-                        const atmExpire = order.metadata?.atm_expire_date;
+                        const atmExpire =
+                          order.metadata?.atm_expire_time ||
+                          order.metadata?.atm_expire_date;
                         const showAtmTransferInfo =
                           order.metadata?.payment_method === "ATM" &&
                           (order.payment_status === "awaiting" ||
@@ -402,7 +411,15 @@ export default function MemberProfile() {
                                   transition={{ duration: 0.3 }}
                                   className="overflow-hidden"
                                 >
-                                  <div className="border-t border-gray-100 bg-white p-6 md:p-8 flex flex-col lg:flex-row gap-12">
+                                  <div className="border-t border-gray-100 bg-white p-6 md:p-8 flex flex-col gap-8">
+                                    <div className="border border-gray-100 bg-[#fafafa] px-3 py-1">
+                                      <OrderProgress
+                                        order={order}
+                                        locale={locale}
+                                        compact
+                                      />
+                                    </div>
+                                    <div className="flex flex-col lg:flex-row gap-12">
                                     {/* 左：商品明細 */}
                                     <div className="flex-1">
                                       <h4 className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-6 pb-2 border-b border-gray-100">
@@ -707,6 +724,7 @@ export default function MemberProfile() {
                                           </div>
                                         </div>
                                       </div>
+                                    </div>
                                     </div>
                                   </div>
                                 </motion.div>
