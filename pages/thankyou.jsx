@@ -9,17 +9,11 @@ import { useCart } from "../components/context/CartContext";
 export default function ThankYou() {
   const router = useRouter();
   const { orderId } = router.query;
-  // 取得 Context 裡的清空購物車方法 (建議在 CartContext 補上 clearCart)
-  const { setCartItems } = useCart(); // 這裡暫時直接用 setCartItems
+  const { clearCart } = useCart();
 
   useEffect(() => {
-    // 進入感謝頁時，確保購物車清空
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("shopping-cart");
-      // 如果 context 有暴露 setCartItems，也可以直接清空 state
-      // setCartItems([]);
-    }
-  }, []);
+    clearCart?.();
+  }, [clearCart]);
 
   return (
     <>

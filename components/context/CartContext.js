@@ -74,6 +74,13 @@ export const CartProvider = ({ children }) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("shopping-cart");
+    }
+  };
+
   // 計算總數量
   const totalQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -83,7 +90,8 @@ export const CartProvider = ({ children }) => {
         cartItems,
         addToCart,
         removeFromCart,
-        updateQuantity, 
+        updateQuantity,
+        clearCart,
         isCartOpen,
         setIsCartOpen,
         totalQty,

@@ -485,7 +485,7 @@ const AtmPopup = ({ bankCode, vAccount, expireDate, onClose, t }) => {
 };
 
 export default function CheckoutPage() {
-  const { cartItems } = useCart();
+  const { cartItems, clearCart } = useCart();
   const { userInfo } = useUser();
   const router = useRouter();
   const { t } = useTranslation("common");
@@ -502,6 +502,7 @@ export default function CheckoutPage() {
   const metaLang = router.locale === "zh-TW" ? "zh" : router.locale;
 
   const [loading, setLoading] = useState(false);
+  const [isCompletingPayment, setIsCompletingPayment] = useState(false);
   const isProcessing = useRef(false);
   const isTapPaySetup = useRef(false);
   const medusaCartRef = useRef(null); // 紀錄剛建好的購物車 ID
@@ -534,6 +535,49 @@ export default function CheckoutPage() {
       window.location.reload();
     }
   }, [router.locale]);
+
+  // TapPay 3D 驗證完成後會導回 /checkout?status=0&order_number=...
+  useEffect(() => {
+    if (!router.isReady || typeof window === "undefined") return;
+
+    const status = router.query.status;
+    const orderNumber = router.query.order_number;
+    const pendingRaw = sessionStorage.getItem("tappay_pending_checkout");
+
+    const finishSuccess = (displayId) => {
+      setIsCompletingPayment(true);
+      clearCart?.();
+      sessionStorage.removeItem("tappay_pending_checkout");
+      localStorage.removeItem("shopping-cart");
+      const q = displayId ? `?orderId=${encodeURIComponent(displayId)}` : "";
+      router.replace(`/thankyou${q}`);
+    };
+
+    // TapPay 導回：status=0 表示付款成功
+    if (status !== undefined && String(status) === "0") {
+      let displayId = "";
+      try {
+        const pending = pendingRaw ? JSON.parse(pendingRaw) : null;
+        displayId = pending?.displayId || "";
+      } catch {
+        /* ignore */
+      }
+      finishSuccess(displayId);
+      return;
+    }
+
+    // status 有值但非 0：3D 驗證失敗，清掉 pending 並提示
+    if (status !== undefined && String(status) !== "0") {
+      sessionStorage.removeItem("tappay_pending_checkout");
+      alert(
+        t(
+          "checkout.alert.paymentFailed",
+          "付款驗證未完成或失敗，請重新嘗試。",
+        ),
+      );
+      router.replace("/checkout", undefined, { shallow: true });
+    }
+  }, [router.isReady, router.query.status, router.query.order_number, clearCart, router, t]);
 
   // 動態抓取匯率 (不論預設是否為 KRW，只要選了韓國就提早準備)
   useEffect(() => {
@@ -919,6 +963,7 @@ export default function CheckoutPage() {
 
       if (completeData.bank_code && completeData.vaccount) {
         localStorage.removeItem("shopping-cart");
+        clearCart?.();
         setAtmData({
           bankCode: completeData.bank_code,
           vAccount: completeData.vaccount,
@@ -931,9 +976,36 @@ export default function CheckoutPage() {
       const paymentUrl =
         completeData.order?.payments?.[0]?.data?.payment_url ||
         completeData.payment_url;
-      if (paymentUrl) return (window.location.href = paymentUrl);
 
-      router.push("/");
+      const displayId =
+        completeData.order?.display_id ||
+        completeData.display_id ||
+        "";
+
+      // 需要 3D 驗證：先記下訂單資訊，完成後由 redirect 回 /checkout 再轉 thankyou
+      if (paymentUrl) {
+        sessionStorage.setItem(
+          "tappay_pending_checkout",
+          JSON.stringify({
+            displayId,
+            cartId,
+            createdAt: Date.now(),
+          }),
+        );
+        window.location.href = paymentUrl;
+        return;
+      }
+
+      // 直接付款成功（無需 3D）
+      setIsCompletingPayment(true);
+      clearCart?.();
+      localStorage.removeItem("shopping-cart");
+      sessionStorage.removeItem("tappay_pending_checkout");
+      router.push(
+        displayId
+          ? `/thankyou?orderId=${encodeURIComponent(displayId)}`
+          : "/thankyou",
+      );
     } catch (err) {
       console.error("❌ Checkout 致命錯誤:", err);
       alert(`錯誤：\n${err.message}`);
@@ -942,6 +1014,14 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
+  if (isCompletingPayment) {
+    return (
+      <div className="p-32 text-center text-gray-400 tracking-widest uppercase text-xs">
+        {t("checkout.processing", "處理中...")}
+      </div>
+    );
+  }
 
   if (cartItems.length === 0)
     return (
