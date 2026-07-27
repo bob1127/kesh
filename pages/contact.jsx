@@ -6,7 +6,8 @@ import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { getSchemaBrand, getContactPointSchema, getSchemaInLanguage } from "@/lib/schema-i18n";
 import { useRouter } from "next/router";
-import { LINE_OFFICIAL_URL, FACEBOOK_URL } from "@/lib/social-links";
+import { LINE_OFFICIAL_URL } from "@/lib/social-links";
+import SocialIconLinks from "@/components/SocialIconLinks";
 import { SITE_URL, getLocalizedUrl } from "@/lib/sitelinks-seo";
 
 export default function Contact() {
@@ -157,27 +158,10 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
                     {t("contact.left.social_label")}
                   </h3>
-                  <div className="flex gap-6">
-                    <a
-                      href="https://instagram.com/hello.cieman"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm hover:opacity-70 transition-opacity"
-                    >
-                      Instagram
-                    </a>
-                    <a
-                      href={FACEBOOK_URL}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm hover:opacity-70 transition-opacity"
-                    >
-                      Facebook
-                    </a>
-                  </div>
+                  <SocialIconLinks variant="inline" className="text-white" />
                 </div>
               </div>
             </div>

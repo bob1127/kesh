@@ -1,11 +1,15 @@
 // pages/order-lookup.js
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head"; // 🔥 引入 Head 支援 SEO
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import OrderProgress from "../components/OrderProgress";
 import { useRouter } from "next/router";
+import {
+  resolveOrderProgressStage,
+  stageLabel,
+} from "../lib/order-progress";
 
 export default function OrderLookupPage() {
   const { t } = useTranslation("common"); // 🔥 啟用翻譯
@@ -17,6 +21,12 @@ export default function OrderLookupPage() {
 
   const [error, setError] = useState("");
   const [order, setOrder] = useState(null);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const q = router.query.orderId;
+    if (q && typeof q === "string") setOrderId(q);
+  }, [router.isReady, router.query.orderId]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -137,22 +147,71 @@ export default function OrderLookupPage() {
               {/* Summary cards */}
               <div className="mb-6 border border-gray-100 bg-[#fafafa] px-4 py-2">
                 <OrderProgress
-                  order={{ status: order.status }}
+                  order={{
+                    status: order.status,
+                    payment_status: order.payment_status || order.status,
+                    metadata: {
+                      ...(order.metadata || {}),
+                      payment_method: order.payment_method,
+                      sf_waybill_no: order.sf_waybill_no,
+                    },
+                  }}
                   locale={router.locale || "zh-TW"}
                 />
               </div>
+
+              {order.atm?.vaccount && (
+                <div className="mb-6 bg-[#fafafa] border border-amber-100 p-6">
+                  <div className="text-sm font-bold uppercase tracking-widest mb-4 text-amber-900">
+                    ATM 匯款資訊（待付款）
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between gap-4">
+                      <span className="text-gray-500">銀行代碼</span>
+                      <span className="font-bold tracking-widest">
+                        {order.atm.bank_code || "—"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-gray-500">虛擬帳號</span>
+                      <span className="font-bold tracking-widest text-[#ef4628] text-lg">
+                        {order.atm.vaccount}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <span className="text-gray-500">繳費期限</span>
+                      <span className="tracking-wide">
+                        {order.atm.expire_date || "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <InfoCard
                   title={t("order_lookup.result_status")}
-                  value={order.status_label}
+                  value={
+                    order.status_label && order.status_label !== "—"
+                      ? order.status_label
+                      : stageLabel(
+                          resolveOrderProgressStage({
+                            status: order.status,
+                            payment_status:
+                              order.payment_status || order.status,
+                            metadata: order.metadata,
+                          }),
+                          router.locale || "zh-TW",
+                        )
+                  }
                 />
                 <InfoCard
                   title={t("order_lookup.result_payment")}
-                  value={order.payment_method_title}
+                  value={order.payment_method_title || "—"}
                 />
                 <InfoCard
                   title={t("order_lookup.result_total")}
-                  value={`NT$ ${order.total}`}
+                  value={`NT$ ${order.total || "0"}`}
                 />
               </div>
 

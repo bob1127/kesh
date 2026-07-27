@@ -24,31 +24,6 @@ export const CartIcon = ({ fill = "black", size, height, width, ...props }) => (
   </svg>
 );
 
-export const FacebookIcon = ({
-  fill = "black",
-  size,
-  height,
-  width,
-  ...props
-}) => (
-  <svg
-    fill={fill}
-    height={size || height || 24}
-    viewBox="0 0 24 24"
-    width={size || width || 24}
-    xmlns="http://www.w3.org/2000/svg"
-    {...props}
-  >
-    <path
-      d="M22 12.07C22 6.52 17.52 2 12 2S2 6.52 2 12.07c0 4.99 3.64 9.12 8.39 9.93v-7.02H8.07v-2.91h2.32v-2.22c0-2.3 1.39-3.56 3.48-3.56.99 0 2.02.18 2.02.18v2.2H14.9c-1.26 0-1.65.79-1.65 1.6v1.8h2.81l-.45 2.91h-2.36v7.02C18.36 21.2 22 17.06 22 12.07Z"
-      stroke={fill}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-    />
-  </svg>
-);
-
 export const InstagramIcon = ({
   fill = "black",
   size,
@@ -140,21 +115,7 @@ export default function App() {
   return (
     <div className="flex gap-4 items-center">
       <a
-        href="https://www.facebook.com/profile.php?id=61569146001285"
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Button
-          isIconOnly
-          aria-label="Facebook"
-          color="warning"
-          variant="faded"
-        >
-          <FacebookIcon />
-        </Button>
-      </a>
-      <a
-        href="https://www.instagram.com/starisland_baby2022?igsh=MXVkeWExOXBsdWx1NQ%3D%3D&utm_source=qr"
+        href="https://www.instagram.com/kesh_de_1/"
         target="_blank"
         rel="noreferrer"
       >
@@ -168,7 +129,7 @@ export default function App() {
         </Button>
       </a>
       <a
-        href="https://line.me/R/ti/p/@391huuts"
+        href="https://lin.ee/rIg5rW0"
         target="_blank"
         rel="noreferrer"
       >

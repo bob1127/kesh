@@ -23,19 +23,11 @@ export const links = [
 
 export const footerLinks = [
     {
-        title: "Facebook",
-        href: "/en "
-    },
-    {
-        title: "LinkedIn",
-        href: "/"
-    },
-    {
         title: "Instagram",
-        href: "/"
+        href: "https://www.instagram.com/kesh_de_1/"
     },
     {
-        title: "Twitter",
-        href: "/"
+        title: "LINE",
+        href: "https://lin.ee/rIg5rW0"
     }
 ]

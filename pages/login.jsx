@@ -40,13 +40,6 @@ const LineIcon = () => (
   </svg>
 );
 
-// 🔵 Facebook 圖示組件
-const FacebookIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-  </svg>
-);
-
 const Spinner = ({ colorClass = "border-gray-400" }) => (
   <span
     className={`w-5 h-5 border-2 ${colorClass} border-t-transparent rounded-full animate-spin`}
@@ -110,19 +103,6 @@ export default function Login() {
     const STATE = Math.random().toString(36).substring(7);
     localStorage.setItem("google_oauth_state", STATE);
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=email%20profile`;
-  };
-
-  const handleFacebookLogin = () => {
-    if (isProcessing.current) return;
-    const FB_CLIENT_ID = process.env.NEXT_PUBLIC_FACEBOOK_CLIENT_ID;
-    if (!FB_CLIENT_ID) return setErrorMsg("系統設定異常：找不到 FB Client ID");
-
-    const REDIRECT_URI = encodeURIComponent(
-      `${window.location.origin}/auth/facebook/callback`,
-    );
-    const STATE = Math.random().toString(36).substring(7);
-    localStorage.setItem("facebook_oauth_state", STATE);
-    window.location.href = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${FB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}&scope=email,public_profile`;
   };
 
   // ==========================================
@@ -318,20 +298,6 @@ export default function Login() {
                       Continue with Google
                     </span>
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={handleFacebookLogin}
-                    disabled={loading}
-                    className="flex items-center justify-center py-3.5 border border-[#1877F2] bg-white hover:bg-blue-50 transition-all rounded-sm group relative disabled:opacity-50"
-                  >
-                    <div className="absolute left-6">
-                      <FacebookIcon />
-                    </div>
-                    <span className="text-sm font-bold text-[#1877F2] uppercase tracking-wide">
-                      Continue with Facebook
-                    </span>
-                  </button>
                 </div>
 
                 <div className="relative mb-8">
@@ -466,7 +432,7 @@ export default function Login() {
                   <p className="font-bold mb-1">💡 社群登入用戶請注意</p>
                   如果您最初是使用{" "}
                   <span className="font-bold">
-                    LINE、Google 或 Facebook
+                    LINE 或 Google
                   </span>{" "}
                   註冊，請直接返回上一頁點擊對應的彩色按鈕即可登入。
                   <span className="font-bold underline text-[#ef4628]">

@@ -102,27 +102,13 @@ const Navbar = () => {
       </ul>
       <div className="MobileIcons flex mt-10 w-full">
         <a
-          href="https://www.facebook.com/profile.php?id=61569146001285"
-          className="flex justify-center items-center mr-3 "
-        >
-          <Image
-            src="/images/facebook-app-symbol.png"
-            placeholder="empty"
-            alt="icon"
-            loading="lazy"
-            className="w-[45px] h-[45px]"
-            width={45}
-            height={45}
-          ></Image>
-        </a>
-        <a
-          href="https://www.instagram.com/starisland_baby2022?igsh=MXVkeWExOXBsdWx1NQ%3D%3D&utm_source=qr"
+          href="https://www.instagram.com/kesh_de_1/"
           className="flex justify-center items-center mr-5 "
         >
           <Image
             src="/images/instagram (1).png"
             placeholder="empty"
-            alt="icon"
+            alt="Instagram"
             loading="lazy"
             className="w-[45px] h-[45px]"
             width={45}
@@ -130,13 +116,13 @@ const Navbar = () => {
           ></Image>
         </a>
         <a
-          href="https://line.me/R/ti/p/@391huuts"
+          href="https://lin.ee/rIg5rW0"
           className="flex justify-center items-center mr-3 "
         >
           <Image
             src="/images/line (2).png"
             placeholder="empty"
-            alt="icon"
+            alt="LINE"
             loading="lazy"
             className="w-[45px] h-[45px]"
             width={45}

@@ -11,13 +11,11 @@ import {
   ChevronLeft,
   Truck,
   Landmark,
-  X,
   Globe,
 } from "lucide-react";
 import { LINE_OFFICIAL_URL } from "@/lib/social-links";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 // 🔥 引入全球國家、州、城市資料庫套件
@@ -421,69 +419,6 @@ const TAIWAN_CITIES = {
   連江縣: ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"],
 };
 
-const AtmPopup = ({ bankCode, vAccount, expireDate, orderId, onClose, t }) => {
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        className="bg-white w-full max-w-[480px] relative shadow-2xl"
-      >
-        <div className="absolute top-0 left-0 w-full h-1 bg-[#ef4628]"></div>
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-black transition-colors"
-        >
-          <X size={20} strokeWidth={1.5} />
-        </button>
-        <div className="p-10">
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg">
-              <Landmark size={24} strokeWidth={1.5} />
-            </div>
-            <h2 className="text-xl font-bold tracking-widest uppercase text-black mb-3">
-              {t("checkout.popup.title", "ATM 轉帳資訊")}
-            </h2>
-          </div>
-          <div className="bg-[#fafafa] border border-gray-100 p-6 space-y-5 mb-8">
-            <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {t("checkout.popup.bankCode", "銀行代碼")}
-              </p>
-              <p className="text-sm font-bold tracking-widest text-black">
-                {bankCode}
-              </p>
-            </div>
-            <div className="flex justify-between items-center border-b border-gray-200 pb-3">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {t("checkout.popup.account", "轉帳帳號")}
-              </p>
-              <p className="text-lg font-bold tracking-widest text-[#ef4628]">
-                {vAccount}
-              </p>
-            </div>
-            <div className="flex justify-between items-center pt-1">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                {t("checkout.popup.deadline", "繳費期限")}
-              </p>
-              <p className="text-xs font-medium tracking-widest text-gray-600">
-                {expireDate}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-full bg-black text-white py-4 text-[11px] font-bold uppercase tracking-widest hover:bg-[#ef4628] transition-colors shadow-lg"
-          >
-            {t("checkout.popup.viewOrder", "查看訂單")}
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
 export default function CheckoutPage() {
   const { cartItems, clearCart } = useCart();
   const { userInfo } = useUser();
@@ -506,13 +441,6 @@ export default function CheckoutPage() {
   const isProcessing = useRef(false);
   const isTapPaySetup = useRef(false);
   const medusaCartRef = useRef(null); // 紀錄剛建好的購物車 ID
-
-  const [showAtmPopup, setShowAtmPopup] = useState(false);
-  const [atmData, setAtmData] = useState({
-    bankCode: "",
-    vAccount: "",
-    expireDate: "",
-  });
 
   const [exchangeRate, setExchangeRate] = useState(1350);
 
@@ -966,15 +894,28 @@ export default function CheckoutPage() {
       if (completeData.bank_code && completeData.vaccount) {
         const atmDisplayId =
           completeData.order?.display_id || completeData.display_id || "";
-        localStorage.removeItem("shopping-cart");
-        clearCart?.();
-        setAtmData({
+        const atmPayload = {
           bankCode: completeData.bank_code,
           vAccount: completeData.vaccount,
           expireDate: completeData.expire_date,
           orderId: atmDisplayId,
-        });
-        setShowAtmPopup(true);
+        };
+        try {
+          sessionStorage.setItem(
+            "kesh_atm_checkout",
+            JSON.stringify(atmPayload),
+          );
+        } catch {
+          /* ignore */
+        }
+        localStorage.removeItem("shopping-cart");
+        clearCart?.();
+        setIsCompletingPayment(true);
+        router.push(
+          atmDisplayId
+            ? `/thankyou?orderId=${encodeURIComponent(atmDisplayId)}&method=ATM&stage=unpaid`
+            : "/thankyou?method=ATM&stage=unpaid",
+        );
         return;
       }
 
@@ -1048,24 +989,6 @@ export default function CheckoutPage() {
       }}
     >
       <div className="min-h-screen bg-white text-black pt-16">
-        <AnimatePresence>
-          {showAtmPopup && (
-            <AtmPopup
-              {...atmData}
-              onClose={() => {
-                setShowAtmPopup(false);
-                const oid = atmData?.orderId;
-                router.push(
-                  oid
-                    ? `/thankyou?orderId=${encodeURIComponent(oid)}&method=ATM&stage=unpaid`
-                    : "/thankyou?method=ATM&stage=unpaid",
-                );
-              }}
-              t={t}
-            />
-          )}
-        </AnimatePresence>
-
         <div className="flex flex-col-reverse lg:flex-row">
           {/* 左側：填寫資料與付款區塊 */}
           <div className="w-full lg:w-[55%] px-6 py-10 lg:px-20 lg:py-16">

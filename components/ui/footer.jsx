@@ -6,6 +6,8 @@ import Image from "next/image";
 // 🔥 1. 引入翻譯 Hook
 import { useTranslation } from "next-i18next";
 import { tFallback } from "@/lib/t-fallback";
+import SocialIconLinks from "@/components/SocialIconLinks";
+import { INSTAGRAM_URL } from "@/lib/social-links";
 
 export default function Footer() {
   // 🔥 2. 啟用翻譯 Hook
@@ -102,6 +104,21 @@ export default function Footer() {
                 {t("footer.slogan_3") ||
                   "Professional Authentication & Worldwide Shipping."}
               </p>
+            </div>
+
+            <div className="mt-8">
+              <p className="text-[10px] font-bold tracking-[0.25em] text-gray-500 uppercase mb-4">
+                {t("footer.follow_us") || "Follow Us"}
+              </p>
+              <SocialIconLinks variant="footer" />
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-[11px] tracking-widest text-gray-500 hover:text-white transition-colors"
+              >
+                @kesh_de_1
+              </a>
             </div>
           </div>
 
