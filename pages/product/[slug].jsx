@@ -929,12 +929,9 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
             {/* ================= 右側：商品資訊區 ================= */}
             <div className="w-full md:w-[45%] lg:w-[45%] 2xl:w-[50%] pb-10">
               <div className="mb-6 border-b border-gray-100 pb-6">
-                <div className="flex justify-between items-center mb-2">
+                <div className="mb-2">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                     {product.brand}
-                  </span>
-                  <span className="bg-black text-white text-[10px] px-2 py-1 font-bold">
-                    {product.specs.rank}
                   </span>
                 </div>
                 <h1 className="text-2xl lg:text-3xl !leading-[40px] tracking-wide font-medium mb-3">
@@ -1284,8 +1281,6 @@ export async function getStaticProps({ params, locale }) {
       images:
         rawProduct.images?.map((img) => img.url) ||
         [rawProduct.thumbnail].filter(Boolean),
-      specs: { rank: rawProduct.metadata?.rank || "Rank S" },
-
       // 🔥 非常重要：把原始的 metadata 整包傳給購物車，用來即時翻譯！
       metadata: rawProduct.metadata || {},
     };
