@@ -38,10 +38,10 @@ const ProductCard = ({ product, locale, index }) => {
     >
       <Link
         href={`/product/${product.slug}`}
-        className="group border-b border-gray-200 md:border-r border-gray-200 last:border-r-0 relative flex flex-col bg-white h-full"
+        className="group border-b border-gray-200 md:border-r border-gray-200 relative flex flex-col bg-white h-full p-3 md:p-4"
       >
-        <div className="relative w-full aspect-[4/5] bg-[#f4f4f4] overflow-hidden">
-          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20 pointer-events-none">
+        <div className="relative w-full aspect-[4/5] bg-white overflow-hidden">
+          <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-20 pointer-events-none">
             {product.tags?.map((tag) => (
               <span
                 key={tag}
@@ -51,19 +51,19 @@ const ProductCard = ({ product, locale, index }) => {
               </span>
             ))}
           </div>
-          <div className="absolute top-3 right-3 z-20 pointer-events-none">
-            <span className="text-[10px] font-bold text-gray-500 border border-gray-400 px-1.5 py-0.5 rounded bg-white/80">
+          <div className="absolute top-2 right-2 z-20 pointer-events-none">
+            <span className="text-[10px] font-bold text-gray-500 border border-gray-300 px-1.5 py-0.5 rounded bg-white/80">
               {product.status}
             </span>
           </div>
           <div
-            className="w-full h-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-110"
+            className="w-full h-full bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
             style={{
               backgroundImage: `url('${product.image || "/images/placeholder.jpg"}')`,
             }}
           ></div>
         </div>
-        <div className="p-5 bg-white mt-auto flex flex-col gap-1">
+        <div className="pt-4 bg-white mt-auto flex flex-col gap-1">
           <div className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mb-1">
             {product.brand}
           </div>

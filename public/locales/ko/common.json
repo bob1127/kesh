@@ -1166,7 +1166,13 @@
     "title": "검색 결과",
     "showing_results_for": "다음 키워드에 대한 결과:",
     "no_results": "검색 결과가 없습니다:",
-    "try_again": "다른 키워드나 영문 브랜드명으로 다시 검색해 주세요."
+    "try_again": "다른 키워드나 영문 브랜드명으로 다시 검색해 주세요.",
+    "tag_product": "제품",
+    "tag_article": "아티클",
+    "products_heading": "제품",
+    "articles_heading": "아티클",
+    "view_all": "전체 결과 보기",
+    "dropdown_empty": "\"{{query}}\"에 대한 결과가 없습니다"
   },
   "product_detail": {
     "ui": {

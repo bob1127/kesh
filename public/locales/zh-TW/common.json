@@ -1164,8 +1164,14 @@
   "search_page": {
     "title": "搜尋結果",
     "showing_results_for": "以下是您搜尋的關鍵字：",
-    "no_results": "找不到符合的商品：",
-    "try_again": "請嘗試使用其他關鍵字或英文品牌名稱進行搜尋。"
+    "no_results": "找不到符合的結果：",
+    "try_again": "請嘗試使用其他關鍵字或英文品牌名稱進行搜尋。",
+    "tag_product": "產品",
+    "tag_article": "文章",
+    "products_heading": "產品",
+    "articles_heading": "文章",
+    "view_all": "查看全部結果",
+    "dropdown_empty": "找不到與 \"{{query}}\" 相關的結果"
   },
   "product_detail": {
     "ui": {

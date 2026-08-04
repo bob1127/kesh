@@ -194,23 +194,38 @@ function parseFaqContent(text) {
   return { items: [], footer: trimmed };
 }
 
-/** 日式組版：內文基礎字級與行高 */
+/** 內文基礎字級與行高（黑色、易讀） */
 const BODY_TEXT =
-  "text-[14.5px] md:text-[15px] text-stone-600 leading-[1.95] tracking-[0.035em] break-words [text-rendering:optimizeLegibility]";
+  "text-[14.5px] md:text-[15px] text-black leading-[1.85] tracking-[0.02em] break-words [text-rendering:optimizeLegibility]";
 
 const ACCORDION_PROSE =
   `${BODY_TEXT} ` +
-  "[&_p]:mb-[1.15em] [&_p:last-child]:mb-0 [&_p]:leading-[1.95] " +
-  "[&_ul]:my-[0.85em] [&_ul]:space-y-[0.65em] [&_ul]:pl-0 [&_ul]:list-none " +
-  "[&_ol]:my-[0.85em] [&_ol]:space-y-[0.65em] [&_ol]:pl-[1.25em] [&_ol]:leading-[1.9] " +
-  "[&_li]:leading-[1.9] [&_strong]:font-semibold [&_strong]:text-stone-800 " +
-  "[&_h3]:text-[15px] [&_h3]:font-semibold [&_h3]:text-stone-900 [&_h3]:mb-2 " +
-  "[&_h4]:text-[14.5px] [&_h4]:font-semibold [&_h4]:text-stone-900 [&_h4]:mb-2";
+  "[&_p]:mb-[1em] [&_p:last-child]:mb-0 [&_p]:leading-[1.85] " +
+  "[&_ul]:my-[0.75em] [&_ul]:space-y-[0.55em] [&_ul]:pl-0 [&_ul]:list-none " +
+  "[&_ol]:my-[0.75em] [&_ol]:space-y-[0.55em] [&_ol]:pl-[1.25em] [&_ol]:leading-[1.85] " +
+  "[&_li]:leading-[1.85] [&_strong]:font-semibold [&_strong]:text-black " +
+  "[&_h3]:text-[15px] [&_h3]:font-semibold [&_h3]:text-black [&_h3]:mb-2 " +
+  "[&_h4]:text-[14.5px] [&_h4]:font-semibold [&_h4]:text-black [&_h4]:mb-2 " +
+  "[&_hr]:hidden [&_u]:no-underline";
 
 const FAQ_ANSWER = `${BODY_TEXT} whitespace-pre-wrap`;
 
 const SECTION_TITLE =
-  "text-[13px] font-semibold text-stone-900 tracking-[0.05em] mb-2.5";
+  "text-[14px] font-bold text-black tracking-[0.08em] mb-3";
+
+const SPEC_LABEL =
+  "text-[12px] font-medium text-black/55 tracking-[0.06em]";
+
+const SPEC_VALUE =
+  "text-[14.5px] md:text-[15px] text-black font-medium leading-snug mt-0.5";
+
+/** 後台文案常見的裝飾分隔線（⸻／─── 等），不顯示 */
+const isDividerLine = (line) => {
+  const t = (line || "").trim();
+  if (!t) return false;
+  if (t === "⸻" || t === "———" || t === "——") return true;
+  return /^[\s⸻─—–―−_\-=]{2,}$/.test(t);
+};
 
 /** 【標題】分段（付款、運送、保養等後台常見格式） */
 function parseBracketSections(text) {
@@ -230,11 +245,117 @@ function parseBracketSections(text) {
 const isListLine = (line) =>
   /^[・•●○▪\-*]\s/.test(line) || /^\d+[\.\)、]\s/.test(line);
 
+const SECTION_HEADING_RE =
+  /^(商品資訊|商品配件|商品說明|購買須知|保障與出貨|多平台聲明|市場觀察|設計亮點|付款方式|配送說明|常見問題|配件 Accessories|Accessories)$/i;
+
+const isSectionHeading = (text) => {
+  const t = (text || "").trim();
+  if (!t || t.includes("\n") || isListLine(t) || isDividerLine(t)) return false;
+  return SECTION_HEADING_RE.test(t);
+};
+
+const SPEC_LABEL_PREFIX =
+  /^(品牌|款式|材質|顏色|五金|尺寸|重量|實際重量|背法|產地|配件|狀態|等級|年份)\b/;
+
+/** 「品牌 Brand」這類獨立規格標籤（下一行為值） */
+const isSpecLabel = (line) => {
+  const t = (line || "").trim();
+  if (!t || isListLine(t) || isDividerLine(t) || isSectionHeading(t))
+    return false;
+  if (/[｜|]/.test(t)) return false;
+  if (SPEC_LABEL_PREFIX.test(t)) return true;
+  // 中文 + 英文標籤（例：品牌 Brand）
+  return (
+    /^[\u4e00-\u9fff／/]{1,8}\s+[A-Za-z][A-Za-z\s\/&\-]{1,24}$/.test(t) &&
+    t.length <= 36
+  );
+};
+
+/** 「品牌｜CELINE」同一行規格 */
+const parseInlineSpecLine = (line) => {
+  const t = (line || "").trim();
+  if (!t || isListLine(t) || isDividerLine(t) || isSectionHeading(t))
+    return null;
+  const m = t.match(/^(.{1,16}?)\s*[｜|]\s*(.+)$/);
+  if (!m) return null;
+  const label = m[1].trim();
+  const value = m[2].trim();
+  if (!label || !value) return null;
+  // 標籤需像規格欄位，避免誤傷一般句子
+  if (
+    !SPEC_LABEL_PREFIX.test(label) &&
+    !/^[\u4e00-\u9fffA-Za-z]{1,12}$/.test(label)
+  ) {
+    return null;
+  }
+  return { label, value };
+};
+
+const isInlineSpecLine = (line) => !!parseInlineSpecLine(line);
+
+function stripDividers(text) {
+  return (text || "")
+    .split(/\r?\n/)
+    .filter((line) => !isDividerLine(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function SpecList({ pairs }) {
+  if (!pairs?.length) return null;
+  return (
+    <dl className="space-y-3.5 py-1">
+      {pairs.map((pair, idx) => (
+        <div
+          key={idx}
+          className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 items-baseline"
+        >
+          <dt className={SPEC_LABEL}>{pair.label}</dt>
+          <dd className={`${SPEC_VALUE} mt-0`}>{pair.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** 連續「標籤 + 值」規格表（兩行一組，或「標籤｜值」同行） */
+function parseSpecPairs(lines) {
+  if (!lines.length) return null;
+  const pairs = [];
+  let i = 0;
+  while (i < lines.length) {
+    const inline = parseInlineSpecLine(lines[i]);
+    if (inline) {
+      pairs.push(inline);
+      i += 1;
+      continue;
+    }
+    if (
+      isSpecLabel(lines[i]) &&
+      i + 1 < lines.length &&
+      !isSpecLabel(lines[i + 1]) &&
+      !isInlineSpecLine(lines[i + 1]) &&
+      !isListLine(lines[i + 1]) &&
+      !isSectionHeading(lines[i + 1])
+    ) {
+      pairs.push({ label: lines[i], value: lines[i + 1] });
+      i += 2;
+      continue;
+    }
+    return null;
+  }
+  return pairs.length >= 1 ? pairs : null;
+}
+
 function ProseBlock({ text }) {
-  const sections = parseBracketSections(text);
+  const cleaned = stripDividers(text);
+  if (!cleaned) return null;
+
+  const sections = parseBracketSections(cleaned);
   if (sections) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-7">
         {sections.map((sec, i) => (
           <div key={i}>
             {sec.title ? <p className={SECTION_TITLE}>{sec.title}</p> : null}
@@ -245,33 +366,90 @@ function ProseBlock({ text }) {
     );
   }
 
-  const paragraphs = text
+  const paragraphs = cleaned
     .split(/\n{2,}|\r\n{2,}/)
     .map((p) => p.trim())
-    .filter(Boolean);
+    .filter((p) => p && !isDividerLine(p));
+
   if (paragraphs.length > 1) {
-    return (
-      <div className="space-y-5">
-        {paragraphs.map((para, i) => (
-          <ProseBlock key={i} text={para} />
-        ))}
-      </div>
-    );
+    // 連續規格段落合併成一張表
+    const nodes = [];
+    let specBuf = [];
+
+    const flushSpecs = () => {
+      if (!specBuf.length) return;
+      const flat = specBuf.flatMap((block) =>
+        block
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean),
+      );
+      const pairs = parseSpecPairs(flat);
+      if (pairs && pairs.length >= 1) {
+        nodes.push(<SpecList key={`spec-${nodes.length}`} pairs={pairs} />);
+      } else {
+        specBuf.forEach((block, idx) => {
+          nodes.push(
+            <ProseBlock
+              key={`spec-fallback-${nodes.length}-${idx}`}
+              text={block}
+            />,
+          );
+        });
+      }
+      specBuf = [];
+    };
+
+    paragraphs.forEach((para, i) => {
+      const lines = para
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      const looksLikeTwoLineSpec =
+        lines.length === 2 && isSpecLabel(lines[0]) && !isListLine(lines[1]);
+      const looksLikeInlineSpec =
+        lines.length >= 1 && lines.every((l) => isInlineSpecLine(l));
+      if (looksLikeTwoLineSpec || looksLikeInlineSpec) {
+        specBuf.push(para);
+      } else {
+        flushSpecs();
+        nodes.push(<ProseBlock key={`p-${i}`} text={para} />);
+      }
+    });
+    flushSpecs();
+
+    return <div className="space-y-5">{nodes}</div>;
   }
 
-  const lines = text
+  const lines = cleaned
     .split(/\r?\n/)
     .map((l) => l.trim())
-    .filter(Boolean);
+    .filter((l) => l && !isDividerLine(l));
+
+  if (lines.length === 1 && isSectionHeading(lines[0])) {
+    return <p className={`${SECTION_TITLE} mt-2`}>{lines[0]}</p>;
+  }
+
+  const specPairs = parseSpecPairs(lines);
+  if (specPairs) {
+    return <SpecList pairs={specPairs} />;
+  }
+
+  if (lines.length === 2 && isSpecLabel(lines[0])) {
+    return <SpecList pairs={[{ label: lines[0], value: lines[1] }]} />;
+  }
+
   if (lines.length >= 2 && lines.every(isListLine)) {
     return (
-      <ul className="space-y-2.5 list-none m-0 p-0">
+      <ul className="space-y-2 list-none m-0 p-0">
         {lines.map((line, i) => (
           <li key={i} className={`flex gap-2.5 ${BODY_TEXT}`}>
-            <span className="text-[#ef4628]/70 shrink-0 mt-[0.55em] text-[8px] leading-none">
+            <span className="text-black/40 shrink-0 mt-[0.55em] text-[6px] leading-none">
               ●
             </span>
-            <span>{line.replace(/^[・•●○▪\-*]\s*|\d+[\.\)、]\s*/, "")}</span>
+            <span className="flex-1">
+              {line.replace(/^[・•●○▪\-*]\s*|\d+[\.\)、]\s*/, "")}
+            </span>
           </li>
         ))}
       </ul>
@@ -280,7 +458,7 @@ function ProseBlock({ text }) {
 
   if (lines.length >= 2) {
     return (
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {lines.map((line, i) => (
           <p key={i} className={BODY_TEXT}>
             {line}
@@ -290,7 +468,7 @@ function ProseBlock({ text }) {
     );
   }
 
-  return <p className={`${BODY_TEXT} whitespace-pre-wrap`}>{text}</p>;
+  return <p className={`${BODY_TEXT} whitespace-pre-wrap`}>{cleaned}</p>;
 }
 
 /** 常見問題：Q 標記 + 層級分明（無左側直線） */
@@ -788,15 +966,26 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
           opacity: 0 !important;
           cursor: default;
         }
+        @media (min-width: 768px) {
+          .main-product-swiper,
+          .main-product-swiper .swiper-wrapper,
+          .main-product-swiper .swiper-slide {
+            height: 100% !important;
+          }
+          .thumb-swiper,
+          .thumb-swiper .swiper-wrapper {
+            height: 100% !important;
+          }
+        }
       `}</style>
 
       <main className="bg-white text-black min-h-screen pt-5 md:pt-14 pb-0">
         <div className="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20">
           <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
-            {/* ================= 左側：圖片區 (結合垂直與水平排列) ================= */}
-            <div className="w-full md:w-[55%] lg:w-[55%] 2xl:w-[50%] md:sticky md:top-32 z-10 flex flex-col-reverse md:flex-row gap-3 items-stretch">
+            {/* ================= 左側：圖片區（桌面貼齊視窗高度） ================= */}
+            <div className="w-full md:w-[62%] lg:w-[63%] 2xl:w-[60%] md:sticky md:top-28 z-10 flex flex-col-reverse md:flex-row gap-3 items-stretch md:h-[calc(100dvh-7.5rem)]">
               {/* 縮圖區塊 */}
-              <div className="w-full md:w-[80px] lg:w-[100px] shrink-0 relative h-24 md:h-auto">
+              <div className="w-full md:w-[80px] lg:w-[100px] shrink-0 relative h-24 md:h-full">
                 <div className="md:absolute md:inset-0 w-full h-full">
                   <Swiper
                     key={thumbDirection}
@@ -813,10 +1002,10 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                     {product.images?.map((img, idx) => (
                       <SwiperSlide
                         key={idx}
-                        className="cursor-pointer opacity-50 [&.swiper-slide-thumb-active]:opacity-100"
+                        className="cursor-pointer opacity-50 [&.swiper-slide-thumb-active]:opacity-100 !h-auto md:!h-[calc((100%-30px)/4)]"
                       >
                         <div
-                          className="relative w-full h-full border border-transparent bg-white"
+                          className="relative w-full aspect-square md:aspect-auto md:h-full border border-transparent bg-white"
                           role="button"
                           tabIndex={0}
                           aria-label={`${product.title} ${idx + 1}`}
@@ -847,7 +1036,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
               </div>
 
               {/* 主圖區塊 (加入 main-swiper-group 讓 hover 生效) */}
-              <div className="w-full flex-1 relative min-w-0 main-swiper-group">
+              <div className="w-full flex-1 relative min-w-0 min-h-0 main-swiper-group md:h-full">
                 <button
                   onClick={() => setIsZoomEnabled(!isZoomEnabled)}
                   className={`absolute top-4 right-4 z-20 p-2.5 rounded-full shadow-md transition-all duration-300 ${
@@ -875,8 +1064,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                         : null,
                   }}
                   modules={[FreeMode, Navigation, Thumbs]}
-                  // 🔥 加入 main-product-swiper 套用上方毛玻璃 CSS
-                  className="w-full aspect-[4/4] bg-gray-50 rounded-sm main-product-swiper"
+                  className="w-full aspect-[4/4] md:aspect-auto md:h-full bg-gray-50 rounded-sm main-product-swiper"
                 >
                   {product.images?.map((img, idx) => (
                     <SwiperSlide key={idx}>
@@ -927,7 +1115,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
             </div>
 
             {/* ================= 右側：商品資訊區 ================= */}
-            <div className="w-full md:w-[45%] lg:w-[45%] 2xl:w-[50%] pb-10">
+            <div className="w-full md:w-[38%] lg:w-[37%] 2xl:w-[40%] pb-10">
               <div className="mb-6 border-b border-gray-100 pb-6">
                 <div className="mb-2">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">

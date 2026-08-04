@@ -1165,8 +1165,14 @@
   "search_page": {
     "title": "Search Results",
     "showing_results_for": "Showing results for",
-    "no_results": "No products found for",
-    "try_again": "Please try checking your spelling or use different keywords."
+    "no_results": "No results found for",
+    "try_again": "Please try checking your spelling or use different keywords.",
+    "tag_product": "Product",
+    "tag_article": "Article",
+    "products_heading": "Products",
+    "articles_heading": "Articles",
+    "view_all": "View all results",
+    "dropdown_empty": "No results for \"{{query}}\""
   },
   "product_detail": {
     "ui": {

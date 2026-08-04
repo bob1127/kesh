@@ -21,9 +21,9 @@ import {
 
 import { useCart } from "../../components/context/CartContext";
 import { useTranslation } from "next-i18next";
-import { medusa } from "@/lib/medusa";
 import { useUser } from "../../components/context/UserContext";
 import { tFallback } from "@/lib/t-fallback";
+import { getCorrectAmount } from "@/lib/price";
 
 export const SlideTabsExample = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,6 +43,7 @@ export const SlideTabsExample = () => {
     pages: [],
   });
   const searchContainerRef = useRef(null);
+  const searchScrollRef = useRef(null);
 
   const { totalQty, setIsCartOpen } = useCart();
   const { userInfo, loading: userLoading } = useUser();
@@ -117,6 +118,46 @@ export const SlideTabsExample = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // 搜尋下拉開啟時鎖住背景頁面滾動，避免滾輪「穿透」到頁面
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    const prevOverflow = document.body.style.overflow;
+    const prevPadding = document.body.style.paddingRight;
+    const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbar > 0) {
+      document.body.style.paddingRight = `${scrollbar}px`;
+    }
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPadding;
+    };
+  }, [showSearchDropdown]);
+
+  // 非 passive wheel：才能在邊界 preventDefault，確保清單可滾、頁面不跟滾
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    const el = searchScrollRef.current;
+    if (!el) return;
+
+    const onWheel = (e) => {
+      e.stopPropagation();
+      if (el.scrollHeight <= el.clientHeight + 1) {
+        e.preventDefault();
+        return;
+      }
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const atTop = scrollTop <= 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+        e.preventDefault();
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [showSearchDropdown, searchResults, isSearching]);
 
   useEffect(() => {
     async function fetchMenuData() {
@@ -199,27 +240,87 @@ export const SlideTabsExample = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
-      if (searchQuery.trim().length > 1) {
+      const q = searchQuery.trim();
+      if (q.length > 1) {
         setIsSearching(true);
         setShowSearchDropdown(true);
         try {
-          const { products } = await medusa.products.list({
-            q: searchQuery,
-            limit: 4,
-          });
+          const backendUrl =
+            process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+            "https://kesh-backend-production.up.railway.app";
+          const pubKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+          const headers = { "Content-Type": "application/json" };
+          if (pubKey) headers["x-publishable-api-key"] = pubKey;
+          const qLower = q.toLowerCase();
 
-          setSearchResults({
-            products: products.map((p) => ({
+          const [productsJson, postsJson] = await Promise.all([
+            fetch(
+              `${backendUrl}/store/products?q=${encodeURIComponent(q)}&limit=4&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`,
+              { headers },
+            )
+              .then((r) => (r.ok ? r.json() : { products: [] }))
+              .catch(() => ({ products: [] })),
+            fetch(`${backendUrl}/store/custom/posts`, { headers })
+              .then((r) => (r.ok ? r.json() : { posts: [] }))
+              .catch(() => ({ posts: [] })),
+          ]);
+
+          const getProductTitle = (p) => {
+            const meta = p.metadata || {};
+            if (metaLang === "en" && meta.title_en?.trim()) return meta.title_en;
+            if (metaLang === "ko" && meta.title_ko?.trim()) return meta.title_ko;
+            return p.title || "";
+          };
+
+          const products = (productsJson.products || []).map((p) => {
+            const priceObj = p.variants?.[0]?.prices?.[0];
+            const amount = priceObj
+              ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
+              : 0;
+            return {
               id: p.id,
-              title: p.title,
+              title: getProductTitle(p),
               slug: p.handle,
               image: p.thumbnail,
-              price: p.variants?.[0]?.prices?.[0]
-                ? `${(p.variants[0].prices[0].amount / 100).toLocaleString()} TWD`
-                : "TBA",
-            })),
-            pages: [],
+              price: amount
+                ? `NT$ ${Math.round(amount).toLocaleString()}`
+                : "",
+            };
           });
+
+          const getPostTitle = (post) => {
+            if (metaLang === "en" && post.title_en?.trim()) return post.title_en;
+            if (metaLang === "ko" && post.title_ko?.trim()) return post.title_ko;
+            return post.title || "";
+          };
+
+          const pages = (postsJson.posts || [])
+            .filter((post) => post.is_active !== false)
+            .filter((post) => {
+              const haystack = [
+                post.title,
+                post.title_en,
+                post.title_ko,
+                post.excerpt,
+                post.excerpt_en,
+                post.excerpt_ko,
+                post.slug,
+                post.seo_keywords,
+              ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+              return haystack.includes(qLower);
+            })
+            .slice(0, 4)
+            .map((post) => ({
+              id: post.id,
+              title: getPostTitle(post),
+              slug: post.slug,
+              image: post.thumbnail || null,
+            }));
+
+          setSearchResults({ products, pages });
         } catch (err) {
           console.error(err);
         } finally {
@@ -230,7 +331,7 @@ export const SlideTabsExample = () => {
       }
     }, 500);
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  }, [searchQuery, metaLang]);
 
   const handleSearchSubmit = (e) => {
     if ((e.key === "Enter" || e.type === "click") && searchQuery.trim()) {
@@ -361,7 +462,7 @@ export const SlideTabsExample = () => {
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 5 }}
-                      className="absolute top-[120%] right-0 mt-2 w-32 bg-white rounded-sm shadow-xl border border-gray-100 overflow-hidden z-[1100]"
+                      className="absolute top-[120%] right-0 mt-2 w-32 bg-white rounded-sm border border-gray-200 shadow-none overflow-hidden z-[1100]"
                     >
                       {["zh-TW", "en", "ko"].map((lang) => (
                         <button
@@ -468,7 +569,7 @@ export const SlideTabsExample = () => {
                 className="hidden xl:block relative"
                 ref={searchContainerRef}
               >
-                <div className="flex items-center bg-gray-50 px-4 py-2 rounded-full border-none focus-within:ring-1 focus-within:ring-gray-200 transition-all">
+                <div className="flex items-center bg-white px-4 py-2 rounded-full border border-gray-200 shadow-none focus-within:border-gray-400 transition-colors">
                   <input
                     type="text"
                     value={searchQuery}
@@ -480,7 +581,7 @@ export const SlideTabsExample = () => {
                       }
                     }}
                     placeholder={t("navbar.search") || "搜尋..."}
-                    className="bg-transparent text-sm w-40 outline-none border-none ring-0 p-0 focus:ring-0"
+                    className="bg-transparent text-sm w-40 outline-none border-none ring-0 shadow-none p-0 focus:ring-0 focus:outline-none"
                   />
                   <Search
                     size={16}
@@ -496,7 +597,8 @@ export const SlideTabsExample = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
-                      className="absolute top-full right-0 mt-3 w-80 bg-white border border-gray-100 shadow-2xl rounded-md overflow-hidden z-[1100]"
+                      className="absolute top-full right-0 mt-3 w-[360px] bg-white border border-gray-200 shadow-none rounded-md z-[1100] flex flex-col max-h-[min(70vh,520px)] overflow-hidden"
+                      onWheel={(e) => e.stopPropagation()}
                     >
                       {isSearching ? (
                         <div className="flex items-center justify-center p-8 text-gray-400">
@@ -505,81 +607,120 @@ export const SlideTabsExample = () => {
                       ) : searchResults.products.length === 0 &&
                         searchResults.pages.length === 0 ? (
                         <div className="p-6 text-center text-sm text-gray-500">
-                          找不到與 "{searchQuery}" 相關的結果
+                          {tFallback(
+                            t,
+                            "search_page.dropdown_empty",
+                            '找不到與 "{{query}}" 相關的結果',
+                          ).replace("{{query}}", searchQuery)}
                         </div>
                       ) : (
-                        <div className="max-h-[70vh] overflow-y-auto overscroll-contain">
-                          {searchResults.products.length > 0 && (
-                            <div className="p-2">
-                              <h4 className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-3 py-2">
-                                Products
-                              </h4>
-                              {searchResults.products.map((product) => (
-                                <Link
-                                  href={`/product/${product.slug}`}
-                                  key={product.id}
-                                  onClick={() => setShowSearchDropdown(false)}
-                                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-md transition-colors group"
-                                >
-                                  <div className="w-12 h-12 bg-gray-100 rounded-sm overflow-hidden relative flex-shrink-0">
-                                    {product.image ? (
-                                      <Image
-                                        src={product.image}
-                                        alt={product.title}
-                                        fill
-                                        className="object-cover group-hover:scale-105 transition-transform"
-                                      />
-                                    ) : (
-                                      <span className="flex items-center justify-center w-full h-full text-[8px] text-gray-400">
-                                        No Img
+                        <>
+                          <div
+                            ref={searchScrollRef}
+                            className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+                          >
+                            {searchResults.products.length > 0 && (
+                              <div className="p-2">
+                                {searchResults.products.map((product) => (
+                                  <Link
+                                    href={`/product/${product.slug}`}
+                                    key={product.id}
+                                    onClick={() => setShowSearchDropdown(false)}
+                                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-md transition-colors group"
+                                  >
+                                    <div className="w-12 h-12 bg-gray-100 rounded-sm overflow-hidden relative flex-shrink-0">
+                                      {product.image ? (
+                                        <Image
+                                          src={product.image}
+                                          alt={product.title}
+                                          fill
+                                          className="object-cover group-hover:scale-105 transition-transform"
+                                        />
+                                      ) : (
+                                        <span className="flex items-center justify-center w-full h-full text-[8px] text-gray-400">
+                                          No Img
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="inline-block mb-1 text-[10px] font-bold tracking-[0.12em] px-1.5 py-0.5 border border-gray-300 text-gray-700 bg-white">
+                                        {tFallback(
+                                          t,
+                                          "search_page.tag_product",
+                                          "產品",
+                                        )}
                                       </span>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-gray-800 truncate group-hover:text-[#ef4628] transition-colors">
-                                      {product.title}
-                                    </p>
-                                    <p className="text-xs text-gray-500 mt-0.5">
-                                      {product.price}
-                                    </p>
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
-                          )}
+                                      <p className="text-sm font-medium text-black truncate group-hover:text-[#ef4628] transition-colors">
+                                        {product.title}
+                                      </p>
+                                      {product.price ? (
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                          {product.price}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
 
-                          {searchResults.pages.length > 0 && (
-                            <div className="p-2 border-t border-gray-50">
-                              <h4 className="text-[10px] font-bold tracking-widest uppercase text-gray-400 px-3 py-2">
-                                Articles
-                              </h4>
-                              {searchResults.pages.map((page) => (
-                                <Link
-                                  href={`/news/${page.slug}`}
-                                  key={page.id}
-                                  onClick={() => setShowSearchDropdown(false)}
-                                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-md transition-colors group"
-                                >
-                                  <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 group-hover:text-[#ef4628] transition-colors">
-                                    <FileText size={14} />
-                                  </div>
-                                  <p className="text-sm text-gray-700 truncate group-hover:text-[#ef4628] transition-colors">
-                                    {page.title}
-                                  </p>
-                                </Link>
-                              ))}
-                            </div>
-                          )}
+                            {searchResults.pages.length > 0 && (
+                              <div
+                                className={`p-2 ${searchResults.products.length > 0 ? "border-t border-gray-100" : ""}`}
+                              >
+                                {searchResults.pages.map((page) => (
+                                  <Link
+                                    href={`/news/${page.slug}`}
+                                    key={page.id}
+                                    onClick={() => setShowSearchDropdown(false)}
+                                    className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-md transition-colors group"
+                                  >
+                                    <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-sm overflow-hidden relative flex-shrink-0 flex items-center justify-center">
+                                      {page.image ? (
+                                        <Image
+                                          src={page.image}
+                                          alt={page.title}
+                                          fill
+                                          className="object-cover group-hover:scale-105 transition-transform"
+                                        />
+                                      ) : (
+                                        <FileText
+                                          size={16}
+                                          className="text-gray-400 group-hover:text-[#ef4628] transition-colors"
+                                        />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <span className="inline-block mb-1 text-[10px] font-bold tracking-[0.12em] px-1.5 py-0.5 border border-[#ef4628]/40 text-[#ef4628] bg-[#ef4628]/5">
+                                        {tFallback(
+                                          t,
+                                          "search_page.tag_article",
+                                          "文章",
+                                        )}
+                                      </span>
+                                      <p className="text-sm font-medium text-black truncate group-hover:text-[#ef4628] transition-colors">
+                                        {page.title}
+                                      </p>
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
 
-                          <div className="p-2 bg-gray-50 border-t border-gray-100">
+                          <div className="shrink-0 p-2 bg-gray-50 border-t border-gray-200">
                             <button
                               onClick={handleSearchSubmit}
-                              className="w-full text-center py-2 text-xs font-bold tracking-widest text-[#ef4628] hover:text-black transition-colors uppercase"
+                              className="w-full text-center py-2 text-xs font-bold tracking-widest text-[#ef4628] hover:text-black transition-colors"
                             >
-                              View all results
+                              {tFallback(
+                                t,
+                                "search_page.view_all",
+                                "查看全部結果",
+                              )}
                             </button>
                           </div>
-                        </div>
+                        </>
                       )}
                     </motion.div>
                   )}
@@ -611,7 +752,7 @@ export const SlideTabsExample = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl z-50 hidden xl:block"
+              className="absolute top-full left-0 w-full bg-white border-t border-b border-gray-200 shadow-none z-50 hidden xl:block"
             >
               <div className="max-w-[1920px] mx-auto px-6 md:px-10 py-10">
                 {loadingCats ? (
@@ -644,7 +785,7 @@ export const SlideTabsExample = () => {
                                 }
                                 className="flex flex-col items-center gap-3"
                               >
-                                <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ef4628] transition-colors relative">
+                                <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 shadow-none group-hover:border-[#ef4628] transition-colors relative">
                                   {cat.image ? (
                                     <Image
                                       src={cat.image}
@@ -693,7 +834,7 @@ export const SlideTabsExample = () => {
                                 }
                                 className="flex flex-col items-center gap-3"
                               >
-                                <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 group-hover:border-[#ef4628] transition-colors relative">
+                                <div className="w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 shadow-none group-hover:border-[#ef4628] transition-colors relative">
                                   {brand.image ? (
                                     <Image
                                       src={brand.image}
@@ -742,7 +883,7 @@ export const SlideTabsExample = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.3 }}
-              className="fixed top-0 left-0 w-[85%] max-w-[320px] h-full bg-white shadow-2xl z-[1002] xl:hidden flex flex-col"
+              className="fixed top-0 left-0 w-[85%] max-w-[320px] h-full bg-white border-r border-gray-200 shadow-none z-[1002] xl:hidden flex flex-col"
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-100">
                 <span className="text-xl font-bold tracking-widest">
@@ -758,7 +899,7 @@ export const SlideTabsExample = () => {
 
               {/* 手機版搜尋 */}
               <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center bg-gray-50 px-4 py-3 rounded-full border-none focus-within:ring-1 focus-within:ring-gray-200">
+                <div className="flex items-center bg-white px-4 py-3 rounded-full border border-gray-200 shadow-none focus-within:border-gray-400 transition-colors">
                   <Search size={16} className="text-gray-400 mr-2" />
                   <input
                     type="text"
@@ -772,8 +913,8 @@ export const SlideTabsExample = () => {
                         setIsMenuOpen(false);
                       }
                     }}
-                    placeholder="Search products..."
-                    className="bg-transparent text-sm w-full outline-none border-none ring-0 p-0"
+                    placeholder={t("navbar.search") || "搜尋..."}
+                    className="bg-transparent text-sm w-full outline-none border-none ring-0 shadow-none p-0 focus:ring-0"
                   />
                 </div>
               </div>
