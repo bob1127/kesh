@@ -980,12 +980,12 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
       `}</style>
 
       <main className="bg-white text-black min-h-screen pt-5 md:pt-14 pb-0">
-        <div className="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20">
-          <div className="flex flex-col md:flex-row gap-10 lg:gap-16 items-start">
+        <div className="max-w-[1480px] mx-auto px-5 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+          <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-start">
             {/* ================= 左側：圖片區（桌面貼齊視窗高度） ================= */}
-            <div className="w-full md:w-[62%] lg:w-[63%] 2xl:w-[60%] md:sticky md:top-28 z-10 flex flex-col-reverse md:flex-row gap-3 items-stretch md:h-[calc(100dvh-7.5rem)]">
-              {/* 縮圖區塊 */}
-              <div className="w-full md:w-[80px] lg:w-[100px] shrink-0 relative h-24 md:h-full">
+            <div className="w-full md:w-[62%] lg:w-[63%] 2xl:w-[60%] md:sticky md:top-28 z-10 flex flex-col-reverse md:flex-row gap-3.5 items-stretch md:h-[calc(100dvh-7.5rem)]">
+              {/* 縮圖區塊（稍加寬，整體版面略往左） */}
+              <div className="w-full md:w-[104px] lg:w-[120px] shrink-0 relative h-24 md:h-full">
                 <div className="md:absolute md:inset-0 w-full h-full">
                   <Swiper
                     key={thumbDirection}
@@ -1122,7 +1122,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
                     {product.brand}
                   </span>
                 </div>
-                <h1 className="text-2xl lg:text-3xl !leading-[40px] tracking-wide font-medium mb-3">
+                <h1 className="text-[19px] leading-[1.4] tracking-[0.03em] md:text-2xl md:leading-[1.35] lg:text-3xl lg:!leading-[40px] lg:tracking-wide font-medium mb-3">
                   {product.title}
                 </h1>
 
@@ -1202,7 +1202,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         </div>
 
         {/* 下方 Tabs */}
-        <div className="max-w-[1400px] mx-auto px-5 sm:px-8 md:px-12 lg:px-16 xl:px-20 pt-10">
+        <div className="max-w-[1480px] mx-auto px-5 sm:px-6 md:px-8 lg:px-10 xl:px-12 pt-10">
           <div className="flex justify-center gap-8 md:gap-16 border-b border-gray-200 mb-10">
             <button
               onClick={() => setActiveTab("features")}

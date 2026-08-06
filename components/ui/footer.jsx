@@ -66,11 +66,11 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#111111] pt-[150px] pb-10 text-[#f7f7f6] overflow-hidden">
+    <footer className="relative bg-[#111111] pt-14 md:pt-28 lg:pt-[150px] pb-10 text-[#f7f7f6] overflow-hidden">
       {/* --- 頂部波浪造型 SVG --- */}
       <div className="absolute top-[-1px] left-0 w-full overflow-hidden leading-[0] rotate-180">
         <svg
-          className="relative block w-[calc(100%+1.3px)] h-[100px] md:h-[150px]"
+          className="relative block w-[calc(100%+1.3px)] h-[56px] md:h-[100px] lg:h-[150px]"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 1200 100"
           preserveAspectRatio="none"
@@ -108,7 +108,7 @@ export default function Footer() {
 
             <div className="mt-8">
               <p className="text-[10px] font-bold tracking-[0.25em] text-gray-500 uppercase mb-4">
-                {t("footer.follow_us") || "Follow Us"}
+                {tFallback(t, "footer.follow_us", "Follow Us")}
               </p>
               <SocialIconLinks variant="footer" />
               <a

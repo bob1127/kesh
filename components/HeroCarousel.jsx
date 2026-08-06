@@ -3,11 +3,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { CustomEase } from "gsap/dist/CustomEase";
-import { motion, AnimatePresence } from "framer-motion";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(CustomEase);
 }
+
+const FALLBACK_SLIDES = [
+  {
+    type: "image",
+    src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
+    title: "LUXURY BOUTIQUE",
+    category: "KÉSH DE¹",
+    alt: "KÉSH de¹ Luxury Boutique",
+  },
+];
 
 const PickleballAnimation = () => {
   const wrapperRef = useRef(null);
@@ -15,11 +24,10 @@ const PickleballAnimation = () => {
   const textTitleRef = useRef(null);
   const textCategoryRef = useRef(null);
 
-  const [slides, setSlides] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // 先用本地圖立刻呈現，避免黑底 Loading
+  const [slides, setSlides] = useState(FALLBACK_SLIDES);
 
   const isFetched = useRef(false);
-  const isGsapInitialized = useRef(false);
 
   const stateRef = useRef({
     currentIndex: 0,
@@ -29,42 +37,11 @@ const PickleballAnimation = () => {
   });
 
   // ==========================================
-  // 1. API 抓取與「防彈級圖片預先載入」邏輯
+  // 1. API 抓取輪播（失敗則維持本地預設圖）
   // ==========================================
   useEffect(() => {
     if (typeof window === "undefined" || isFetched.current) return;
     isFetched.current = true;
-
-    // 定義備用的預設輪播圖 (當後台沒資料或連線失敗時使用)
-    const fallbackSlides = [
-      {
-        type: "image",
-        src: "/images/Premium_Handbags/LINE_ALBUM_美圖素材20251124_251125_7.jpg",
-        title: "LUXURY BOUTIQUE",
-        category: "KÉSH DE¹",
-        alt: "KÉSH de¹ Luxury Boutique",
-      },
-    ];
-
-    // 🔥 防彈級預載引擎：確保不管發生什麼事，黑畫面一定會消失
-    const preloadFirstImage = (slide) => {
-      const targetUrl = slide?.mediaUrl || slide?.src;
-
-      // 如果這張幻燈片沒有網址，或是它是影片，直接放行不卡 loading
-      if (!targetUrl || slide?.type === "video") {
-        setIsLoading(false);
-        return;
-      }
-
-      const img = new window.Image();
-      // ⚠️ 最佳實踐：先綁定事件，再賦予 src
-      img.onload = () => setIsLoading(false);
-      img.onerror = () => {
-        console.warn("輪播圖片載入失敗，但仍解除 Loading 狀態:", targetUrl);
-        setIsLoading(false);
-      };
-      img.src = targetUrl;
-    };
 
     const fetchSlides = async () => {
       const BACKEND_URL =
@@ -82,27 +59,22 @@ const PickleballAnimation = () => {
         const data = await res.json();
         let fetchedSlides = [];
 
-        // 嚴格過濾：只留下「有圖片網址」的有效資料，避免 Admin 存到空網址導致卡死
         if (data.slides && Array.isArray(data.slides)) {
           fetchedSlides = data.slides.filter((s) => s.mediaUrl || s.src);
         } else if (Array.isArray(data)) {
           fetchedSlides = data.filter((s) => s.mediaUrl || s.src);
         }
 
-        // 如果過濾後發現完全沒有有效圖片，就拋出錯誤進入 fallback
         if (fetchedSlides.length === 0) {
           throw new Error("後台 API 沒有回傳有效的輪播圖片");
         }
 
         setSlides(fetchedSlides);
-        preloadFirstImage(fetchedSlides[0]);
       } catch (error) {
         console.error(
-          "⚠️ 無法取得後台輪播圖，自動載入預設圖片:",
+          "⚠️ 無法取得後台輪播圖，維持預設圖片:",
           error.message,
         );
-        setSlides(fallbackSlides);
-        preloadFirstImage(fallbackSlides[0]);
       }
     };
 
@@ -278,19 +250,19 @@ const PickleballAnimation = () => {
   };
 
   // ==========================================
-  // 3. GSAP 動畫初始化
+  // 3. GSAP 動畫初始化（有 slides 就立刻出圖，不卡黑畫面）
   // ==========================================
   useEffect(() => {
     if (
       typeof window === "undefined" ||
       !wrapperRef.current ||
-      isLoading ||
       slides.length === 0
     )
       return;
 
-    if (isGsapInitialized.current) return;
-    isGsapInitialized.current = true;
+    stopAutoPlay();
+    stateRef.current.currentIndex = 0;
+    stateRef.current.isAnimating = false;
 
     if (!CustomEase.get("hop")) {
       CustomEase.create(
@@ -308,7 +280,12 @@ const PickleballAnimation = () => {
         width: "100%",
         height: "100%",
       });
-      initContainer.appendChild(createMediaElement(slides[0]));
+      const media = createMediaElement(slides[0]);
+      if (media.tagName === "IMG") {
+        media.setAttribute("fetchpriority", "high");
+        media.decoding = "async";
+      }
+      initContainer.appendChild(media);
       carouselImagesRef.current.appendChild(initContainer);
 
       if (textTitleRef.current && textCategoryRef.current) {
@@ -326,7 +303,9 @@ const PickleballAnimation = () => {
     startAutoPlay();
 
     return () => stopAutoPlay();
-  }, [isLoading, slides]);
+  }, [slides]);
+
+  const firstBg = slides[0]?.mediaUrl || slides[0]?.src || FALLBACK_SLIDES[0].src;
 
   return (
     <>
@@ -336,7 +315,9 @@ const PickleballAnimation = () => {
           height: 100vh;
           overflow: hidden;
           position: relative;
-          background: #000;
+          background-color: #111;
+          background-size: cover;
+          background-position: center;
           font-family: inherit;
         }
         .carousel {
@@ -386,7 +367,12 @@ const PickleballAnimation = () => {
         }
         .control-btn {
           pointer-events: auto;
-          padding: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 3.25rem;
+          height: 3.25rem;
+          padding: 0;
           background: rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(5px);
           border: 1px solid rgba(255, 255, 255, 0.3);
@@ -399,6 +385,8 @@ const PickleballAnimation = () => {
           transform: scale(1.1);
         }
         .control-btn svg {
+          width: 1.25rem;
+          height: 1.25rem;
           fill: #fff;
           transition: fill 0.3s;
         }
@@ -420,28 +408,25 @@ const PickleballAnimation = () => {
           .slide-info h1 {
             font-size: 2.5rem;
           }
+          .slider-controls {
+            padding: 0 3%;
+          }
+          .control-btn {
+            width: 2.25rem;
+            height: 2.25rem;
+          }
+          .control-btn svg {
+            width: 0.9rem;
+            height: 0.9rem;
+          }
         }
       `}</style>
 
-      {/* 🔥 優雅退場的黑畫面 Loading */}
-      <AnimatePresence>
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{
-              opacity: 0,
-              transition: { duration: 0.8, ease: "easeInOut" },
-            }}
-            className="absolute inset-0 z-50 bg-black flex items-center justify-center"
-          >
-            <span className="text-white text-xs tracking-widest uppercase animate-pulse">
-              KÉSH de¹ Loading...
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div id="integrated-wrapper" ref={wrapperRef}>
+      <div
+        id="integrated-wrapper"
+        ref={wrapperRef}
+        style={{ backgroundImage: `url("${encodeURI(firstBg)}")` }}
+      >
         <div className="carousel">
           <div className="carousel-images" ref={carouselImagesRef}></div>
           <div className="slide-info">

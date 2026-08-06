@@ -159,6 +159,21 @@ export const SlideTabsExample = () => {
     return () => el.removeEventListener("wheel", onWheel);
   }, [showSearchDropdown, searchResults, isSearching]);
 
+  // 手機選單開啟：鎖背景滾動、隱藏社群浮動鈕
+  useEffect(() => {
+    if (!isMenuOpen) {
+      document.body.classList.remove("mobile-menu-open");
+      return;
+    }
+    const prevOverflow = document.body.style.overflow;
+    document.body.classList.add("mobile-menu-open");
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.classList.remove("mobile-menu-open");
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isMenuOpen]);
+
   useEffect(() => {
     async function fetchMenuData() {
       try {
@@ -867,7 +882,7 @@ export const SlideTabsExample = () => {
         </AnimatePresence>
       </div>
 
-      {/* 手機版側邊滑出選單 */}
+      {/* 手機版側邊滑出選單（z 需高於社群浮動按鈕） */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -876,16 +891,17 @@ export const SlideTabsExample = () => {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-black z-[1001] xl:hidden"
+              className="fixed inset-0 bg-black z-[5000] xl:hidden"
             />
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "tween", duration: 0.3 }}
-              className="fixed top-0 left-0 w-[85%] max-w-[320px] h-full bg-white border-r border-gray-200 shadow-none z-[1002] xl:hidden flex flex-col"
+              transition={{ type: "tween", duration: 0.25 }}
+              className="fixed top-0 left-0 w-[85%] max-w-[320px] h-[100dvh] max-h-[100dvh] bg-white border-r border-gray-200 shadow-none z-[5001] xl:hidden flex flex-col"
+              style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
             >
-              <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                 <span className="text-xl font-bold tracking-widest">
                   KÉSH<span className="text-[#ef4628]">.</span>
                 </span>
@@ -898,7 +914,7 @@ export const SlideTabsExample = () => {
               </div>
 
               {/* 手機版搜尋 */}
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-6 border-b border-gray-100 shrink-0">
                 <div className="flex items-center bg-white px-4 py-3 rounded-full border border-gray-200 shadow-none focus-within:border-gray-400 transition-colors">
                   <Search size={16} className="text-gray-400 mr-2" />
                   <input
@@ -919,7 +935,8 @@ export const SlideTabsExample = () => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* min-h-0 才能讓 flex 子層正確 overflow 滾到底 */}
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y p-6 space-y-6 pb-8">
                 {navLinks.map((link) => (
                   <div key={link.key}>
                     {link.hasMega ? (
@@ -968,7 +985,6 @@ export const SlideTabsExample = () => {
                                     }
                                     className="text-[13px] font-medium text-gray-600 hover:text-[#ef4628] uppercase tracking-wider"
                                   >
-                                    {/* 🔥 手機版：渲染翻譯後的名稱 */}
                                     {getLocalizedName(child)}
                                   </Link>
                                 ))}
@@ -988,36 +1004,36 @@ export const SlideTabsExample = () => {
                     )}
                   </div>
                 ))}
-              </div>
 
-              <div className="p-6 bg-gray-50 mt-auto space-y-4">
-                <Link
-                  href={userInfo ? "/member" : "/login"}
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest hover:text-[#ef4628]"
-                >
-                  <User size={18} />
-                  {userInfo ? `Hi, ${userInfo.name}` : "Login / Register"}
-                </Link>
-                <div className="flex gap-4 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => changeLanguage("zh-TW")}
-                    className={`text-xs ${router.locale === "zh-TW" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
+                <div className="pt-6 mt-2 border-t border-gray-100 space-y-4">
+                  <Link
+                    href={userInfo ? "/member" : "/login"}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest hover:text-[#ef4628]"
                   >
-                    繁
-                  </button>
-                  <button
-                    onClick={() => changeLanguage("en")}
-                    className={`text-xs ${router.locale === "en" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
-                  >
-                    EN
-                  </button>
-                  <button
-                    onClick={() => changeLanguage("ko")}
-                    className={`text-xs ${router.locale === "ko" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
-                  >
-                    KR
-                  </button>
+                    <User size={18} />
+                    {userInfo ? `Hi, ${userInfo.name}` : "Login / Register"}
+                  </Link>
+                  <div className="flex gap-4 pt-2">
+                    <button
+                      onClick={() => changeLanguage("zh-TW")}
+                      className={`text-xs ${router.locale === "zh-TW" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
+                    >
+                      繁
+                    </button>
+                    <button
+                      onClick={() => changeLanguage("en")}
+                      className={`text-xs ${router.locale === "en" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
+                    >
+                      EN
+                    </button>
+                    <button
+                      onClick={() => changeLanguage("ko")}
+                      className={`text-xs ${router.locale === "ko" ? "font-bold text-[#ef4628]" : "text-gray-500"}`}
+                    >
+                      KR
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>

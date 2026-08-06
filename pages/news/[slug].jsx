@@ -199,25 +199,25 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
           </div>
         </div>
 
-        <div className="max-w-[1000px] mx-auto px-6 mb-16 border-b border-gray-200 pb-10">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-            <div className="flex-1">
-              <span className="inline-block border-b border-black text-xs font-bold uppercase tracking-widest mb-4">
+        <div className="max-w-[1000px] mx-auto px-6 mb-20 border-b border-gray-200 pb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-10">
+            <div className="flex-1 max-w-[720px]">
+              <span className="inline-block border-b border-black text-[11px] font-bold uppercase tracking-[0.22em] mb-5">
                 {t("news.category", "News")}
               </span>
-              <h1 className="text-3xl md:text-4xl font-bold uppercase leading-tight mb-2 tracking-wide">
+              <h1 className="text-[1.75rem] md:text-[2.15rem] font-bold leading-[1.55] mb-4 tracking-[0.06em] text-black">
                 {post.title}
               </h1>
-              <p className="text-sm text-gray-400 uppercase tracking-widest font-light">
+              <p className="text-[12px] text-gray-400 uppercase tracking-[0.2em] font-light">
                 KÉSH de¹ OFFICIAL JOURNAL
               </p>
-              <p className="text-xs font-mono mt-4 text-gray-500">
+              <p className="text-[12px] font-mono mt-5 text-gray-500 tracking-[0.04em]">
                 {post.date}
               </p>
             </div>
-            <div className="w-full md:w-[280px] text-xs text-gray-500 space-y-4 pt-2">
+            <div className="w-full md:w-[280px] text-[12px] text-gray-500 space-y-5 pt-2 tracking-[0.04em] leading-[1.85]">
               <div className="flex justify-end gap-4 mb-6">
-                <span className="uppercase tracking-widest text-[10px]">
+                <span className="uppercase tracking-[0.18em] text-[10px]">
                   {t("news.share", "Share :")}
                 </span>
                 <a href="#" className="hover:text-black">
@@ -227,14 +227,14 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
                   TW
                 </a>
               </div>
-              <div className="space-y-1 border-l-2 border-gray-100 pl-4">
-                <p className="font-bold text-gray-900">
+              <div className="space-y-1.5 border-l border-gray-200 pl-4">
+                <p className="font-bold text-gray-900 tracking-[0.08em]">
                   {t("news.editor", "Editor")}
                 </p>
                 <p>KÉSH de¹</p>
               </div>
-              <div className="space-y-1 border-l-2 border-gray-100 pl-4">
-                <p className="font-bold text-gray-900">
+              <div className="space-y-1.5 border-l border-gray-200 pl-4">
+                <p className="font-bold text-gray-900 tracking-[0.08em]">
                   {t("news.category_label", "Category")}
                 </p>
                 <p>{t("news.category_value", "Fashion / Events")}</p>
@@ -243,19 +243,19 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
           </div>
         </div>
 
-        <div className="max-w-[1000px] mx-auto px-6 mb-24 flex flex-col lg:flex-row gap-16 items-start">
-          <aside className="hidden lg:block mr-10 w-48 sticky top-32 shrink-0">
-            <h3 className="text-xs font-bold uppercase tracking-widest mb-6 border-b border-gray-200 pb-3">
+        <div className="max-w-[1000px] mx-auto px-6 mb-28 flex flex-col lg:flex-row gap-16 lg:gap-20 items-start">
+          <aside className="hidden lg:block w-52 sticky top-32 shrink-0">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] mb-7 border-b border-gray-200 pb-3 text-black">
               {t("news.toc", "Table of Contents")}
             </h3>
             {headings.length > 0 ? (
-              <ul className="space-y-4 border-l-2 border-gray-100 pl-4">
+              <ul className="space-y-5 border-l border-gray-200 pl-4">
                 {headings.map((heading) => (
                   <li key={heading.id}>
                     <a
                       href={`#${heading.id}`}
                       onClick={(e) => scrollToHeading(e, heading.id)}
-                      className="text-[13px] text-gray-500 hover:text-[#ef4628] transition-colors line-clamp-2 leading-relaxed font-medium block"
+                      className="text-[13px] text-gray-500 hover:text-[#ef4628] transition-colors line-clamp-3 leading-[1.9] tracking-[0.04em] font-normal block"
                     >
                       {heading.text}
                     </a>
@@ -263,7 +263,7 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 leading-[1.8] tracking-[0.04em]">
                 {t("news.no_outline", "No outlines available.")}
               </p>
             )}
@@ -272,20 +272,25 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
           <div className="flex-1 w-full max-w-[700px]">
             <article
               ref={contentRef}
-              className="prose prose-stone max-w-none 
-  prose-p:text-[15px] prose-p:tracking-[0.13em] prose-p:text-stone-800 prose-p:my-0
-  prose-h1:mt-8 prose-h1:mb-2 prose-h1:text-2xl prose-h1:text-stone-800 
-  prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-h2:mb-0 prose-h2:tracking-wider prose-h2:text-gray-900 prose-h2:pb-4 prose-h2:border-b prose-h2:border-gray-100
-  prose-h3:text-xl prose-h3:font-bold prose-h3:mt-4 prose-h3:mb-1 prose-h3:text-gray-800
-  prose-h4:text-lg prose-h4:font-bold prose-h4:mt-3 prose-h4:mb-1 prose-h4:text-gray-800
-  prose-strong:font-bold prose-strong:text-black prose-strong:tracking-wide 
-  [&>p>b]:font-bold [&>p>b]:text-black [&>p>b]:tracking-wide 
-  prose-img:w-full prose-img:h-auto prose-img:mt-4 prose-img:mb-2 prose-img:rounded-lg prose-img:shadow-sm
-  prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline
-  [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-lg [&_iframe]:my-6 [&_iframe]:shadow-md"
+              className="prose prose-stone max-w-none
+  prose-headings:text-black prose-headings:font-semibold
+  prose-p:text-[15.5px] md:prose-p:text-[16px] prose-p:leading-[2] prose-p:tracking-[0.06em] prose-p:text-stone-800 prose-p:my-[1.35em]
+  prose-li:text-[15.5px] md:prose-li:text-[16px] prose-li:leading-[1.95] prose-li:tracking-[0.05em] prose-li:text-stone-800
+  prose-ul:my-[1.5em] prose-ul:space-y-3 prose-ol:my-[1.5em] prose-ol:space-y-3
+  prose-h1:mt-[2.75em] prose-h1:mb-[0.85em] prose-h1:text-[1.65rem] prose-h1:leading-[1.55] prose-h1:tracking-[0.08em] prose-h1:font-bold
+  prose-h2:mt-[2.75em] prose-h2:mb-[1em] prose-h2:text-[1.45rem] md:prose-h2:text-[1.55rem] prose-h2:leading-[1.6] prose-h2:tracking-[0.08em] prose-h2:font-bold prose-h2:pb-4 prose-h2:border-b prose-h2:border-gray-100
+  prose-h3:mt-[2.1em] prose-h3:mb-[0.75em] prose-h3:text-[1.2rem] prose-h3:leading-[1.65] prose-h3:tracking-[0.07em] prose-h3:font-bold
+  prose-h4:mt-[1.75em] prose-h4:mb-[0.65em] prose-h4:text-[1.05rem] prose-h4:leading-[1.7] prose-h4:tracking-[0.06em] prose-h4:font-bold
+  prose-strong:font-semibold prose-strong:text-black prose-strong:tracking-[0.04em]
+  [&>p>b]:font-semibold [&>p>b]:text-black
+  prose-blockquote:border-l prose-blockquote:border-stone-300 prose-blockquote:pl-5 prose-blockquote:my-[1.75em] prose-blockquote:text-stone-600 prose-blockquote:leading-[1.95] prose-blockquote:tracking-[0.05em]
+  prose-img:w-full prose-img:h-auto prose-img:mt-8 prose-img:mb-3 prose-img:rounded-sm
+  prose-a:text-[#ef4628] prose-a:no-underline hover:prose-a:underline prose-a:underline-offset-4
+  [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-sm [&_iframe]:my-8
+  [text-rendering:optimizeLegibility]"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
-            <div className="flex justify-end mt-16">
+            <div className="flex justify-end mt-20">
               <div
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-[#ef4628] transition-colors"

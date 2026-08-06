@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { ReactLenis } from "@studio-freight/react-lenis";
+import SmoothScroll from "@/components/SmoothScroll";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -71,7 +71,7 @@ export default function ShoppingGuide() {
         )}
       </Head>
 
-      <ReactLenis root>
+      <SmoothScroll>
         <div className="bg-white min-h-screen pt-32 pb-24">
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12">
             {/* 左側：黏性目錄 (Sticky Sidebar) */}
@@ -183,7 +183,7 @@ export default function ShoppingGuide() {
             </main>
           </div>
         </div>
-      </ReactLenis>
+      </SmoothScroll>
     </>
   );
 }

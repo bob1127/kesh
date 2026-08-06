@@ -8,7 +8,7 @@ import Footer from "@/components/ui/footer.jsx";
 import Head from "next/head";
 import CartSidebar from "@/components/CartSidebar"; 
 import FixedSocialBar from "@/components/FixedSocialBar";
-import { ReactLenis } from "@studio-freight/react-lenis";
+import SmoothScroll from "@/components/SmoothScroll";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import {
@@ -208,17 +208,15 @@ export default function Layout({ children }) {
       <CartSidebar />
       <FixedSocialBar />
 
-      <ReactLenis root>
+      <SmoothScroll>
         <div className="flex flex-col justify-between">
-           <main>
-             {children}
-           </main>
-           <div>
-             <Banner />
-             <Footer />
-           </div>
+          <main>{children}</main>
+          <div>
+            <Banner />
+            <Footer />
+          </div>
         </div>
-      </ReactLenis>
+      </SmoothScroll>
     </>
   );
 }

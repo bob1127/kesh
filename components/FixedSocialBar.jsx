@@ -22,6 +22,7 @@ const LineMark = () => (
 export default function FixedSocialBar() {
   return (
     <aside
+      data-fixed-social
       className="fixed bottom-6 right-3 md:bottom-8 md:right-5 z-[950] flex flex-col gap-2.5"
       aria-label="社群聯繫"
     >

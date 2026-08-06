@@ -2,7 +2,7 @@ import React from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ReactLenis } from "@studio-freight/react-lenis";
+import SmoothScroll from "@/components/SmoothScroll";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
@@ -51,7 +51,7 @@ export default function ServicesPage() {
   };
 
   return (
-    <ReactLenis root>
+    <SmoothScroll>
       <Head>
         <title key="title">{seo.title}</title>
         <meta name="description" content={seo.desc} key="description" />
@@ -153,7 +153,7 @@ export default function ServicesPage() {
           </motion.div>
         </div>
       </div>
-    </ReactLenis>
+    </SmoothScroll>
   );
 }
 

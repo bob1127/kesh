@@ -7,6 +7,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* 手機選單開啟時隱藏側邊社群浮動鈕（層級由選單 z-[5000+] 覆蓋） */
+body.mobile-menu-open [data-fixed-social] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 手機／平板（選單斷點 xl 以下）關閉 CSS 平滑滾動，避免與觸控慣性打架卡頓 */
+@media (max-width: 1279px) {
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
 /* 繁中：思源宋體（僅 zh-TW 語系載入字型檔） */
 .lang-zh {
   font-family: var(--font-noto-serif-tc), "Noto Serif TC", "Source Han Serif TC",
