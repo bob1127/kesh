@@ -377,6 +377,7 @@ export async function getStaticPaths() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const PUB_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
+  const locales = ["zh-TW", "en", "ko"];
 
   try {
     const res = await fetch(`${BACKEND_URL}/store/custom/posts`, {
@@ -384,9 +385,14 @@ export async function getStaticPaths() {
     });
     const data = await res.json();
 
-    const paths = (data.posts || [])
-      .filter((p) => p.is_active)
-      .map((post) => ({ params: { slug: post.slug } }));
+    const activeSlugs = (data.posts || [])
+      .filter((p) => p.is_active && p.slug)
+      .map((post) => post.slug);
+
+    // 明確產出三語系路徑，避免某一語系漏建後被永久 404 快取
+    const paths = locales.flatMap((locale) =>
+      activeSlugs.map((slug) => ({ params: { slug }, locale })),
+    );
 
     return { paths, fallback: "blocking" };
   } catch (err) {
@@ -408,11 +414,18 @@ export async function getStaticProps({ params, locale }) {
       `${BACKEND_URL}/store/custom/posts?t=${Date.now()}`,
       { headers },
     );
+    if (!res.ok) {
+      // 暫時性後端錯誤：短 TTL 404，避免永久卡死
+      return { notFound: true, revalidate: 60 };
+    }
     const data = await res.json();
     const allPosts = (data.posts || []).filter((p) => p.is_active);
 
     const currentPostRaw = allPosts.find((p) => p.slug === slug);
-    if (!currentPostRaw) return { notFound: true };
+    if (!currentPostRaw) {
+      // 文章尚不存在／未發布：60 秒後可再試（ISR），避免「建好後仍永久 404」
+      return { notFound: true, revalidate: 60 };
+    }
 
     const isEn = currentLang === "en";
     const isKo = currentLang === "ko";
@@ -431,11 +444,17 @@ export async function getStaticProps({ params, locale }) {
 
     const localizedContent = getLocalizedField(currentPostRaw, "content");
 
-    const relatedProductsRaw = await fetchProductsForArticle(
-      localizedContent,
-      BACKEND_URL,
-      headers,
-    );
+    let relatedProductsRaw = [];
+    try {
+      relatedProductsRaw = await fetchProductsForArticle(
+        localizedContent,
+        BACKEND_URL,
+        headers,
+      );
+    } catch (relatedErr) {
+      console.error("Related products fetch failed:", relatedErr);
+    }
+
     // Next.js getStaticProps：不可傳 undefined（僅允許 null 或省略）
     const relatedProducts = relatedProductsRaw.map((p) => ({
       ...p,
@@ -492,6 +511,7 @@ export async function getStaticProps({ params, locale }) {
     };
   } catch (error) {
     console.error("Post detail error:", error);
-    return { notFound: true };
+    // 暫時錯誤也不要永久 404
+    return { notFound: true, revalidate: 60 };
   }
 }
