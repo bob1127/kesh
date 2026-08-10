@@ -272,13 +272,18 @@ const PickleballAnimation = () => {
     }
 
     if (carouselImagesRef.current) {
+      // 清掉舊層，避免 fallback / API 圖疊出殘影
+      gsap.killTweensOf(carouselImagesRef.current.querySelectorAll(".img, img, video"));
       carouselImagesRef.current.innerHTML = "";
       const initContainer = document.createElement("div");
       initContainer.className = "img";
       Object.assign(initContainer.style, {
         position: "absolute",
+        inset: 0,
         width: "100%",
         height: "100%",
+        zIndex: 1,
+        background: "#111",
       });
       const media = createMediaElement(slides[0]);
       if (media.tagName === "IMG") {
@@ -305,8 +310,6 @@ const PickleballAnimation = () => {
     return () => stopAutoPlay();
   }, [slides]);
 
-  const firstBg = slides[0]?.mediaUrl || slides[0]?.src || FALLBACK_SLIDES[0].src;
-
   return (
     <>
       <style jsx>{`
@@ -316,8 +319,6 @@ const PickleballAnimation = () => {
           overflow: hidden;
           position: relative;
           background-color: #111;
-          background-size: cover;
-          background-position: center;
           font-family: inherit;
         }
         .carousel {
@@ -328,7 +329,23 @@ const PickleballAnimation = () => {
         .carousel-images {
           position: absolute;
           inset: 0;
-          opacity: 0.8;
+          opacity: 1;
+          background: #111;
+        }
+        .carousel-images :global(.img) {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          background: #111;
+        }
+        .carousel-images :global(img),
+        .carousel-images :global(video) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
         .slide-info {
           position: absolute;
@@ -422,11 +439,7 @@ const PickleballAnimation = () => {
         }
       `}</style>
 
-      <div
-        id="integrated-wrapper"
-        ref={wrapperRef}
-        style={{ backgroundImage: `url("${encodeURI(firstBg)}")` }}
-      >
+      <div id="integrated-wrapper" ref={wrapperRef}>
         <div className="carousel">
           <div className="carousel-images" ref={carouselImagesRef}></div>
           <div className="slide-info">
