@@ -9,6 +9,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 import { getCorrectAmount } from "@/lib/price";
+import { moveTestProductsToEnd } from "@/lib/product-sort";
 import { tFallback } from "@/lib/t-fallback";
 import {
   getLocalizedMetadataTitle,
@@ -145,15 +146,19 @@ export default function ProductGridShowcase() {
           id: p.id,
           title: localizeTitle(p.metadata, p.title),
           slug: p.handle,
+          handle: p.handle,
           price: formatPrice(amount),
           image: p.thumbnail || "/images/placeholder.jpg",
+          metadata: p.metadata || {},
         };
       });
 
+      const sortedProducts = moveTestProductsToEnd(formattedProducts);
+
       if (isLoadMore) {
-        setProducts((prev) => [...prev, ...formattedProducts]);
+        setProducts((prev) => [...prev, ...sortedProducts]);
       } else {
-        setProducts(formattedProducts);
+        setProducts(sortedProducts);
       }
 
       setHasMore(data.count > currentOffset + customFetchLimit);

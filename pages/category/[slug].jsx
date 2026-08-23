@@ -19,6 +19,7 @@ import { ChevronDown, Search, X, Filter } from "lucide-react";
 
 // 🔥 引入全站統一的價格計算工具
 import { getCorrectAmount } from "@/lib/price";
+import { compareWithTestProductsLast } from "@/lib/product-sort";
 import { getLocalizedUrl, SITE_URL } from "@/lib/sitelinks-seo";
 import { getSchemaBrand, getSchemaInLanguage } from "@/lib/schema-i18n";
 import { tFallback } from "@/lib/t-fallback";
@@ -635,15 +636,19 @@ export default function CategoryPage({ products, brands, categories, currentPage
     if (priceRange.max)
       list = list.filter((p) => p.rawPrice <= parseFloat(priceRange.max));
 
-    list.sort((a, b) => {
-      if (sortBy === "price-high") return b.rawPrice - a.rawPrice;
-      if (sortBy === "price-low") return a.rawPrice - b.rawPrice;
-      if (sortBy === "oldest")
+    list.sort(
+      compareWithTestProductsLast((a, b) => {
+        if (sortBy === "price-high") return b.rawPrice - a.rawPrice;
+        if (sortBy === "price-low") return a.rawPrice - b.rawPrice;
+        if (sortBy === "oldest")
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
         return (
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+      }),
+    );
 
     return list;
   }, [products, activeFilters, priceRange, sortBy]);
