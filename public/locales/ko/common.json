@@ -962,6 +962,13 @@
     "paymentLimitContactLink": "고객 서비스에 문의",
     "paymentLimitContactAfter": "하여 결제 방법을 안내받으시기 바랍니다.",
     "creditCard": "신용카드 결제",
+    "applePay": "Apple Pay",
+    "googlePay": "Google Pay",
+    "samsungPay": "Samsung Pay",
+    "applePayHint": "Safari 또는 Wallet에 카드가 등록된 Apple 기기에서 결제해 주세요",
+    "googlePayHint": "Google Pay를 지원하는 Chrome 등 브라우저에서 결제해 주세요",
+    "samsungPayHint": "Samsung Pay가 설정된 삼성 기기에서 결제해 주세요",
+    "walletPreparing": "모바일 결제 준비 중...",
     "atmTransfer": "계좌이체 (ATM / 가상계좌)",
     "paypal": "PayPal / Apple Pay / Google Pay",
     "processing": "처리 중...",
@@ -1003,7 +1010,9 @@
     "note_final_amount": "* 최종 결제 금액은 주문 생성 후 계산됩니다.",
     "alert": {
       "fillInfo": "배송 정보를 모두 입력해 주세요",
-      "cardError": "카드 정보가 올바르지 않습니다"
+      "cardError": "카드 정보가 올바르지 않습니다",
+      "walletNotReady": "모바일 결제가 아직 준비되지 않았습니다. 잠시 기다리거나 다른 방법을 선택해 주세요",
+      "amountMismatch": "주문 금액이 변경되었습니다. 확인 후 다시 결제해 주세요"
     },
     "popup": {
       "title": "ATM 이체 정보",

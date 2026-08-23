@@ -961,6 +961,13 @@
     "paymentLimitContactLink": "請聯繫客服",
     "paymentLimitContactAfter": "協助安排付款方式。",
     "creditCard": "信用卡付款",
+    "applePay": "Apple Pay",
+    "googlePay": "Google Pay",
+    "samsungPay": "Samsung Pay",
+    "applePayHint": "請使用 Safari 或已綁定卡片的 Apple 裝置完成付款",
+    "googlePayHint": "請使用支援 Google Pay 的 Chrome 或其他瀏覽器完成付款",
+    "samsungPayHint": "請使用已設定 Samsung Pay 的三星裝置完成付款",
+    "walletPreparing": "行動支付準備中...",
     "atmTransfer": "銀行轉帳 (ATM / 虛擬帳號轉帳)",
     "paypal": "PayPal / Apple Pay / Google Pay",
     "processing": "處理中...",
@@ -1002,7 +1009,9 @@
     "note_final_amount": "* 最終金額以建立訂單後的計算結果為準",
     "alert": {
       "fillInfo": "請填寫完整收件資訊",
-      "cardError": "信用卡資訊有誤"
+      "cardError": "信用卡資訊有誤",
+      "walletNotReady": "行動支付尚未就緒，請稍候或改用其他付款方式",
+      "amountMismatch": "訂單金額已變更，請重新確認後再付款"
     },
     "popup": {
       "title": "ATM 轉帳資訊",

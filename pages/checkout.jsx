@@ -27,6 +27,11 @@ import {
   MEDUSA_BACKEND_URL,
   getMedusaStoreHeaders,
 } from "@/lib/medusa-store";
+import {
+  getWalletPrime,
+  isWalletPaymentMethod,
+  setupWalletPaymentRequest,
+} from "@/lib/tappay-wallets";
 
 // ==========================================
 // 內建台灣縣市區域資料庫
@@ -455,6 +460,9 @@ export default function CheckoutPage() {
     remark: "",
     paymentMethod: defaultCountry === "TW" ? "CREDIT_CARD" : "PAYPAL",
   });
+  const [walletReady, setWalletReady] = useState(false);
+  const [walletSetupError, setWalletSetupError] = useState("");
+  const walletAmountRef = useRef(0);
 
   // 強制語系重整機制
   const initialLocaleRef = useRef(router.locale);
@@ -665,6 +673,52 @@ export default function CheckoutPage() {
     return () => clearInterval(initTapPay);
   }, [formData.paymentMethod, formData.country]);
 
+  // 行動支付：金額或付款方式變更時預先 setup（供 click 時立即 getPrime）
+  useEffect(() => {
+    if (formData.country !== "TW" || !isWalletPaymentMethod(formData.paymentMethod)) {
+      setWalletReady(false);
+      setWalletSetupError("");
+      return;
+    }
+
+    let cancelled = false;
+    setWalletReady(false);
+    setWalletSetupError("");
+
+    const walletAmount = Math.round(total + shippingInfo.cost);
+    walletAmountRef.current = walletAmount;
+
+    const timer = setInterval(() => {
+      if (!window.TPDirect || !isTapPaySetup.current) return;
+      clearInterval(timer);
+
+      setupWalletPaymentRequest(
+        window.TPDirect,
+        formData.paymentMethod,
+        walletAmount,
+      )
+        .then(() => {
+          if (!cancelled) setWalletReady(true);
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setWalletReady(false);
+            setWalletSetupError(err.message || "行動支付初始化失敗");
+          }
+        });
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [
+    formData.paymentMethod,
+    formData.country,
+    total,
+    shippingInfo.cost,
+  ]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => {
@@ -831,9 +885,21 @@ export default function CheckoutPage() {
       setLoading(true);
       let prime = "";
       const TPDirect = window.TPDirect;
+      const walletMethod = isWalletPaymentMethod(formData.paymentMethod);
 
-      // TapPay 必須在建立購物車前先驗證卡片
-      if (formData.paymentMethod === "CREDIT_CARD") {
+      // 行動支付：click 當下只呼叫 getPrime（setup 已於 useEffect 完成）
+      if (walletMethod) {
+        if (!walletReady) {
+          throw new Error(
+            walletSetupError ||
+              t(
+                "checkout.alert.walletNotReady",
+                "行動支付尚未就緒，請稍候或改用其他付款方式",
+              ),
+          );
+        }
+        prime = await getWalletPrime(TPDirect, formData.paymentMethod);
+      } else if (formData.paymentMethod === "CREDIT_CARD") {
         if (TPDirect.card.getTappayFieldsStatus().canGetPrime === false)
           throw new Error(t("checkout.alert.cardError", "信用卡資訊有誤"));
         prime = await new Promise((resolve, reject) =>
@@ -864,6 +930,21 @@ export default function CheckoutPage() {
       if (!cartId) {
         const cart = await prepareMedusaCart();
         cartId = cart.id;
+
+        if (walletMethod) {
+          const serverAmount = Math.round(
+            getCorrectAmount(cart.total, cart.region?.currency_code || "twd"),
+          );
+          const walletAmount = Math.round(total + shippingInfo.cost);
+          if (Math.abs(serverAmount - walletAmount) > 1) {
+            throw new Error(
+              t(
+                "checkout.alert.amountMismatch",
+                "訂單金額已變更，請重新確認後再付款",
+              ),
+            );
+          }
+        }
       }
 
       const backendUrl = MEDUSA_BACKEND_URL;
@@ -1331,19 +1412,45 @@ export default function CheckoutPage() {
                   <div className="border border-gray-200 divide-y divide-gray-100">
                     {formData.country === "TW" ? (
                       <>
-                        <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value="CREDIT_CARD"
-                            checked={formData.paymentMethod === "CREDIT_CARD"}
-                            onChange={handleChange}
-                            className="accent-black"
-                          />
-                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
-                            <CreditCard size={16} />{" "}
-                            {t("checkout.creditCard", "信用卡付款")}
-                          </span>
+                        <label className="flex items-start gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <div className="pt-0.5">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="CREDIT_CARD"
+                              checked={formData.paymentMethod === "CREDIT_CARD"}
+                              onChange={handleChange}
+                              className="accent-black"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-2">
+                              <CreditCard size={16} />{" "}
+                              {t("checkout.creditCard", "信用卡付款")}
+                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <img
+                                src="/images/svg/visa-svgrepo-com.svg"
+                                alt="Visa"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/mastercard-svgrepo-com.svg"
+                                alt="Mastercard"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/amex-3-svgrepo-com.svg"
+                                alt="Amex"
+                                className="h-6 w-auto"
+                              />
+                              <img
+                                src="/images/svg/jcb-3-svgrepo-com.svg"
+                                alt="JCB"
+                                className="h-6 w-auto"
+                              />
+                            </div>
+                          </div>
                         </label>
                         {formData.paymentMethod === "CREDIT_CARD" && (
                           <div className="p-5 bg-gray-50 space-y-4">
@@ -1363,6 +1470,118 @@ export default function CheckoutPage() {
                             </div>
                           </div>
                         )}
+
+                        <label className="flex items-start gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <div className="pt-0.5">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="APPLE_PAY"
+                              checked={formData.paymentMethod === "APPLE_PAY"}
+                              onChange={handleChange}
+                              className="accent-black"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <span className="text-[11px] font-bold uppercase tracking-widest">
+                              {t("checkout.applePay", "Apple Pay")}
+                            </span>
+                            <img
+                              src="/images/svg/apple-pay-svgrepo-com.svg"
+                              alt="Apple Pay"
+                              className="h-7 w-auto self-start"
+                            />
+                          </div>
+                        </label>
+                        {formData.paymentMethod === "APPLE_PAY" && (
+                          <div className="px-5 pb-4 text-[12px] text-gray-600 bg-gray-50">
+                            {walletSetupError ? (
+                              <p className="text-red-600">{walletSetupError}</p>
+                            ) : (
+                              <p>
+                                {t(
+                                  "checkout.applePayHint",
+                                  "請使用 Safari 或已綁定卡片的 Apple 裝置完成付款",
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <label className="flex items-start gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <div className="pt-0.5">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="GOOGLE_PAY"
+                              checked={formData.paymentMethod === "GOOGLE_PAY"}
+                              onChange={handleChange}
+                              className="accent-black"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <span className="text-[11px] font-bold uppercase tracking-widest">
+                              {t("checkout.googlePay", "Google Pay")}
+                            </span>
+                            <img
+                              src="/images/svg/google-pay-svgrepo-com.svg"
+                              alt="Google Pay"
+                              className="h-7 w-auto self-start"
+                            />
+                          </div>
+                        </label>
+                        {formData.paymentMethod === "GOOGLE_PAY" && (
+                          <div className="px-5 pb-4 text-[12px] text-gray-600 bg-gray-50">
+                            {walletSetupError ? (
+                              <p className="text-red-600">{walletSetupError}</p>
+                            ) : (
+                              <p>
+                                {t(
+                                  "checkout.googlePayHint",
+                                  "請使用支援 Google Pay 的 Chrome 或其他瀏覽器完成付款",
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <label className="flex items-start gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
+                          <div className="pt-0.5">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="SAMSUNG_PAY"
+                              checked={formData.paymentMethod === "SAMSUNG_PAY"}
+                              onChange={handleChange}
+                              className="accent-black"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <span className="text-[11px] font-bold uppercase tracking-widest">
+                              {t("checkout.samsungPay", "Samsung Pay")}
+                            </span>
+                            <img
+                              src="/images/svg/samsung-pay-svgrepo-com.svg"
+                              alt="Samsung Pay"
+                              className="h-7 w-auto self-start"
+                            />
+                          </div>
+                        </label>
+                        {formData.paymentMethod === "SAMSUNG_PAY" && (
+                          <div className="px-5 pb-4 text-[12px] text-gray-600 bg-gray-50">
+                            {walletSetupError ? (
+                              <p className="text-red-600">{walletSetupError}</p>
+                            ) : (
+                              <p>
+                                {t(
+                                  "checkout.samsungPayHint",
+                                  "請使用已設定 Samsung Pay 的三星裝置完成付款",
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
                         <label className="flex items-center gap-4 p-5 cursor-pointer hover:bg-gray-50 transition-colors">
                           <input
                             type="radio"
@@ -1542,15 +1761,30 @@ export default function CheckoutPage() {
                           () => (isProcessing.current = false),
                         );
                       }}
-                      disabled={loading || isProcessing.current}
-                      className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.2em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${loading || isProcessing.current ? "opacity-50 cursor-not-allowed" : ""}`}
+                      disabled={
+                        loading ||
+                        isProcessing.current ||
+                        (isWalletPaymentMethod(formData.paymentMethod) &&
+                          !walletReady)
+                      }
+                      className={`w-full bg-black text-white py-6 text-[11px] font-bold uppercase tracking-[0.2em] mt-10 hover:bg-[#ef4628] transition-all duration-500 shadow-xl ${
+                        loading ||
+                        isProcessing.current ||
+                        (isWalletPaymentMethod(formData.paymentMethod) &&
+                          !walletReady)
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }`}
                     >
                       {loading || isProcessing.current
                         ? t("checkout.processing", "PROCESSING...")
-                        : t(
-                            "checkout.completePurchase",
-                            "確認訂單並前往安全付款",
-                          )}
+                        : isWalletPaymentMethod(formData.paymentMethod) &&
+                            !walletReady
+                          ? t("checkout.walletPreparing", "行動支付準備中...")
+                          : t(
+                              "checkout.completePurchase",
+                              "確認訂單並前往安全付款",
+                            )}
                     </button>
                   )}
                 </section>

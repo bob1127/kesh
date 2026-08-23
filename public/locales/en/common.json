@@ -962,6 +962,13 @@
     "paymentLimitContactLink": "contact customer service",
     "paymentLimitContactAfter": " to arrange payment.",
     "creditCard": "Credit Card",
+    "applePay": "Apple Pay",
+    "googlePay": "Google Pay",
+    "samsungPay": "Samsung Pay",
+    "applePayHint": "Use Safari or an Apple device with a card in Wallet to pay",
+    "googlePayHint": "Use Chrome or another Google Pay–supported browser to pay",
+    "samsungPayHint": "Use a Samsung device with Samsung Pay set up to pay",
+    "walletPreparing": "Preparing mobile wallet...",
     "atmTransfer": "Bank Transfer (ATM / Virtual Account)",
     "paypal": "PayPal / Apple Pay / Google Pay",
     "processing": "Processing...",
@@ -1003,7 +1010,9 @@
     "note_final_amount": "* Final amount is calculated when the order is created.",
     "alert": {
       "fillInfo": "Please complete all required shipping information",
-      "cardError": "Invalid card information"
+      "cardError": "Invalid card information",
+      "walletNotReady": "Mobile wallet is not ready yet. Please wait or choose another method",
+      "amountMismatch": "Order total has changed. Please review and try again"
     },
     "popup": {
       "title": "ATM Transfer Details",
