@@ -43,6 +43,19 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+
+  // Apple Pay / 網域驗證檔：確保無副檔名也能被正確讀取
+  async headers() {
+    return [
+      {
+        source: "/.well-known/apple-developer-merchantid-domain-association",
+        headers: [
+          { key: "Content-Type", value: "application/octet-stream" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

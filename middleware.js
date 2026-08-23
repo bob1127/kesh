@@ -4,10 +4,11 @@ import { NextResponse } from 'next/server';
 const PUBLIC_FILE = /\.(.*)$/;
 
 export function middleware(req) {
-  // 1. 略過系統檔案、圖片與 API 路由，避免浪費效能
+  // 1. 略過系統檔案、圖片、API，以及 Apple Pay / 安全驗證路徑（無副檔名）
   if (
     req.nextUrl.pathname.startsWith('/_next') ||
     req.nextUrl.pathname.includes('/api/') ||
+    req.nextUrl.pathname.startsWith('/.well-known') ||
     PUBLIC_FILE.test(req.nextUrl.pathname)
   ) {
     return NextResponse.next();
