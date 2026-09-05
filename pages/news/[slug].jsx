@@ -126,7 +126,7 @@ export default function NewsDetail({ post, recentPosts, relatedProducts = [] }) 
 
         {locales.map((loc) => (
           <link
-            key={loc}
+            key={`hreflang-${loc}`}
             rel="alternate"
             hrefLang={loc}
             href={getLocalizedUrl(loc)}

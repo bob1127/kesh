@@ -137,11 +137,12 @@ export default function Layout({ children }) {
           <>
             {/* 各頁面自行設定 title / description，避免 layout.site_title 覆蓋 */}
             <meta name="author" content="KÉSH de¹ Boutique" />
-            <link rel="canonical" href={canonicalUrl} />
+            {/* key 與各頁專屬 SEO Head 對齊，避免與 product/news 的 canonical 重複 */}
+            <link rel="canonical" href={canonicalUrl} key="canonical" />
 
             {locales.map((loc) => (
               <link
-                key={loc}
+                key={`hreflang-${loc}`}
                 rel="alternate"
                 hrefLang={loc}
                 href={getLocalizedUrl(siteUrl, loc, asPath)}
@@ -151,6 +152,7 @@ export default function Layout({ children }) {
               rel="alternate"
               hrefLang="x-default"
               href={getLocalizedUrl(siteUrl, defaultLocale, asPath)}
+              key="hreflang-default"
             />
 
             <meta property="og:locale" content={ogLocale} key="oglocale" />

@@ -31,6 +31,12 @@ import {
 } from "@/lib/schema-i18n";
 import { resolveSchemaImage, resolveSchemaImages } from "@/lib/schema-images";
 import {
+  SITE_URL,
+  LOCALES,
+  DEFAULT_LOCALE,
+  getLocalizedUrl,
+} from "@/lib/sitelinks-seo";
+import {
   Star,
   ChevronDown,
   Plus,
@@ -692,13 +698,13 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const tReport = isEn ? "Condition Report" : isKo ? "상태 보고서" : "品況報告";
 
   // ==========================================
-  // SEO — computed directly from locale (no i18next dependency for meta tags)
+  // SEO — locale-aware canonical / hreflang / JSON-LD（勿用 router.asPath）
   // ==========================================
   const siteUrl =
-    process.env.NEXT_PUBLIC_STORE_URL || "https://www.kesh-de1.com";
-  const currentUrl = `${siteUrl}${router.asPath}`;
-
+    process.env.NEXT_PUBLIC_STORE_URL || SITE_URL;
+  const productPath = `/product/${product.slug}`;
   const currentLocale = isEn ? "en" : isKo ? "ko" : "zh-TW";
+  const currentUrl = getLocalizedUrl(siteUrl, currentLocale, productPath);
 
   const seoTitle = buildProductSeoTitle({
     brand: product.brand,
@@ -849,17 +855,33 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
   const breadcrumbLabels = getSchemaBreadcrumbLabels(t, currentLocale);
   const breadcrumbHome = breadcrumbLabels.home;
   const breadcrumbProducts = breadcrumbLabels.products;
-  const brandPageUrl = `${siteUrl}/brand/${product.brand.toLowerCase().replace(/\s+/g, "-")}`;
+  const brandSlug = product.brand.toLowerCase().replace(/\s+/g, "-");
+  // Known brand page paths use PascalCase (Chanel / Hermes / ...)
+  const brandPathMap = {
+    chanel: "/brand/Chanel",
+    hermes: "/brand/Hermes",
+    "louis-vuitton": "/brand/LouisVuitton",
+    "louis vuitton": "/brand/LouisVuitton",
+    dior: "/brand/Dior",
+    "christian-dior": "/brand/Dior",
+  };
+  const brandPath =
+    brandPathMap[brandSlug] ||
+    brandPathMap[product.brand.toLowerCase()] ||
+    `/category/${brandSlug}`;
+  const brandPageUrl = getLocalizedUrl(siteUrl, currentLocale, brandPath);
+  const homeUrl = getLocalizedUrl(siteUrl, currentLocale, "/");
+  const categoryUrl = getLocalizedUrl(siteUrl, currentLocale, "/category");
 
   schemaGraph.push({
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: breadcrumbHome, item: siteUrl },
+      { "@type": "ListItem", position: 1, name: breadcrumbHome, item: homeUrl },
       {
         "@type": "ListItem",
         position: 2,
         name: breadcrumbProducts,
-        item: `${siteUrl}/category`,
+        item: categoryUrl,
       },
       {
         "@type": "ListItem",
@@ -887,9 +909,38 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         <title key="title">{seoTitle}</title>
         <meta name="description" content={seoDesc} key="desc" />
         <meta name="keywords" content={seoKeywords} key="keywords" />
-        <link rel="canonical" href={currentUrl} />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1"
+          key="robots"
+        />
+        <link rel="canonical" href={currentUrl} key="canonical" />
+
+        {LOCALES.map((loc) => (
+          <link
+            key={`hreflang-${loc}`}
+            rel="alternate"
+            hrefLang={loc}
+            href={getLocalizedUrl(siteUrl, loc, productPath)}
+          />
+        ))}
+        <link
+          rel="alternate"
+          hrefLang="x-default"
+          href={getLocalizedUrl(siteUrl, DEFAULT_LOCALE, productPath)}
+          key="hreflang-default"
+        />
 
         <meta property="og:locale" content={ogLocale} key="oglocale" />
+        {LOCALES.filter((loc) => loc !== currentLocale).map((loc) => (
+          <meta
+            key={`og-alt-${loc}`}
+            property="og:locale:alternate"
+            content={
+              loc === "en" ? "en_US" : loc === "ko" ? "ko_KR" : "zh_TW"
+            }
+          />
+        ))}
         <meta property="og:type" content="product" key="ogtype" />
         <meta property="og:title" content={seoTitle} key="ogtitle" />
         <meta property="og:description" content={seoDesc} key="ogdesc" />
@@ -919,6 +970,7 @@ export default function ProductDetail({ product, relatedProducts = [] }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          key="product-jsonld"
         />
       </Head>
 
@@ -1310,14 +1362,30 @@ export async function getStaticPaths({ locales }) {
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
   if (!BACKEND_URL || !API_KEY) return { paths: [], fallback: "blocking" };
 
+  const activeLocales = locales?.length ? locales : ["zh-TW", "en", "ko"];
+
   try {
-    const res = await fetch(`${BACKEND_URL}/store/products?limit=100`, {
-      headers: { "x-publishable-api-key": API_KEY },
-    });
-    const data = await res.json();
+    // 分頁抓取，與 sitemap 覆蓋範圍對齊（避免只預建前 100 筆）
+    const allProducts = [];
+    let offset = 0;
+    const pageSize = 100;
+    for (let i = 0; i < 10; i++) {
+      const res = await fetch(
+        `${BACKEND_URL}/store/products?limit=${pageSize}&offset=${offset}&fields=id,handle`,
+        { headers: { "x-publishable-api-key": API_KEY } },
+      );
+      if (!res.ok) break;
+      const data = await res.json();
+      const batch = data.products || [];
+      allProducts.push(...batch);
+      if (batch.length < pageSize) break;
+      offset += pageSize;
+    }
+
     const paths = [];
-    (data.products || []).forEach((p) => {
-      (locales || ["zh-TW", "en", "ko"]).forEach((l) =>
+    allProducts.forEach((p) => {
+      if (!p?.handle) return;
+      activeLocales.forEach((l) =>
         paths.push({ params: { slug: p.handle }, locale: l }),
       );
     });
@@ -1355,7 +1423,8 @@ export async function getStaticProps({ params, locale }) {
     if (!res.ok) console.error("Medusa API 錯誤:", data);
 
     const rawProduct = data.products?.[0];
-    if (!rawProduct) return { notFound: true };
+    // 暫時性錯誤／商品尚未上架：短 TTL，避免永久 404 快取
+    if (!rawProduct) return { notFound: true, revalidate: 60 };
 
     const variantPrices = rawProduct.variants?.[0]?.prices || [];
     let priceObj =
@@ -1482,6 +1551,6 @@ export async function getStaticProps({ params, locale }) {
     };
   } catch (e) {
     console.error("Error in getStaticProps:", e);
-    return { notFound: true };
+    return { notFound: true, revalidate: 60 };
   }
 }

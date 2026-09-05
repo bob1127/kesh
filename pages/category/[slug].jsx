@@ -1000,10 +1000,11 @@ export default function CategoryPage({ products, brands, categories, currentPage
   );
 }
 
-export async function getStaticPaths() {
+export async function getStaticPaths({ locales }) {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
   const API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY;
+  const activeLocales = locales?.length ? locales : ["zh-TW", "en", "ko"];
 
   if (!BACKEND_URL || !API_KEY) return { paths: [], fallback: "blocking" };
 
@@ -1025,7 +1026,9 @@ export async function getStaticPaths() {
     );
 
     const validSlugs = ["all", ...catSlugs, ...colSlugs];
-    const paths = validSlugs.map((slug) => ({ params: { slug: slug } }));
+    const paths = activeLocales.flatMap((locale) =>
+      validSlugs.map((slug) => ({ params: { slug }, locale })),
+    );
 
     return { paths, fallback: "blocking" };
   } catch (error) {

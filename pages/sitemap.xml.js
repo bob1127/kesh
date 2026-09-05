@@ -46,7 +46,7 @@ function urlBlock(lang, path, changefreq, priority, lastmod) {
   </url>`;
 }
 
-function generateSiteMap({ products, categories, collections }) {
+function generateSiteMap({ products, categories, collections, posts }) {
   const staticPages = [
     { path: "",               changefreq: "daily",   priority: "1.0" },
     { path: "/category",      changefreq: "daily",   priority: "0.9" },
@@ -89,17 +89,33 @@ function generateSiteMap({ products, categories, collections }) {
     )
   );
 
+  // 文章：三語系各自一筆 + hreflang 互指（slug 共用，內容由 locale 決定）
+  const newsBlocks = (posts || [])
+    .filter((p) => p?.is_active && p?.slug)
+    .flatMap((post) => {
+      const lastmod = new Date(
+        post.updated_at || post.created_at
+      ).toISOString();
+      return LOCALES.map((lang) =>
+        urlBlock(lang, `/news/${post.slug}`, "weekly", "0.8", lastmod)
+      );
+    });
+
   const now = new Date().toISOString();
+  const activeNewsCount = (posts || []).filter(
+    (p) => p?.is_active && p?.slug
+  ).length;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <!-- Generated: ${now} | Products: ${products.length} | Categories: ${categoryHandles.length} -->
+  <!-- Generated: ${now} | Products: ${products.length} | Categories: ${categoryHandles.length} | News: ${activeNewsCount} -->
   ${staticBlocks.join("")}
   ${productBlocks.join("")}
   ${categoryBlocks.join("")}
+  ${newsBlocks.join("")}
 </urlset>`;
 }
 
@@ -107,23 +123,33 @@ export async function getServerSideProps({ res }) {
   const headers = API_KEY ? { "x-publishable-api-key": API_KEY } : {};
 
   try {
-    const [productsRes, categoriesRes, collectionsRes] = await Promise.all([
-      fetch(`${BACKEND_URL}/store/products?limit=500`, { headers }).then((r) =>
-        r.json()
-      ),
-      fetch(`${BACKEND_URL}/store/product-categories?limit=500`, {
-        headers,
-      }).then((r) => r.json()),
-      fetch(`${BACKEND_URL}/store/collections?limit=500`, { headers }).then(
-        (r) => r.json()
-      ),
-    ]);
+    const [productsRes, categoriesRes, collectionsRes, postsRes] =
+      await Promise.all([
+        fetch(`${BACKEND_URL}/store/products?limit=500`, { headers }).then((r) =>
+          r.json()
+        ),
+        fetch(`${BACKEND_URL}/store/product-categories?limit=500`, {
+          headers,
+        }).then((r) => r.json()),
+        fetch(`${BACKEND_URL}/store/collections?limit=500`, { headers }).then(
+          (r) => r.json()
+        ),
+        fetch(`${BACKEND_URL}/store/custom/posts`, { headers })
+          .then((r) => (r.ok ? r.json() : { posts: [] }))
+          .catch(() => ({ posts: [] })),
+      ]);
 
     const products = productsRes.products || [];
     const categories = categoriesRes.product_categories || [];
     const collections = collectionsRes.collections || [];
+    const posts = postsRes.posts || [];
 
-    const sitemap = generateSiteMap({ products, categories, collections });
+    const sitemap = generateSiteMap({
+      products,
+      categories,
+      collections,
+      posts,
+    });
 
     res.setHeader("Content-Type", "text/xml; charset=UTF-8");
 
@@ -144,7 +170,12 @@ export async function getServerSideProps({ res }) {
 
     // Backend is down — still serve a complete sitemap for all static pages
     // so Google never gets a 500 error and still indexes the important pages.
-    const fallbackSitemap = generateSiteMap({ products: [], categories: [], collections: [] });
+    const fallbackSitemap = generateSiteMap({
+      products: [],
+      categories: [],
+      collections: [],
+      posts: [],
+    });
     res.setHeader("Content-Type", "text/xml; charset=UTF-8");
     // Short cache so it recovers quickly once the backend comes back
     res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
