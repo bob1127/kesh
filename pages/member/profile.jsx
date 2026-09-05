@@ -52,11 +52,17 @@ export default function MemberProfile() {
     }
   }, [userInfo, loading, router]);
 
-  // 2. 抓取訂單資料
+  // 2. 抓取訂單資料（Medusa）
   useEffect(() => {
     if (userInfo?.email && activeTab === "orders") {
       setIsLoadingOrders(true);
-      fetch(`/api/member/orders?email=${userInfo.email}`)
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("medusa_auth_token")
+          : null;
+      fetch(`/api/member/orders`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
         .then((res) => res.json())
         .then((data) => {
           setOrders(Array.isArray(data) ? data : []);

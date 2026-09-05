@@ -4,7 +4,6 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Marquee from "react-marquee-slider";
-import https from "https";
 import useEmblaCarousel from "embla-carousel-react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import CollectionShowcase from "@/components/ProductGridShowcase";
@@ -29,6 +28,7 @@ import {
 } from "@/lib/sitelinks-seo";
 import { tFallback } from "@/lib/t-fallback";
 import { getSiteHeroUrl } from "@/lib/schema-images";
+import { fetchMedusaFeaturedProducts } from "@/lib/medusa-products";
 
 export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
   const { t } = useTranslation("common");
@@ -386,70 +386,14 @@ export async function getStaticProps({ locale }) {
   } catch (error) {
     console.error(`❌ 讀取資料夾時發生例外錯誤:`, error);
   }
-  // ==========================================
-
-  const WC_URL = process.env.WC_SITE_URL;
-  const CK = process.env.WC_CONSUMER_KEY;
-  const CS = process.env.WC_CONSUMER_SECRET;
-
-  if (!WC_URL || !CK || !CS) {
-    console.error("❌ 環境變數缺失！請檢查 Vercel 後台設定。");
-    return {
-      props: {
-        featuredProducts: [],
-        jsonLd: loadHomeJsonLd(currentLang),
-        ...(await serverSideTranslations(currentLang, ["common"])),
-      },
-    };
-  }
-
-  const https = require("https"); // 確保 https 在伺服器端被正確載入
-  const agent = new https.Agent({ rejectUnauthorized: false });
-  const auth = Buffer.from(`${CK}:${CS}`).toString("base64");
-  const headers = {
-    "User-Agent": "Mozilla/5.0 (Next.js)",
-    Authorization: `Basic ${auth}`,
-  };
 
   try {
-    console.log(`🌐 正在向 WooCommerce 請求商品資料...`);
-    const res = await fetch(
-      `${WC_URL}/wp-json/wc/v3/products?status=publish&per_page=10`,
-      { agent, headers },
-    );
-
-    if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-
-    const products = await res.json();
-    console.log(`✅ 成功抓取到 ${products.length} 筆商品`);
-
-    const formattedSlides = products.map((p) => {
-      let imageUrl = "/images/placeholder.jpg"; // ⚠️ 記得確保 public/images/ 裡面有這張圖
-      if (p.images && p.images.length > 0) {
-        let src = p.images[0].src;
-        if (src.startsWith("http://")) {
-          src = src.replace("http://", "https://");
-        }
-        imageUrl = src;
-      }
-
-      const price = `NT$ ${parseInt(p.price || 0).toLocaleString()}`;
-      const cleanDesc = (p.short_description || "")
-        .replace(/<[^>]+>/g, "")
-        .trim();
-      const titleZh = cleanDesc || p.name;
-
-      return {
-        id: p.id,
-        slug: p.slug,
-        titleEn: p.name,
-        titleZh: titleZh,
-        price: price,
-        image: imageUrl,
-      };
+    console.log(`🌐 正在向 Medusa 請求精選商品...`);
+    const formattedSlides = await fetchMedusaFeaturedProducts({
+      limit: 10,
+      locale: currentLang,
     });
-
-    console.log(`🎉 [Build Debug] ${currentLang} 語系處理完成！\n`);
+    console.log(`✅ 成功抓取到 ${formattedSlides.length} 筆商品`);
 
     const featuredImage =
       formattedSlides.find(
@@ -466,7 +410,7 @@ export async function getStaticProps({ locale }) {
       revalidate: 60,
     };
   } catch (error) {
-    console.error("❌ WooCommerce API 抓取失敗:", error.message);
+    console.error("❌ Medusa 商品抓取失敗:", error.message);
     return {
       props: {
         featuredProducts: [],

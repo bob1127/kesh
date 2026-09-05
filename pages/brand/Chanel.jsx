@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
-import https from "https";
 import { motion } from "framer-motion";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -12,6 +11,7 @@ import { tFallback } from "@/lib/t-fallback";
 import { buildProductItemListSchema } from "@/lib/product-offer-schema";
 import { SITE_URL, getLocalizedUrl, buildLocalizedWebPageSchema } from "@/lib/sitelinks-seo";
 import { getSiteHeroUrl } from "@/lib/schema-images";
+import { fetchMedusaFeaturedProducts } from "@/lib/medusa-products";
 
 // Components
 import StickyColumns from "../../components/SwiperCarousel/SwiperCardChanel";
@@ -359,53 +359,16 @@ export default function Home({ chanelProducts }) {
   );
 }
 
-// --- 🔥 後端邏輯：SSG + ISR ---
+// --- SSG + ISR：從 Medusa 抓 Chanel collection ---
 export async function getStaticProps({ locale }) {
   const currentLang = locale || "zh-TW";
-  const WC_URL = process.env.WC_SITE_URL;
-  const CK = process.env.WC_CONSUMER_KEY;
-  const CS = process.env.WC_CONSUMER_SECRET;
-  const agent = new https.Agent({ rejectUnauthorized: false });
 
   try {
-    // 1. 抓取 Chanel 分類 ID
-    const catRes = await fetch(
-      `${WC_URL}/wp-json/wc/v3/products/categories?consumer_key=${CK}&consumer_secret=${CS}&slug=chanel`,
-      { agent },
-    );
-    const categories = await catRes.json();
-    const chanelId = categories.length > 0 ? categories[0].id : null;
-
-    let productsData = [];
-
-    // 2. 抓取該分類下最新 10 筆商品 (orderby=date)
-    if (chanelId) {
-      const prodRes = await fetch(
-        `${WC_URL}/wp-json/wc/v3/products?consumer_key=${CK}&consumer_secret=${CS}&category=${chanelId}&per_page=10&orderby=date&order=desc&status=publish`,
-        { agent },
-      );
-      productsData = await prodRes.json();
-    }
-
-    // 3. 格式化資料
-    const formattedProducts = Array.isArray(productsData)
-      ? productsData.map((p) => {
-          // 處理描述：去除 HTML 標籤並截斷
-          const cleanDesc =
-            (p.short_description || p.description || "")
-              .replace(/<[^>]+>/g, "")
-              .slice(0, 60) + "...";
-          return {
-            id: p.id,
-            slug: p.slug, // 重要：用於連結
-            title: p.name.toUpperCase(),
-            price: `NT$ ${parseInt(p.price || 0).toLocaleString()}`,
-            rawPrice: parseInt(p.price || 0), // 給 Schema 用
-            image: p.images.length > 0 ? p.images[0].src : null,
-            shortDesc: cleanDesc,
-          };
-        })
-      : [];
+    const formattedProducts = await fetchMedusaFeaturedProducts({
+      limit: 12,
+      locale: currentLang,
+      collectionHandle: "chanel",
+    });
 
     return {
       props: {
@@ -415,7 +378,7 @@ export async function getStaticProps({ locale }) {
       revalidate: 60,
     };
   } catch (error) {
-    console.error("Home Data Fetch Error:", error);
+    console.error("Chanel Medusa fetch error:", error);
     return {
       props: {
         ...(await serverSideTranslations(currentLang, ["common"])),

@@ -10,7 +10,7 @@ import {
 
 /**
  * @param {object} props
- * @param {object} [props.order] Medusa / Woo order
+ * @param {object} [props.order] Medusa order
  * @param {string} [props.stage] override stage
  * @param {string} [props.locale]
  * @param {boolean} [props.compact]

@@ -6,9 +6,9 @@ import {
   FiHome,
   FiPieChart,
 } from "react-icons/fi";
-import Navbartext from "../components/NavbarTest";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-// import NavbarTest from "../components/NavbarTest";
+
 export default function Features() {
   return (
     <div className="flex  w-auto justify-start p-1 text-neutral-200 md:justify-center">
@@ -164,14 +164,13 @@ const Nub = ({ selected }) => {
 const Products = () => {
   return (
     <div>
-      <div>
-        <NavbarTest />
-      </div>
-
-      <button className="ml-auto mt-4 flex items-center gap-1 text-sm text-indigo-300">
+      <Link
+        href="/category"
+        className="ml-auto mt-4 flex items-center gap-1 text-sm text-indigo-300"
+      >
         <span>View more</span>
         <FiArrowRight />
-      </button>
+      </Link>
     </div>
   );
 };

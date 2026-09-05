@@ -1,63 +1,65 @@
-// pages/api/search-products.js
-import https from "https";
+// pages/api/search-products.js — Medusa 商品搜尋（autocomplete）
+import {
+  MEDUSA_BACKEND_URL,
+  getMedusaServerHeaders,
+} from "@/lib/medusa-products";
+import { getCorrectAmount } from "@/lib/price";
+import { getLocalizedMetadataTitle } from "@/lib/localized-metadata";
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
-    return res.status(405).json({ message: "Method Not Allowed" });
+    return res.status(405).json({ message: "Method not allowed" });
   }
 
-  const { q = "", lang = "zh" } = req.query;
+  const q = String(req.query.q || "").trim();
+  const lang = String(req.query.lang || "zh-TW");
 
   if (!q) {
-    return res.status(200).json([]);
+    return res.status(200).json({ products: [] });
   }
-
-  const WC_URL = process.env.WC_SITE_URL;
-  const CK = process.env.WC_CONSUMER_KEY;
-  const CS = process.env.WC_CONSUMER_SECRET;
-
-  if (!WC_URL || !CK || !CS) {
-    return res.status(500).json({ message: "WooCommerce API credentials missing" });
-  }
-
-  const agent = new https.Agent({ rejectUnauthorized: false });
-  const auth = Buffer.from(`${CK}:${CS}`).toString("base64");
-  const headers = {
-    "User-Agent": "Mozilla/5.0 (Next.js)",
-    Authorization: `Basic ${auth}`,
-  };
 
   try {
-    // 呼叫 Woo API，搭配 search 與 lang 參數
-    const response = await fetch(
-      `${WC_URL}/wp-json/wc/v3/products?search=${encodeURIComponent(q)}&status=publish&per_page=5&lang=${lang}`,
-      { agent, headers }
+    const headers = getMedusaServerHeaders();
+    const currency =
+      lang === "en" || lang === "en-US" ? "usd" : lang === "ko" ? "krw" : "twd";
+    const symbol =
+      currency === "usd" ? "$ " : currency === "krw" ? "₩ " : "NT$ ";
+
+    const searchRes = await fetch(
+      `${MEDUSA_BACKEND_URL}/store/products?q=${encodeURIComponent(q)}&limit=5&fields=id,title,handle,thumbnail,metadata,*variants,*variants.prices`,
+      { headers },
     );
 
-    if (!response.ok) throw new Error("Failed to fetch from WooCommerce");
+    if (!searchRes.ok) {
+      throw new Error("Failed to fetch from Medusa");
+    }
 
-    const data = await response.json();
+    const data = await searchRes.json();
+    const products = (data.products || []).map((p) => {
+      const prices = p.variants?.[0]?.prices || [];
+      const priceObj =
+        prices.find((pr) => pr.currency_code?.toLowerCase() === currency) ||
+        prices[0];
+      const amount = priceObj
+        ? getCorrectAmount(priceObj.amount, priceObj.currency_code)
+        : 0;
 
-    // 整理成前端下拉選單需要的精簡格式
-    const formattedProducts = data.map((p) => {
-      let imageUrl = "/images/placeholder.jpg";
-      if (p.images && p.images.length > 0) {
-        let src = p.images[0].src;
-        if (src.startsWith("http://")) src = src.replace("http://", "https://");
-        imageUrl = src;
-      }
       return {
         id: p.id,
-        slug: p.slug,
-        title: p.name,
-        price: `NT$ ${parseInt(p.price || 0).toLocaleString()}`,
-        image: imageUrl,
+        slug: p.handle,
+        name: getLocalizedMetadataTitle(p.metadata, p.title, lang),
+        price: amount
+          ? `${symbol}${Math.round(amount).toLocaleString()}`
+          : "",
+        images: p.thumbnail
+          ? [{ src: p.thumbnail }]
+          : [{ src: "/images/placeholder.jpg" }],
       };
     });
 
-    res.status(200).json(formattedProducts);
+    return res.status(200).json({ products });
   } catch (error) {
-    console.error("Live Search API Error:", error);
-    res.status(500).json([]);
+    console.error("[search-products]", error);
+    return res.status(500).json({ message: error.message || "Search failed" });
   }
 }

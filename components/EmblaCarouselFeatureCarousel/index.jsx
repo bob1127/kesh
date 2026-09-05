@@ -11,14 +11,14 @@ const FeatureCarousel = ({ products }) => {
     return null; // 或者可以回傳一個 Loading 骨架屏
   }
 
-  // 將 WooCommerce 的資料格式 轉換成 EmblaCarousel 需要的格式
+  // 將商品資料格式轉換成 EmblaCarousel 需要的格式
   const slides = products.map((item) => ({
     id: item.id,
-    slug: item.slug,
+    slug: item.slug || item.handle,
     title: item.title,
-    image: item.image || "/images/placeholder.jpg", // 若無圖片顯示佔位圖
+    image: item.image || "/images/placeholder.jpg",
     price: item.price,
-    description: item.shortDesc || "Featured Chanel Item",
+    description: item.shortDesc || "Featured Item",
   }));
 
   return (

@@ -1,8 +1,3 @@
-import { useState, useEffect } from "react";
-import { Button } from "@heroui/react";
-import Link from "next/link";
-import { useRouter } from "next/router";
-
 export const CartIcon = ({ fill = "black", size, height, width, ...props }) => (
   <svg
     fill={fill}
@@ -32,49 +27,44 @@ export const InstagramIcon = ({
   ...props
 }) => (
   <svg
-    fill="none"
+    fill={fill}
     height={size || height || 24}
-    width={size || width || 24}
     viewBox="0 0 24 24"
+    width={size || width || 24}
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
     <rect
-      x="2"
-      y="2"
-      width="20"
-      height="20"
+      x="3"
+      y="3"
+      width="18"
+      height="18"
       rx="5"
       stroke={fill}
       strokeWidth={1.5}
+      fill="none"
     />
-    <circle cx="12" cy="12" r="4" stroke={fill} strokeWidth={1.5} />
-    <circle cx="18" cy="6" r="1.5" fill={fill} />
+    <circle cx="12" cy="12" r="4" stroke={fill} strokeWidth={1.5} fill="none" />
+    <circle cx="17.5" cy="6.5" r="1" fill={fill} />
   </svg>
 );
 
 export const LineIcon = ({ fill = "black", size, height, width, ...props }) => (
   <svg
-    fill="none"
+    fill={fill}
     height={size || height || 24}
-    width={size || width || 24}
     viewBox="0 0 24 24"
+    width={size || width || 24}
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <path
-      d="M3 11.5c0 4.69 4.7 8.5 10 8.5 1.5 0 2.92-.24 4.18-.66.39-.13.83-.07 1.14.21l2.22 1.99c.58.52 1.5.11 1.5-.67v-3.37c0-.33.2-.62.49-.77C23.21 15.44 24 13.58 24 11.5 24 6.81 19.3 3 14 3S3 6.81 3 11.5Z"
-      stroke={fill}
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
+    <path d="M19.5 4.5C17.2 2.9 14.2 2 12 2S6.8 2.9 4.5 4.5C2.6 5.9 1.5 8 1.5 10.3c0 3.7 3.3 6.8 7.7 7.8-.2.6-.7 2.2-.8 2.5 0 0-.1.4.2.5.3.2.5 0 .5 0 .7-.1 2.6-1.7 3-2.1 3.6.5 7.4-.5 9.5-2.6 1.8-1.8 2.9-4.2 2.9-6.7 0-2.3-1.1-4.4-3-5.7z" />
   </svg>
 );
 
 export const UserIcon = ({ fill = "black", size, height, width, ...props }) => (
   <svg
-    fill={fill}
+    fill="none"
     height={size || height || 24}
     viewBox="0 0 24 24"
     width={size || width || 24}
@@ -85,96 +75,3 @@ export const UserIcon = ({ fill = "black", size, height, width, ...props }) => (
     <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" stroke={fill} strokeWidth={1.5} />
   </svg>
 );
-
-export default function App() {
-  const [userInfo, setUserInfo] = useState(null);
-  const [token, setToken] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    if (savedToken) {
-      setToken(savedToken);
-      fetch("https://starislandbaby.com/test/wp-json/wp/v2/users/me", {
-        headers: { Authorization: `Bearer ${savedToken}` },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data.code) setUserInfo(data);
-        });
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setUserInfo(null);
-    setToken(null);
-    router.push("/"); // 可選擇保留在當前頁面或導向首頁
-  };
-
-  return (
-    <div className="flex gap-4 items-center">
-      <a
-        href="https://www.instagram.com/kesh_de_1/"
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Button
-          isIconOnly
-          aria-label="Instagram"
-          color="primary"
-          variant="faded"
-        >
-          <InstagramIcon />
-        </Button>
-      </a>
-      <a
-        href="https://lin.ee/rIg5rW0"
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Button isIconOnly aria-label="LINE" color="success" variant="faded">
-          <LineIcon />
-        </Button>
-      </a>
-
-      <Link href="/Cart">
-        <Button isIconOnly aria-label="Cart" color="danger" variant="faded">
-          <CartIcon />
-        </Button>
-      </Link>
-
-      {userInfo ? (
-        <div className="flex  items-center gap-2 text-gray-800">
-          <Link
-            href="/account"
-            className=" px-3 py-2 flex   flex-row text-[.8rem] text-gray-800 font-medium"
-          >
-            歡迎， {userInfo.name}
-          </Link>
-
-          <Button
-            onClick={handleLogout}
-            className="text-gray-800 !bg-transparent hover:bg-gray-200"
-            variant="light"
-            size="sm"
-          >
-            登出
-          </Button>
-        </div>
-      ) : (
-        <Link href="/login">
-          <Button
-            isIconOnly
-            className="w-full px-1"
-            aria-label="Login"
-            color="secondary"
-            variant="faded"
-          >
-            登入會員
-          </Button>
-        </Link>
-      )}
-    </div>
-  );
-}
