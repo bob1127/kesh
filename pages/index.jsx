@@ -1,15 +1,12 @@
 // pages/index.js
-import React, { useRef, useState, useCallback, useEffect } from "react";
+import React from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
 import Marquee from "react-marquee-slider";
-import useEmblaCarousel from "embla-carousel-react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import CollectionShowcase from "@/components/ProductGridShowcase";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import HeroSlider from "../components/Slider/Slider";
 import ParallaxImage from "../components/ParallaxImage";
 import Gallery from "../components/ImageTextSlider";
 import FullSlider from "../components/HeroSlideContact/page";
@@ -24,75 +21,21 @@ import {
   getOgLocale,
   buildHomePageJsonLd,
   DEFAULT_SITE_NAME,
-  DEFAULT_SITE_DESCRIPTION,
 } from "@/lib/sitelinks-seo";
 import { tFallback } from "@/lib/t-fallback";
 import { getSiteHeroUrl } from "@/lib/schema-images";
-import { fetchMedusaFeaturedProducts } from "@/lib/medusa-products";
 
-export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
+export default function Home({ jsonLd: jsonLdFromProps }) {
   const { t } = useTranslation("common");
   const { locale } = useRouter();
-  // --- 1. 頁面滾動特效 ---
-  const scrollRef = useRef(null);
-  const { scrollY } = useScroll({
-    target: scrollRef,
-    offset: ["start start", "end end"],
-  });
-  const y1 = useTransform(scrollY, [0, 1000], [0, 100]);
-
-  // --- 2. 輪播設定 (調整為更流暢的滑動) ---
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: "start",
-    slidesToScroll: 1,
-    containScroll: "trimSnaps",
-  });
-
-  const [prevBtnDisabled, setPrevBtnDisabled] = useState(true);
-  const [nextBtnDisabled, setNextBtnDisabled] = useState(true);
-
-  const scrollPrev = useCallback(
-    () => emblaApi && emblaApi.scrollPrev(),
-    [emblaApi],
-  );
-  const scrollNext = useCallback(
-    () => emblaApi && emblaApi.scrollNext(),
-    [emblaApi],
-  );
-
-  const onSelect = useCallback((api) => {
-    setPrevBtnDisabled(!api.canScrollPrev());
-    setNextBtnDisabled(!api.canScrollNext());
-  }, []);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect(emblaApi);
-    emblaApi.on("reInit", onSelect);
-    emblaApi.on("select", onSelect);
-  }, [emblaApi, onSelect]);
-
-  // --- 3. 字數限制小工具 (限制 15 字) ---
-  const truncateTitle = (str, limit = 15) => {
-    if (!str) return "";
-    return str.length > limit ? str.substring(0, limit) + "..." : str;
-  };
 
   const siteTitle = t("home.seo.title");
   const siteDescription = t("home.seo.description");
   const siteName = tFallback(t, "layout.site_name", DEFAULT_SITE_NAME);
-  const siteDescriptionGlobal = tFallback(
-    t,
-    "layout.site_description",
-    DEFAULT_SITE_DESCRIPTION,
-  );
   const keywords = t("home.seo.keywords");
   const ogLocale = getOgLocale(locale);
   const canonicalUrl = getLocalizedUrl(SITE_URL, locale, "/");
-  const ogImage =
-    featuredProducts?.find((p) => p.image && !p.image.includes("placeholder"))
-      ?.image || getSiteHeroUrl(SITE_URL);
+  const ogImage = getSiteHeroUrl(SITE_URL);
 
   const jsonLd = jsonLdFromProps;
 
@@ -157,11 +100,11 @@ export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
         <meta name="twitter:image" content={ogImage} key="twimage" />
 
         {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-          key="home-jsonld"
-        />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            key="home-jsonld"
+          />
         )}
       </Head>
       <HeroCarousel />
@@ -200,82 +143,7 @@ export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
         </section>
       </ParallaxProvider>
 
-      {/* =======================================================
-          🔥 極簡雜誌風格輪播 (Updated Style)
-      ======================================================= */}
-      <section className="pt-10 relative container mx-auto px-6 md:px-12">
-        {/* 標題與控制按鈕區 */}
-        <div className="flex justify-between items-end mb-10 px-2">
-          <h2 className="text-2xl md:text-3xl lg:mt-10 font-normal tracking-[0.2em] uppercase text-gray-900">
-            Featured Collections
-          </h2>
-          {/* 極簡箭頭 */}
-          <div className="hidden md:flex gap-6">
-            <button
-              onClick={scrollPrev}
-              disabled={prevBtnDisabled}
-              className="text-gray-400 hover:text-black transition-colors disabled:opacity-20"
-            >
-              <span className="text-2xl">←</span>
-            </button>
-            <button
-              onClick={scrollNext}
-              disabled={nextBtnDisabled}
-              className="text-gray-400 hover:text-black transition-colors disabled:opacity-20"
-            >
-              <span className="text-2xl">→</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Embla Viewport */}
-        <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex touch-pan-y -ml-6 md:-ml-8">
-            {featuredProducts &&
-              featuredProducts.map((slide, index) => (
-                <div
-                  className="flex-[0_0_85%] md:flex-[0_0_45%] lg:flex-[0_0_30%] min-w-0 pl-6 md:pl-8 relative"
-                  key={slide.id || index}
-                >
-                  {/* 🔥 風格修改重點：
-                   1. 移除 border, shadow, rounded
-                   2. 圖片改為 4:5 比例 (aspect-[4/5])
-                   3. 文字靠左 (text-left)
-                */}
-                  <Link
-                    href={`/product/${slide.slug}`}
-                    className="group block w-full"
-                  >
-                    {/* 圖片區域：極簡、無框 */}
-                    <div className="relative w-full aspect-[4/5] overflow-hidden bg-gray-50 mb-5">
-                      <img
-                        src={slide.image}
-                        className="w-full h-full object-cover object-center transition-transform duration-1000 ease-out group-hover:scale-105"
-                        alt={slide.titleEn}
-                      />
-                    </div>
-
-                    {/* 文字區域：極簡排版 */}
-                    <div className="flex flex-col items-start space-y-1">
-                      {/* 上方小字：價格或系列名 (灰色、全大寫、寬間距) */}
-                      <span className="text-[11px] md:text-[12px] text-gray-500 uppercase tracking-[0.15em] font-medium">
-                        {slide.price}
-                      </span>
-
-                      {/* 主標題：限制 15 字 (黑色、襯線體或乾淨無襯線) */}
-                      <h3 className="text-[15px] md:text-[16px] text-gray-900 font-normal tracking-wide leading-relaxed group-hover:text-gray-600 transition-colors">
-                        {truncateTitle(slide.titleZh || slide.titleEn, 15)}
-                      </h3>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-          </div>
-        </div>
-      </section>
-      {/* ======================================================= */}
-
-      <div ref={scrollRef} className="relative z-10">
+      <div className="relative z-10">
         <section className="feature  ">
           <Gallery />
         </section>
@@ -317,13 +185,10 @@ export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
             </div>
             <div className="relative text-center z-10">
               <h1 className="uppercase text-white text-[3rem] xl:text-[5rem] font-normal tracking-[-1px] leading-none">
-                {/* 🔥 替換標題 */}
                 {t("home.contact_title")}
               </h1>
-              {/* 💡 順便幫你加上 Link 導向，這樣點擊按鈕才會真正前往 contact 頁面 */}
               <Link href="/contact">
                 <button className="border mt-3 border-stone-300 px-3 py-1 text-[#f0f0f0] bg-[#f83f23] rounded-full hover:bg-white hover:text-[#f83f23] transition-colors">
-                  {/* 🔥 替換按鈕文字 */}
                   {t("home.contact_btn")}
                 </button>
               </Link>
@@ -335,8 +200,6 @@ export default function Home({ featuredProducts, jsonLd: jsonLdFromProps }) {
   );
 }
 
-// --- SSG: 服務端抓取資料 ---
-// --- SSG: 服務端抓取資料 ---
 function loadHomeJsonLd(currentLang, featuredImage = "") {
   const fs = require("fs");
   const path = require("path");
@@ -361,63 +224,11 @@ function loadHomeJsonLd(currentLang, featuredImage = "") {
 export async function getStaticProps({ locale }) {
   const currentLang = locale || "zh-TW";
 
-  // ==========================================
-  // 🛠️ 1. Vercel Build 階段多語系除錯區塊
-  // ==========================================
-  console.log(
-    `\n=== 🔍 [Build Debug] 準備處理首頁，當前語系: ${currentLang} ===`,
-  );
-
-  const fs = require("fs");
-  const path = require("path");
-  const localeDir = path.resolve("./public/locales", currentLang);
-
-  console.log(`📂 預期的翻譯檔路徑: ${localeDir}`);
-
-  try {
-    if (fs.existsSync(localeDir)) {
-      const files = fs.readdirSync(localeDir);
-      console.log(`✅ 成功找到資料夾！裡面的檔案包含:`, files);
-    } else {
-      console.error(
-        `❌ 嚴重錯誤：找不到 ${currentLang} 語系的資料夾！(Vercel 沒有正確打包)`,
-      );
-    }
-  } catch (error) {
-    console.error(`❌ 讀取資料夾時發生例外錯誤:`, error);
-  }
-
-  try {
-    console.log(`🌐 正在向 Medusa 請求精選商品...`);
-    const formattedSlides = await fetchMedusaFeaturedProducts({
-      limit: 10,
-      locale: currentLang,
-    });
-    console.log(`✅ 成功抓取到 ${formattedSlides.length} 筆商品`);
-
-    const featuredImage =
-      formattedSlides.find(
-        (p) => p.image && !String(p.image).includes("placeholder"),
-      )?.image || "";
-    const jsonLd = loadHomeJsonLd(currentLang, featuredImage);
-
-    return {
-      props: {
-        ...(await serverSideTranslations(currentLang, ["common"])),
-        featuredProducts: formattedSlides,
-        jsonLd,
-      },
-      revalidate: 60,
-    };
-  } catch (error) {
-    console.error("❌ Medusa 商品抓取失敗:", error.message);
-    return {
-      props: {
-        featuredProducts: [],
-        jsonLd: loadHomeJsonLd(currentLang),
-        ...(await serverSideTranslations(currentLang, ["common"])),
-      },
-      revalidate: 60,
-    };
-  }
+  return {
+    props: {
+      ...(await serverSideTranslations(currentLang, ["common"])),
+      jsonLd: loadHomeJsonLd(currentLang, getSiteHeroUrl(SITE_URL)),
+    },
+    revalidate: 60,
+  };
 }
